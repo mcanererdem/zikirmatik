@@ -177,10 +177,10 @@ class _ZikrButtonState extends State<ZikrButton> {
               end: Alignment.bottomRight,
             ),
             boxShadow: isPressed
-                ? []
-                : [
+                ? const []
+                : const [
                     BoxShadow(
-                      color: Color(0xFFE0B973).withOpacity(0.6),
+                      color: Color(0x99E0B973),
                       blurRadius: 30,
                       spreadRadius: 2,
                     ),
