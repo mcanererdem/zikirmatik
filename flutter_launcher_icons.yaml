@@ -1,0 +1,12 @@
+flutter_launcher_icons:
+  image_path: "assets/icons/app_icon.png"
+  
+  android:
+    notification_icon: "notification_icon"
+    
+  ios:
+    image_set_folder: "Runner/Assets.xcassets"
+    
+  web:
+    generate: true
+    image_path: "assets/icons/app_icon.png"
