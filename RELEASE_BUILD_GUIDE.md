@@ -57,7 +57,7 @@ When prompted, enter:
 ```
 Enter keystore password: MyStrongPassword123
 Key password (same as keystore password):
-First and Last Name: Erdem Canerer
+First and Last Name: Erdem Caner
 Organization Unit: Zikirmatik
 Organization: Zikirmatik
 City: Istanbul

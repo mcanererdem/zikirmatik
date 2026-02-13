@@ -52,11 +52,22 @@ android {
         versionName = flutterVersionName
     }
 
+    signingConfigs {
+        release {
+            // TODO: Fill in keystore path, password, alias, and key password before building
+            // Steps to create keystore:
+            // 1. Use Android Studio: Build > Generate Signed Bundle/APK > Create new keystore
+            // 2. Or use keytool (see .android/local.properties.example)
+            keyAlias = 'upload'
+            keyPassword = System.getenv("KEY_PASSWORD") ?: 'zikirmatik123'
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: System.getProperty("user.home") + '/upload-keystore.jks')
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: 'zikirmatik123'
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.release
         }
     }
 }
