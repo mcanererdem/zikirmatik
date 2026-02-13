@@ -97,6 +97,33 @@ zikirmatik/
 - Debug modda: Test reklamlar otomatik kullanılır
 - Release modda: Production ID aktif (app approval şartıyla)
 
+## Store Yayıncılığı 📱
+
+### Google Play Store'a Yükleme
+
+Uygulamayı Google Play Store'a yüklemek isteyenler için ayrıntılı rehberler:
+
+- **[RELEASE_BUILD_GUIDE.md](RELEASE_BUILD_GUIDE.md)** — Keystore oluşturma, release build alma, ve store'a yükleme adım adım
+- **[STORE_LISTING.md](STORE_LISTING.md)** — Google Play Store listeleme bilgisi, açıklamalar, ekran görüntüleri
+- **[PRIVACY_POLICY.md](PRIVACY_POLICY.md)** — Gizlilik politikası (store tarafından gerekli)
+
+### Release Build Yöntemi
+
+```bash
+# 1. Keystore oluştur (ilk seferinde)
+# bkz. RELEASE_BUILD_GUIDE.md → Step 1
+
+# 2. Environment değişkenlerini ayarla
+# bkz. RELEASE_BUILD_GUIDE.md → Step 2
+
+# 3. Release AAB oluştur
+flutter build appbundle --release
+
+# Çıktı: build/app/outputs/bundle/release/app-release.aab
+```
+
+Detaylı talimatlar için [RELEASE_BUILD_GUIDE.md](RELEASE_BUILD_GUIDE.md) dosyasını okuyunuz.
+
 ## Geri Bildirim 💬
 
 Buğ bulunuz veya özellik eklemek isteyenler lütfen [Issues](https://github.com/mcanererdem/zikirmatik/issues) kısmını kullanınız.
