@@ -6,12 +6,14 @@ import 'core/theme/app_theme.dart';
 import 'services/location_service.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
+import 'services/widget_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Bildirim servisi başlat
   await NotificationService.initialize();
+  await WidgetService.initialize();
 
   // Status bar ayarları
   SystemChrome.setSystemUIOverlayStyle(

@@ -7,6 +7,7 @@ import '../models/zikr_model.dart';
 import '../models/theme_model.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
+import '../services/widget_service.dart';
 import '../utils/localizations.dart';
 import '../widgets/confetti_animation.dart';
 import '../widgets/success_dialog.dart';
@@ -193,6 +194,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     // Sayacı kaydet
     await _settingsService.saveCurrentCount(_counter);
+    await WidgetService.updateWidget(_counter);
 
     final today = DateTime.now();
     await _settingsService.saveDailyCount(today, _counter);
@@ -298,6 +300,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _showConfetti = false;
     });
     _settingsService.saveCurrentCount(0);
+    WidgetService.updateWidget(0);
     
     if (_isVibrationOn) {
       HapticFeedback.mediumImpact();
