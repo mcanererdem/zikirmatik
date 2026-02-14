@@ -21,11 +21,13 @@ class ReminderDialog extends StatefulWidget {
 class _ReminderDialogState extends State<ReminderDialog> {
   final SettingsService _settingsService = SettingsService();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+  String _statusMessage = '';
 
   @override
   void initState() {
     super.initState();
     _loadSavedTime();
+    _checkPendingNotifications();
   }
 
   Future<void> _loadSavedTime() async {
@@ -35,6 +37,15 @@ class _ReminderDialogState extends State<ReminderDialog> {
         hour: savedTime['hour']!,
         minute: savedTime['minute']!,
       );
+    });
+  }
+
+  Future<void> _checkPendingNotifications() async {
+    final pending = await NotificationService.getPendingNotifications();
+    setState(() {
+      _statusMessage = pending.isEmpty 
+          ? 'No active reminders' 
+          : 'Active reminder: ${_selectedTime.format(context)}';
     });
   }
 
@@ -91,6 +102,18 @@ class _ReminderDialogState extends State<ReminderDialog> {
               ),
             ),
             const SizedBox(height: 24),
+            if (_statusMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  _statusMessage,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             Row(
               children: [
                 Expanded(
@@ -130,7 +153,15 @@ class _ReminderDialogState extends State<ReminderDialog> {
                         _selectedTime.hour,
                         _selectedTime.minute,
                       );
-                      if (context.mounted) Navigator.pop(context);
+                      await _checkPendingNotifications();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Reminder set for ${_selectedTime.format(context)}'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.themeConfig.accentColor,

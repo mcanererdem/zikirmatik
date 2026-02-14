@@ -8,9 +8,14 @@ class NotificationService {
 
   static Future<void> initialize() async {
     tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Europe/Istanbul')); // Default timezone
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
     
     const settings = InitializationSettings(
       android: androidSettings,
@@ -18,29 +23,54 @@ class NotificationService {
     );
 
     await _notifications.initialize(settings);
+    
+    // Request permissions for Android 13+
+    await _notifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
   }
 
   static Future<void> scheduleReminder(int hour, int minute) async {
     try {
+      await cancelAll();
+      
+      final scheduledTime = _nextInstanceOfTime(hour, minute);
+      print('Scheduling notification for: $scheduledTime');
+      print('Current time: ${tz.TZDateTime.now(tz.local)}');
+      
       await _notifications.zonedSchedule(
         0,
-        'Zikir Reminder',
-        'Time for your dhikr!',
-        _nextInstanceOfTime(hour, minute),
+        'Zikir Reminder ⏰',
+        'Time for your daily dhikr! 📿',
+        scheduledTime,
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'zikir_reminder',
             'Zikir Reminders',
             channelDescription: 'Daily zikir reminders',
-            importance: Importance.high,
+            importance: Importance.max,
             priority: Priority.high,
+            enableVibration: true,
+            playSound: true,
           ),
-          iOS: DarwinNotificationDetails(),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
-      print('Notification scheduled for $hour:$minute');
+      
+      // Verify scheduled notification
+      final pending = await _notifications.pendingNotificationRequests();
+      print('Pending notifications: ${pending.length}');
+      for (var notif in pending) {
+        print('ID: ${notif.id}, Title: ${notif.title}');
+      }
     } catch (e) {
       print('Error scheduling notification: $e');
     }
@@ -54,29 +84,38 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     
-    print('Scheduled for: $scheduledDate (Now: $now)');
     return scheduledDate;
   }
 
   static Future<void> cancelAll() async {
     await _notifications.cancelAll();
+    print('All notifications cancelled');
   }
 
-  // Test için anlık bildirim
+  static Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+    return await _notifications.pendingNotificationRequests();
+  }
+
   static Future<void> showTestNotification() async {
     await _notifications.show(
       1,
-      'Test Notification',
-      'This is a test notification!',
+      'Test Notification ✅',
+      'Notifications are working! Your reminder is scheduled.',
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'zikir_reminder',
           'Zikir Reminders',
           channelDescription: 'Daily zikir reminders',
-          importance: Importance.high,
+          importance: Importance.max,
           priority: Priority.high,
+          enableVibration: true,
+          playSound: true,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       ),
     );
   }
