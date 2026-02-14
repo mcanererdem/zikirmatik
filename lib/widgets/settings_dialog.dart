@@ -194,6 +194,17 @@ class _SettingsDialogState extends State<SettingsDialog> {
               const SizedBox(height: 24),
 
               // Theme Mode
+              Text(
+                'Appearance',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: _selectedTheme.accentColor.withOpacity(0.9),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
               Row(
                 children: [
                   Expanded(child: _buildThemeModeBtn(ThemeMode.system, Icons.brightness_auto, 'Auto')),

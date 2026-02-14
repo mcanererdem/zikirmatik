@@ -78,7 +78,7 @@ class _CustomAboutDialogState extends State<CustomAboutDialog> {
             const SizedBox(height: 10),
             _buildLink(
               icon: Icons.person,
-              text: 'Developer: M. Caner Erdem',
+              text: 'Developer: Caner Erdem',
               onTap: () => _launchURL('https://github.com/mcanererdem'),
             ),
             const SizedBox(height: 20),

@@ -123,7 +123,8 @@ class _ReminderDialogState extends State<ReminderDialog> {
                     },
                     child: const Text(
                       'Test',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      maxLines: 1,
                     ),
                   ),
                 ),
@@ -136,7 +137,8 @@ class _ReminderDialogState extends State<ReminderDialog> {
                     },
                     child: Text(
                       widget.localizations.cancelReminder,
-                      style: const TextStyle(color: Colors.white70),
+                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -145,6 +147,11 @@ class _ReminderDialogState extends State<ReminderDialog> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
+                      final savedTime = await _settingsService.getReminderTime();
+                      if (savedTime['hour'] == _selectedTime.hour && savedTime['minute'] == _selectedTime.minute) {
+                        if (context.mounted) Navigator.pop(context);
+                        return;
+                      }
                       await _settingsService.saveReminderTime(
                         _selectedTime.hour,
                         _selectedTime.minute,
@@ -155,19 +162,24 @@ class _ReminderDialogState extends State<ReminderDialog> {
                       );
                       await _checkPendingNotifications();
                       if (context.mounted) {
+                        Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Reminder set for ${_selectedTime.format(context)}'),
                             backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 2),
                           ),
                         );
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.themeConfig.accentColor,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     ),
                     child: Text(
                       widget.localizations.ok,
+                      style: const TextStyle(fontSize: 12),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
