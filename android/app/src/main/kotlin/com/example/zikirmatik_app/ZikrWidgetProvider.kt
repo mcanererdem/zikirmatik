@@ -17,19 +17,8 @@ class ZikrWidgetProvider : AppWidgetProvider() {
             val widgetData = HomeWidgetPlugin.getData(context)
             val counter = widgetData.getInt("counter", 0)
 
-            val views = RemoteViews(context.packageName, R.layout.zikr_widget).apply {
-                setTextViewText(R.id.widget_counter, counter.toString())
-                setOnClickPendingIntent(
-                    R.id.widget_button,
-                    HomeWidgetPlugin.getPendingIntent(
-                        context,
-                        "android.appwidget.action.APPWIDGET_UPDATE",
-                        null,
-                        appWidgetId,
-                        null
-                    )
-                )
-            }
+            val views = RemoteViews(context.packageName, R.layout.zikr_widget)
+            views.setTextViewText(R.id.widget_counter, counter.toString())
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
