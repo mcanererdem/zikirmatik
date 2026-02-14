@@ -66,4 +66,13 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: Colors.transparent,
   );
+
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryBlue,
+      brightness: Brightness.dark,
+    ),
+    scaffoldBackgroundColor: Colors.transparent,
+  );
 }

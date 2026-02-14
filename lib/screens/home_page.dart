@@ -18,7 +18,9 @@ import 'statistics_screen.dart';
 import '../widgets/reminder_dialog.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Function(ThemeMode)? onThemeModeChanged;
+  
+  const HomePage({super.key, this.onThemeModeChanged});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -458,6 +460,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           });
           _settingsService.saveLanguage(languageCode);
           Navigator.pop(context);
+        },
+        onThemeModeChanged: (mode) {
+          widget.onThemeModeChanged?.call(mode);
+          _settingsService.saveThemeMode(mode == ThemeMode.light ? 'light' : mode == ThemeMode.dark ? 'dark' : 'system');
         },
         localizations: _localizations,
       ),

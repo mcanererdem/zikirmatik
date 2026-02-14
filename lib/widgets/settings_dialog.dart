@@ -9,6 +9,7 @@ class SettingsDialog extends StatefulWidget {
   final String currentLanguage;
   final Function(ThemeConfig) onThemeChanged;
   final Function(String) onLanguageChanged;
+  final Function(ThemeMode)? onThemeModeChanged;
   final AppLocalizations localizations;
 
   const SettingsDialog({
@@ -17,6 +18,7 @@ class SettingsDialog extends StatefulWidget {
     required this.currentLanguage,
     required this.onThemeChanged,
     required this.onLanguageChanged,
+    this.onThemeModeChanged,
     required this.localizations,
   });
 
@@ -187,6 +189,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 children: AppThemes.themes.map((theme) {
                   return _buildThemeOption(theme);
                 }).toList(),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Theme Mode
+              Row(
+                children: [
+                  Expanded(child: _buildThemeModeBtn(ThemeMode.system, Icons.brightness_auto, 'Auto')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildThemeModeBtn(ThemeMode.light, Icons.light_mode, 'Light')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildThemeModeBtn(ThemeMode.dark, Icons.dark_mode, 'Dark')),
+                ],
               ),
 
               const SizedBox(height: 24),
@@ -434,6 +449,27 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeModeBtn(ThemeMode mode, IconData icon, String label) {
+    return GestureDetector(
+      onTap: () => widget.onThemeModeChanged?.call(mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(height: 4),
+            Text(label, style: const TextStyle(color: Colors.white, fontSize: 11)),
           ],
         ),
       ),

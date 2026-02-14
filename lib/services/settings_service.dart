@@ -15,6 +15,7 @@ class SettingsService {
   static const String _reminderHourKey = 'reminder_hour';
   static const String _reminderMinuteKey = 'reminder_minute';
   static const String _currentCountKey = 'current_count';
+  static const String _themeModeKey = 'theme_mode';
 
   // Theme
   Future<void> saveTheme(String themeId) async {
@@ -143,5 +144,16 @@ class SettingsService {
   Future<int> getCurrentCount() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_currentCountKey) ?? 0;
+  }
+
+  // Theme Mode (system, light, dark)
+  Future<void> saveThemeMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeModeKey, mode);
+  }
+
+  Future<String> getThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_themeModeKey) ?? 'system';
   }
 }

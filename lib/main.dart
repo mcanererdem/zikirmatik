@@ -52,8 +52,29 @@ void main() async {
   ).then((_) => MobileAds.instance.initialize());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
+  }
+
+  Future<void> _loadThemeMode() async {
+    final settingsService = SettingsService();
+    final mode = await settingsService.getThemeMode();
+    setState(() {
+      _themeMode = mode == 'light' ? ThemeMode.light : mode == 'dark' ? ThemeMode.dark : ThemeMode.system;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +82,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Zikirmatik',
       theme: AppTheme.lightTheme,
-      home: const HomePage(),
+      darkTheme: AppTheme.darkTheme,
+      themeMode: _themeMode,
+      home: HomePage(onThemeModeChanged: (mode) {
+        setState(() => _themeMode = mode);
+      }),
     );
   }
 }
