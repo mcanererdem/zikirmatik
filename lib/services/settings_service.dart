@@ -16,6 +16,8 @@ class SettingsService {
   static const String _reminderMinuteKey = 'reminder_minute';
   static const String _currentCountKey = 'current_count';
   static const String _themeModeKey = 'theme_mode';
+  static const String _lastActivityDateKey = 'last_activity_date';
+  static const String _streakCountKey = 'streak_count';
 
   // Theme
   Future<void> saveTheme(String themeId) async {
@@ -155,5 +157,34 @@ class SettingsService {
   Future<String> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_themeModeKey) ?? 'system';
+  }
+
+  // Streak
+  Future<void> updateStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final lastDate = prefs.getString(_lastActivityDateKey);
+    
+    if (lastDate == null) {
+      await prefs.setString(_lastActivityDateKey, today);
+      await prefs.setInt(_streakCountKey, 1);
+    } else if (lastDate != today) {
+      final last = DateTime.parse(lastDate);
+      final now = DateTime.parse(today);
+      final diff = now.difference(last).inDays;
+      
+      if (diff == 1) {
+        final streak = prefs.getInt(_streakCountKey) ?? 0;
+        await prefs.setInt(_streakCountKey, streak + 1);
+      } else if (diff > 1) {
+        await prefs.setInt(_streakCountKey, 1);
+      }
+      await prefs.setString(_lastActivityDateKey, today);
+    }
+  }
+
+  Future<int> getStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_streakCountKey) ?? 0;
   }
 }

@@ -194,6 +194,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     // Sayacı kaydet
     await _settingsService.saveCurrentCount(_counter);
+    await _settingsService.updateStreak();
     await WidgetService.updateWidget(_counter);
 
     final today = DateTime.now();

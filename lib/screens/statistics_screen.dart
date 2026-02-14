@@ -21,6 +21,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   final SettingsService _settingsService = SettingsService();
   int _todayCount = 0;
   int _totalCount = 0;
+  int _streakCount = 0;
   Map<DateTime, int> _weekData = {};
 
   @override
@@ -33,6 +34,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final today = DateTime.now();
     final todayCount = await _settingsService.getDailyCount(today);
     final totalCount = await _settingsService.getTotalCount();
+    final streakCount = await _settingsService.getStreak();
 
     final weekData = <DateTime, int>{};
     for (int i = 6; i >= 0; i--) {
@@ -44,6 +46,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     setState(() {
       _todayCount = todayCount;
       _totalCount = totalCount;
+      _streakCount = streakCount;
       _weekData = weekData;
     });
   }
@@ -67,6 +70,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       _buildStatCard('Today', _todayCount, Icons.today),
                       const SizedBox(height: 16),
                       _buildStatCard('Total', _totalCount, Icons.all_inclusive),
+                      const SizedBox(height: 16),
+                      _buildStatCard('Streak', _streakCount, Icons.local_fire_department, isStreak: true),
                       const SizedBox(height: 24),
                       _buildWeekChart(),
                     ],
@@ -103,7 +108,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, int count, IconData icon) {
+  Widget _buildStatCard(String title, int count, IconData icon, {bool isStreak = false}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -136,7 +141,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ),
               ),
               Text(
-                count.toString(),
+                count.toString() + (isStreak ? ' days' : ''),
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
