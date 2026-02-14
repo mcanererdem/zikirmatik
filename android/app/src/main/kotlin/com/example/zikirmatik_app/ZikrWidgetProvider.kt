@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
+import com.example.zikirmatik.R
 
 class ZikrWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -20,9 +21,12 @@ class ZikrWidgetProvider : AppWidgetProvider() {
                 setTextViewText(R.id.widget_counter, counter.toString())
                 setOnClickPendingIntent(
                     R.id.widget_button,
-                    HomeWidgetPlugin.getPendingIntentForAction(
+                    HomeWidgetPlugin.getPendingIntent(
                         context,
-                        "increment_counter"
+                        "android.appwidget.action.APPWIDGET_UPDATE",
+                        null,
+                        appWidgetId,
+                        null
                     )
                 )
             }
