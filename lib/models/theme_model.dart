@@ -11,6 +11,8 @@ class ThemeConfig {
   final String id;
   final String nameTr;
   final String nameEn;
+  final String nameAr;
+  final String nameId;
   final AppThemeMode mode;
   final LinearGradient backgroundGradient;
   final LinearGradient buttonGradient;
@@ -22,6 +24,8 @@ class ThemeConfig {
     required this.id,
     required this.nameTr,
     required this.nameEn,
+    required this.nameAr,
+    required this.nameId,
     required this.mode,
     required this.backgroundGradient,
     required this.buttonGradient,
@@ -38,6 +42,8 @@ class AppThemes {
       id: 'blue_gold',
       nameTr: 'Mavi & Altın',
       nameEn: 'Blue & Gold',
+      nameAr: 'أزرق و ذهبي',
+      nameId: 'Biru & Emas',
       mode: AppThemeMode.blueGold,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
@@ -63,6 +69,8 @@ class AppThemes {
       id: 'green_gold',
       nameTr: 'Yeşil & Altın',
       nameEn: 'Green & Gold',
+      nameAr: 'أخضر و ذهبي',
+      nameId: 'Hijau & Emas',
       mode: AppThemeMode.greenGold,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
@@ -88,6 +96,8 @@ class AppThemes {
       id: 'purple_gold',
       nameTr: 'Mor & Altın',
       nameEn: 'Purple & Gold',
+      nameAr: 'بنفسجي و ذهبي',
+      nameId: 'Ungu & Emas',
       mode: AppThemeMode.purpleGold,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
@@ -113,6 +123,8 @@ class AppThemes {
       id: 'dark_blue',
       nameTr: 'Koyu Mavi',
       nameEn: 'Dark Blue',
+      nameAr: 'أزرق داكن',
+      nameId: 'Biru Gelap',
       mode: AppThemeMode.darkBlue,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,

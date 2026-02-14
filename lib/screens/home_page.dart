@@ -230,41 +230,43 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _showSuccessAnimation() {
-    if (_isVibrationOn) {
-      _vibrateSuccess();
-    }
-
-    if (_isSoundOn) {
-      _playSuccessSound();
-    }
-
+    // Konfeti açıksa tüm efektler
     if (_isConfettiOn) {
+      if (_isVibrationOn) {
+        _vibrateSuccess();
+      }
+
+      if (_isSoundOn) {
+        _playSuccessSound();
+      }
+
       setState(() {
         _showConfetti = true;
       });
-    }
 
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => SuccessDialog(
-            count: _counter,
-            onContinue: () {
-              Navigator.pop(context);
-              setState(() => _showConfetti = false);
-            },
-            onReset: () {
-              Navigator.pop(context);
-              _resetCounter();
-            },
-            themeConfig: _currentTheme,
-            localizations: _localizations,
-          ),
-        );
-      }
-    });
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => SuccessDialog(
+              count: _counter,
+              onContinue: () {
+                Navigator.pop(context);
+                setState(() => _showConfetti = false);
+              },
+              onReset: () {
+                Navigator.pop(context);
+                _resetCounter();
+              },
+              themeConfig: _currentTheme,
+              localizations: _localizations,
+            ),
+          );
+        }
+      });
+    }
+    // Konfeti kapalıysa hiçbir şey yapma
   }
 
   Future<void> _vibrateSuccess() async {
