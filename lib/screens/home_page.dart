@@ -230,37 +230,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _showSuccessAnimation() {
-    // Konfeti açıksa tam deneyim
-    if (_isConfettiOn) {
-      if (_isVibrationOn) {
-        _vibrateSuccess();
-      }
-
-      if (_isSoundOn) {
-        _playSuccessSound();
-      }
-
-      setState(() {
-        _showConfetti = true;
-      });
-
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => SuccessDialog(
-              count: _counter,
-              onContinue: () {},
-              onReset: _resetCounter,
-              themeConfig: _currentTheme,
-              localizations: _localizations,
-            ),
-          );
-        }
-      });
+    if (!_isConfettiOn) return;
+    
+    if (_isVibrationOn) {
+      _vibrateSuccess();
     }
-    // Konfeti kapalıysa hiçbir şey yapma, sayaç devam etsin
+
+    if (_isSoundOn) {
+      _playSuccessSound();
+    }
+
+    setState(() {
+      _showConfetti = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => SuccessDialog(
+            count: _counter,
+            onContinue: () {
+              setState(() => _showConfetti = false);
+            },
+            onReset: _resetCounter,
+            themeConfig: _currentTheme,
+            localizations: _localizations,
+          ),
+        );
+      }
+    });
   }
 
   Future<void> _vibrateSuccess() async {

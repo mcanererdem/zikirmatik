@@ -206,30 +206,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
               const SizedBox(height: 24),
 
-              // Theme Mode
-              Text(
-                'Appearance',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: _selectedTheme.accentColor.withOpacity(0.9),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Expanded(child: _buildThemeModeBtn(ThemeMode.system, Icons.brightness_auto, 'Auto')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildThemeModeBtn(ThemeMode.light, Icons.light_mode, 'Light')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildThemeModeBtn(ThemeMode.dark, Icons.dark_mode, 'Dark')),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
               // Language Selection
               Text(
                 _localizations.language,
@@ -395,7 +371,20 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   Widget _buildThemeOption(ThemeConfig theme) {
     final isSelected = theme.id == _selectedTheme.id;
-    final themeName = _selectedLanguage == 'tr' ? theme.nameTr : theme.nameEn;
+    String themeName;
+    switch (_selectedLanguage) {
+      case 'tr':
+        themeName = theme.nameTr;
+        break;
+      case 'ar':
+        themeName = theme.nameEn; // Arabic uses English names
+        break;
+      case 'id':
+        themeName = theme.nameEn; // Indonesian uses English names
+        break;
+      default:
+        themeName = theme.nameEn;
+    }
 
     return GestureDetector(
       onTap: () => _updateTheme(theme),

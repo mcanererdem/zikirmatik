@@ -45,7 +45,21 @@ class ZikrWidgetProvider : AppWidgetProvider() {
             val ids = appWidgetManager.getAppWidgetIds(
                 android.content.ComponentName(context, ZikrWidgetProvider::class.java)
             )
-            onUpdate(context, appWidgetManager, ids)
+            
+            for (appWidgetId in ids) {
+                val views = RemoteViews(context.packageName, R.layout.zikr_widget)
+                views.setTextViewText(R.id.widget_counter, counter.toString())
+                
+                val incrementIntent = Intent(context, ZikrWidgetProvider::class.java)
+                incrementIntent.action = "INCREMENT_COUNTER"
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context, 0, incrementIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.widget_increment, pendingIntent)
+                
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
         }
     }
 }

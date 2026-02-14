@@ -71,7 +71,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       const SizedBox(height: 16),
                       _buildStatCard('Total', _totalCount, Icons.all_inclusive),
                       const SizedBox(height: 16),
-                      _buildStatCard('Streak', _streakCount, Icons.local_fire_department, isStreak: true),
+                      _buildStatCard('Streak', _streakCount, Icons.local_fire_department, isStreak: true, subtitle: 'Consecutive days'),
                       const SizedBox(height: 24),
                       _buildWeekChart(),
                     ],
@@ -108,7 +108,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, int count, IconData icon, {bool isStreak = false}) {
+  Widget _buildStatCard(String title, int count, IconData icon, {bool isStreak = false, String? subtitle}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -130,25 +130,35 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             child: Icon(icon, color: Colors.white, size: 32),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.7),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
                 ),
-              ),
-              Text(
-                count.toString() + (isStreak ? ' days' : ''),
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: widget.themeConfig.accentColor,
+                Text(
+                  count.toString() + (isStreak ? ' days' : ''),
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: widget.themeConfig.accentColor,
+                  ),
                 ),
-              ),
-            ],
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
