@@ -54,14 +54,12 @@ android {
 
     signingConfigs {
         release {
-            // TODO: Fill in keystore path, password, alias, and key password before building
-            // Steps to create keystore:
-            // 1. Use Android Studio: Build > Generate Signed Bundle/APK > Create new keystore
-            // 2. Or use keytool (see .android/local.properties.example)
+            // Keystore configuration for app signing
+            // Uses environment variables if set, falls back to home directory
             keyAlias = 'upload'
-            keyPassword = System.getenv("KEY_PASSWORD") ?: 'zikirmatik123'
+            keyPassword = System.getenv("KEY_PASSWORD") ?: 'Tahsincaner1'
             storeFile = file(System.getenv("KEYSTORE_PATH") ?: System.getProperty("user.home") + '/upload-keystore.jks')
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: 'zikirmatik123'
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: 'Tahsincaner1'
         }
     }
 
