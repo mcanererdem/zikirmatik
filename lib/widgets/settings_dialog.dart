@@ -369,20 +369,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   Widget _buildThemeOption(ThemeConfig theme) {
     final isSelected = theme.id == _selectedTheme.id;
-    String themeName;
-    switch (_selectedLanguage) {
-      case 'tr':
-        themeName = theme.nameTr;
-        break;
-      case 'ar':
-        themeName = theme.nameEn; // Arabic uses English names
-        break;
-      case 'id':
-        themeName = theme.nameEn; // Indonesian uses English names
-        break;
-      default:
-        themeName = theme.nameEn;
-    }
+    final themeName = _selectedLanguage == 'tr' ? theme.nameTr : theme.nameEn;
 
     return GestureDetector(
       onTap: () => _updateTheme(theme),

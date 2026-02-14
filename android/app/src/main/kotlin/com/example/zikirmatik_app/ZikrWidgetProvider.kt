@@ -22,13 +22,21 @@ class ZikrWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.zikr_widget)
             views.setTextViewText(R.id.widget_counter, counter.toString())
             
-            val intent = Intent(context, ZikrWidgetProvider::class.java)
-            intent.action = "INCREMENT_COUNTER"
-            val pendingIntent = PendingIntent.getBroadcast(
-                context, 0, intent,
+            val incrementIntent = Intent(context, ZikrWidgetProvider::class.java)
+            incrementIntent.action = "INCREMENT_COUNTER"
+            val incrementPendingIntent = PendingIntent.getBroadcast(
+                context, 0, incrementIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            views.setOnClickPendingIntent(R.id.widget_increment, pendingIntent)
+            views.setOnClickPendingIntent(R.id.widget_increment, incrementPendingIntent)
+            
+            val resetIntent = Intent(context, ZikrWidgetProvider::class.java)
+            resetIntent.action = "RESET_COUNTER"
+            val resetPendingIntent = PendingIntent.getBroadcast(
+                context, 1, resetIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_reset, resetPendingIntent)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
@@ -36,29 +44,66 @@ class ZikrWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (intent.action == "INCREMENT_COUNTER") {
-            val widgetData = HomeWidgetPlugin.getData(context)
-            val counter = widgetData.getInt("counter", 0) + 1
-            widgetData.edit().putInt("counter", counter).apply()
-            
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            val ids = appWidgetManager.getAppWidgetIds(
-                android.content.ComponentName(context, ZikrWidgetProvider::class.java)
-            )
-            
-            for (appWidgetId in ids) {
-                val views = RemoteViews(context.packageName, R.layout.zikr_widget)
-                views.setTextViewText(R.id.widget_counter, counter.toString())
+        
+        val widgetData = HomeWidgetPlugin.getData(context)
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val ids = appWidgetManager.getAppWidgetIds(
+            android.content.ComponentName(context, ZikrWidgetProvider::class.java)
+        )
+        
+        when (intent.action) {
+            "INCREMENT_COUNTER" -> {
+                val counter = widgetData.getInt("counter", 0) + 1
+                widgetData.edit().putInt("counter", counter).apply()
                 
-                val incrementIntent = Intent(context, ZikrWidgetProvider::class.java)
-                incrementIntent.action = "INCREMENT_COUNTER"
-                val pendingIntent = PendingIntent.getBroadcast(
-                    context, 0, incrementIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                views.setOnClickPendingIntent(R.id.widget_increment, pendingIntent)
+                for (appWidgetId in ids) {
+                    val views = RemoteViews(context.packageName, R.layout.zikr_widget)
+                    views.setTextViewText(R.id.widget_counter, counter.toString())
+                    
+                    val incrementIntent = Intent(context, ZikrWidgetProvider::class.java)
+                    incrementIntent.action = "INCREMENT_COUNTER"
+                    val incrementPendingIntent = PendingIntent.getBroadcast(
+                        context, 0, incrementIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_increment, incrementPendingIntent)
+                    
+                    val resetIntent = Intent(context, ZikrWidgetProvider::class.java)
+                    resetIntent.action = "RESET_COUNTER"
+                    val resetPendingIntent = PendingIntent.getBroadcast(
+                        context, 1, resetIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_reset, resetPendingIntent)
+                    
+                    appWidgetManager.updateAppWidget(appWidgetId, views)
+                }
+            }
+            "RESET_COUNTER" -> {
+                widgetData.edit().putInt("counter", 0).apply()
                 
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+                for (appWidgetId in ids) {
+                    val views = RemoteViews(context.packageName, R.layout.zikr_widget)
+                    views.setTextViewText(R.id.widget_counter, "0")
+                    
+                    val incrementIntent = Intent(context, ZikrWidgetProvider::class.java)
+                    incrementIntent.action = "INCREMENT_COUNTER"
+                    val incrementPendingIntent = PendingIntent.getBroadcast(
+                        context, 0, incrementIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_increment, incrementPendingIntent)
+                    
+                    val resetIntent = Intent(context, ZikrWidgetProvider::class.java)
+                    resetIntent.action = "RESET_COUNTER"
+                    val resetPendingIntent = PendingIntent.getBroadcast(
+                        context, 1, resetIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_reset, resetPendingIntent)
+                    
+                    appWidgetManager.updateAppWidget(appWidgetId, views)
+                }
             }
         }
     }

@@ -230,8 +230,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _showSuccessAnimation() {
-    if (!_isConfettiOn) return;
-    
     if (_isVibrationOn) {
       _vibrateSuccess();
     }
@@ -240,9 +238,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _playSuccessSound();
     }
 
-    setState(() {
-      _showConfetti = true;
-    });
+    if (_isConfettiOn) {
+      setState(() {
+        _showConfetti = true;
+      });
+    }
 
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -252,9 +252,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           builder: (context) => SuccessDialog(
             count: _counter,
             onContinue: () {
+              Navigator.pop(context);
               setState(() => _showConfetti = false);
             },
-            onReset: _resetCounter,
+            onReset: () {
+              Navigator.pop(context);
+              _resetCounter();
+            },
             themeConfig: _currentTheme,
             localizations: _localizations,
           ),
