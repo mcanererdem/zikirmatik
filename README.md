@@ -15,6 +15,7 @@ Sade, kullanımı kolay ve erişilebilirlik odaklı bir dijital tesbih (zikirmat
 - ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin ve yönetin
 - 📢 **AdMob Entegrasyonu:** Banner reklamlar (test mode aktif)
 - 🔄 **Rotasyon Desteği:** Cihazı döndürünce veri korunur
+- ♿ **Erişilebilirlik:** Ekran okuyucu desteği (TalkBack/VoiceOver)
 - 🎯 **Hedef Bildirimi:** Hedefe ulaşınca titreşim ve animasyon
 
 ## Başlangıç
