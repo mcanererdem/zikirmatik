@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart'; // YENİ
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../models/zikr_model.dart';
 import '../models/theme_model.dart';
 import '../services/settings_service.dart';
-import '../services/ad_service.dart'; // YENİ
+import '../services/ad_service.dart';
 import '../utils/localizations.dart';
 import '../widgets/confetti_animation.dart';
 import '../widgets/success_dialog.dart';
@@ -14,6 +14,8 @@ import '../widgets/target_dialog.dart';
 import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
 import '../widgets/settings_dialog.dart';
+import 'statistics_screen.dart';
+import '../widgets/reminder_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,6 +29,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _target = 100;
   bool _isVibrationOn = true;
   bool _isSoundOn = true;
+  bool _isConfettiOn = true;
   bool _showConfetti = false;
 
   late AnimationController _buttonAnimationController;
@@ -48,13 +51,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   ZikrModel? _selectedZikr;
   
   ThemeConfig _currentTheme = AppThemes.themes[0];
-  String _currentLanguage = 'tr';
+  String _currentLanguage = 'en';
   late AppLocalizations _localizations;
 
   @override
   void initState() {
     super.initState();
-    _localizations = AppLocalizations('tr');
+    _localizations = AppLocalizations('en');
     _loadSettings();
     _initAudio();
     // Ensure MobileAds initialized before loading banners to improve reliability.
@@ -119,8 +122,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final languageCode = await _settingsService.getLanguage();
     final vibration = await _settingsService.getVibration();
     final sound = await _settingsService.getSound();
+    final confetti = await _settingsService.getConfetti();
     final customZikrs = await _settingsService.getCustomZikrs();
     final selectedZikrId = await _settingsService.getSelectedZikr();
+    final savedCount = await _settingsService.getCurrentCount();
 
     setState(() {
       _currentTheme = AppThemes.getTheme(themeId);
@@ -128,7 +133,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _localizations = AppLocalizations(languageCode);
       _isVibrationOn = vibration;
       _isSoundOn = sound;
+      _isConfettiOn = confetti;
       _customZikrs = customZikrs;
+      _counter = savedCount;
       
       if (selectedZikrId != null) {
         _selectedZikr = _defaultZikrs.firstWhere(
@@ -182,6 +189,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _counter++;
     });
 
+    // Sayacı kaydet
+    await _settingsService.saveCurrentCount(_counter);
+
+    final today = DateTime.now();
+    await _settingsService.saveDailyCount(today, _counter);
+    await _settingsService.incrementTotalCount(1);
+
     _buttonAnimationController.forward().then((_) {
       _buttonAnimationController.reverse();
     });
@@ -211,33 +225,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _showSuccessAnimation() {
-    setState(() {
-      _showConfetti = true;
-    });
-
-    if (_isVibrationOn) {
-      _vibrateSuccess();
-    }
-
-    if (_isSoundOn) {
-      _playSuccessSound();
-    }
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => SuccessDialog(
-            count: _counter,
-            onContinue: () {},
-            onReset: _resetCounter,
-            themeConfig: _currentTheme,
-            localizations: _localizations,
-          ),
-        );
+    // Konfeti açıksa tam deneyim
+    if (_isConfettiOn) {
+      if (_isVibrationOn) {
+        _vibrateSuccess();
       }
-    });
+
+      if (_isSoundOn) {
+        _playSuccessSound();
+      }
+
+      setState(() {
+        _showConfetti = true;
+      });
+
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => SuccessDialog(
+              count: _counter,
+              onContinue: () {},
+              onReset: _resetCounter,
+              themeConfig: _currentTheme,
+              localizations: _localizations,
+            ),
+          );
+        }
+      });
+    }
+    // Konfeti kapalıysa hiçbir şey yapma, sayaç devam etsin
   }
 
   Future<void> _vibrateSuccess() async {
@@ -277,6 +295,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _counter = 0;
       _showConfetti = false;
     });
+    _settingsService.saveCurrentCount(0);
     
     if (_isVibrationOn) {
       HapticFeedback.mediumImpact();
@@ -361,7 +380,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       builder: (context) => AddZikrDialog(
         themeConfig: _currentTheme,
         localizations: _localizations,
-        currentLanguage: _currentLanguage,
         onZikrAdded: (zikr) {
           setState(() {
             _customZikrs.add(zikr);
@@ -466,6 +484,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     if (_isSoundOn) {
       _playSound();
     }
+  }
+
+  void _toggleConfetti() {
+    setState(() {
+      _isConfettiOn = !_isConfettiOn;
+    });
+    _settingsService.saveConfetti(_isConfettiOn);
   }
 
   String _getZikrName(ZikrModel zikr) {
@@ -586,62 +611,97 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: _currentTheme.goldGradient,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _currentTheme.accentColor.withOpacity(0.3),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    _localizations.appName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: _currentTheme.goldGradient,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _currentTheme.accentColor.withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StatisticsScreen(
+                        themeConfig: _currentTheme,
+                        localizations: _localizations,
+                      ),
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  color: Colors.white,
-                  size: 24,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.bar_chart_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                _localizations.appName,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: _openSettings,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.settings_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
               ),
             ],
-          ),
-          
-          Semantics(
-            label: _localizations.settings,
-            child: GestureDetector(
-              onTap: _openSettings,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.settings_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
           ),
         ],
       ),
@@ -873,6 +933,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           Semantics(
+            label: 'Reminder',
+            child: _buildControlButton(
+              icon: Icons.notifications_rounded,
+              isActive: true,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => ReminderDialog(
+                    themeConfig: _currentTheme,
+                    localizations: _localizations,
+                  ),
+                );
+              },
+            ),
+          ),
+          Semantics(
             label: _isVibrationOn ? _localizations.vibrationOn : _localizations.vibrationOff,
             child: _buildControlButton(
               icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
@@ -886,6 +962,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
               isActive: _isSoundOn,
               onTap: _toggleSound,
+            ),
+          ),
+          Semantics(
+            label: _isConfettiOn ? _localizations.confettiOn : _localizations.confettiOff,
+            child: _buildControlButton(
+              icon: Icons.celebration_rounded,
+              isActive: _isConfettiOn,
+              onTap: _toggleConfetti,
             ),
           ),
         ],

@@ -2,17 +2,21 @@
 
 Sade, kullanımı kolay ve erişilebilirlik odaklı bir dijital tesbih (zikirmatik) uygulaması.
 
+**Geliştirici:** Caner Erdem  
 **Temel Amaç:** Zikir saymayı kolaylaştırmak ve sayıyı kaydetmek. Müslümanlar tarafından günlük ibadetlerinde veya kişisel zikirlerinde kullanılabilir.
 
 ## Özellikler ✨
 
 - 🔢 **Tıklanabilir Sayaç:** Ana butona tıklayarak sayıyı artırın
 - 💾 **Veri Korunması:** Uygulama kapandıktan sonra bile veriler kaydedilir (SharedPreferences)
-- 🌍 **Çoklu Dil:** Türkçe, İngilizce, Arapça desteği
+- 🌍 **Çoklu Dil:** Türkçe, İngilizce, Arapça, Endonezce desteği
+- 📍 **Otomatik Dil:** İlk açılış İngilizce, sonra lokasyona göre otomatik dil seçimi
 - 🎨 **Tema Seçenekleri:** Mavi/Altın, Koyu, Mint vb temalar
-- ⚙️ **Ayarlanabilir:** Titreşim, ses, dil, tema ayarları
+- ⚙️ **Ayarlanabilir:** Titreşim, ses, konfeti, dil, tema ayarları (İlk açılışta tümü kapalı)
+- 📊 **İstatistikler:** Günlük, toplam ve son 7 gün grafiği
+- 🔔 **Hatırlatıcılar:** Zamanlanmış günlük bildirimler
 - 📊 **Özel Hedefler:** Hızlı seçenekler (33, 99, 100, 500, 1000) veya özel sayı girin
-- ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin ve yönetin
+- ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin (sadece Arapça alan, diğer diller otomatik)
 - 📢 **AdMob Entegrasyonu:** Banner reklamlar (test mode aktif)
 - 🔄 **Rotasyon Desteği:** Cihazı döndürünce veri korunur
 - ♿ **Erişilebilirlik:** Ekran okuyucu desteği (TalkBack/VoiceOver)
@@ -62,6 +66,8 @@ flutter build ios
 - **Vibration:** Titreşim efektleri
 - **AudioPlayers:** Ses efektleri
 - **Google Mobile Ads:** AdMob entegrasyonu
+- **Flutter Local Notifications:** Hatırlatıcılar
+- **Geolocator & Geocoding:** Lokasyon bazlı dil seçimi
 - **Flutter Launcher Icons:** Uygulama ikonu
 
 ## Proje Yapısı
@@ -71,20 +77,24 @@ zikirmatik/
 ├── lib/
 │   ├── main.dart                 # Uygulama giriş noktası
 │   ├── screens/
-│   │   └── home_page.dart        # Ana ekran
+│   │   ├── home_page.dart        # Ana ekran
+│   │   └── statistics_screen.dart # İstatistik ekranı
 │   ├── widgets/
 │   │   ├── target_dialog.dart    # Hedef belirleme dialogu
 │   │   ├── add_zikr_dialog.dart  # Zikir ekleme dialogu
-│   │   └── settings_dialog.dart  # Ayarlar dialogu
+│   │   ├── settings_dialog.dart  # Ayarlar dialogu
+│   │   ├── reminder_dialog.dart  # Hatırlatıcı dialogu
+│   │   └── success_dialog.dart   # Başarı dialogu
 │   ├── models/
 │   │   ├── zikr_model.dart       # Zikir modeli
 │   │   └── theme_model.dart      # Tema modeli
 │   ├── services/
 │   │   ├── settings_service.dart # Ayarlar servisi
-│   │   └── ad_service.dart       # AdMob servisi
-│   └── core/
-│       └── theme/
-│           └── app_theme.dart    # Tema konfigürasyonu
+│   │   ├── ad_service.dart       # AdMob servisi
+│   │   ├── notification_service.dart # Bildirim servisi
+│   │   └── location_service.dart # Lokasyon servisi
+│   └── utils/
+│       └── localizations.dart    # Çoklu dil
 ├── assets/
 │   ├── icons/                    # Uygulama ikonu
 │   └── sounds/                   # Ses efektleri

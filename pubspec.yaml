@@ -1,5 +1,6 @@
 name: zikirmatik_app
 description: Modern ve kullanıcı dostu bir zikirmatik uygulaması
+author: Caner Erdem
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -16,6 +17,9 @@ dependencies:
   google_mobile_ads: ^5.1.0
   package_info_plus: ^8.0.0
   url_launcher: ^6.2.6
+  geolocator: ^11.0.0
+  geocoding: ^3.0.0
+  flutter_local_notifications: ^19.5.0
 
 dev_dependencies:
   flutter_test:

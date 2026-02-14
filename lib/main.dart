@@ -3,9 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/home_page.dart';
 import 'core/theme/app_theme.dart';
+import 'services/location_service.dart';
+import 'services/settings_service.dart';
+import 'services/notification_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Bildirim servisi başlat
+  await NotificationService.initialize();
 
   // Status bar ayarları
   SystemChrome.setSystemUIOverlayStyle(
@@ -14,6 +20,25 @@ void main() {
       statusBarIconBrightness: Brightness.light,
     ),
   );
+
+  // İlk açılışta lokasyon bazlı dil ayarı
+  final settingsService = SettingsService();
+  final savedLanguage = await settingsService.getLanguage();
+  
+  // Eğer varsayılan dil hala İngilizce ise (ilk açılış), lokasyona göre belirle
+  if (savedLanguage == 'en') {
+    try {
+      final locationService = LocationService();
+      final locationLanguage = await locationService.getLanguageByLocation();
+      // Sadece İngilizce dışında bir dil bulunduysa değiştir
+      if (locationLanguage != 'en') {
+        await settingsService.saveLanguage(locationLanguage);
+      }
+    } catch (e) {
+      // Lokasyon alınamazsa veya hata olursa İngilizce kalır
+      print('Location-based language detection failed: $e');
+    }
+  }
 
   // Run the app immediately to avoid delaying the first frame.
   runApp(const MyApp());

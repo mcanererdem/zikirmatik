@@ -45,11 +45,71 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   void _updateLanguage(String languageCode) {
-    setState(() {
-      _selectedLanguage = languageCode;
-      _localizations = AppLocalizations(languageCode);
-    });
-    widget.onLanguageChanged(languageCode);
+    // Arapça seçilirse direkt değiştir
+    if (languageCode == 'ar') {
+      setState(() {
+        _selectedLanguage = languageCode;
+        _localizations = AppLocalizations(languageCode);
+      });
+      widget.onLanguageChanged(languageCode);
+      return;
+    }
+
+    // Diğer diller için seçenek sun
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _selectedTheme.primaryColor,
+        title: Text(
+          _localizations.language,
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLanguageSelectButton(ctx, 'en', _localizations.english),
+            const SizedBox(height: 8),
+            _buildLanguageSelectButton(ctx, 'tr', _localizations.turkish),
+            const SizedBox(height: 8),
+            _buildLanguageSelectButton(ctx, 'id', _localizations.indonesian),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelectButton(BuildContext ctx, String code, String name) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(ctx);
+        setState(() {
+          _selectedLanguage = code;
+          _localizations = AppLocalizations(code);
+        });
+        widget.onLanguageChanged(code);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          name,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -146,15 +206,43 @@ class _SettingsDialogState extends State<SettingsDialog> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildLanguageOption('tr', _localizations.turkish),
+                    child: _buildLanguageOption('ar', _localizations.arabic, Icons.language),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: _buildLanguageOption('en', _localizations.english),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildLanguageOption('ar', _localizations.arabic),
+                    child: GestureDetector(
+                      onTap: () => _updateLanguage(''),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.translate, color: Colors.white, size: 16),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                _getSecondaryLanguageName(),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -246,6 +334,26 @@ class _SettingsDialogState extends State<SettingsDialog> {
     );
   }
 
+  String _getSecondaryLanguage() {
+    // Mevcut dil TR/ID ise onu göster, değilse EN göster
+    if (_selectedLanguage == 'tr' || _selectedLanguage == 'id') {
+      return _selectedLanguage;
+    }
+    return 'en';
+  }
+
+  String _getSecondaryLanguageName() {
+    final lang = _getSecondaryLanguage();
+    switch (lang) {
+      case 'tr':
+        return _localizations.turkish;
+      case 'id':
+        return _localizations.indonesian;
+      default:
+        return _localizations.english;
+    }
+  }
+
   Widget _buildThemeOption(ThemeConfig theme) {
     final isSelected = theme.id == _selectedTheme.id;
     final themeName = _selectedLanguage == 'tr' ? theme.nameTr : theme.nameEn;
@@ -292,7 +400,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     );
   }
 
-  Widget _buildLanguageOption(String languageCode, String languageName) {
+  Widget _buildLanguageOption(String languageCode, String languageName, [IconData? icon]) {
     final isSelected = languageCode == _selectedLanguage;
 
     return GestureDetector(
@@ -310,14 +418,23 @@ class _SettingsDialogState extends State<SettingsDialog> {
             width: 1.5,
           ),
         ),
-        child: Text(
-          languageName,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: Colors.white, size: 16),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              languageName,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -37,14 +37,19 @@ class AppLocalizations {
       'arabic': 'العربية',
       'turkish': 'Türkçe',
       'english': 'English',
-      'incrementCounter': 'Increment counter',
-      'resetCounter': 'Reset counter',
-      'changeTarget': 'Change target',
-      'vibrationOn': 'Vibration on',
-      'vibrationOff': 'Vibration off',
-      'soundOn': 'Sound on',
-      'soundOff': 'Sound off',
+      'indonesian': 'Bahasa Indonesia',
+      'incrementCounter': 'Sayacı artır',
+      'resetCounter': 'Sayacı sıfırla',
+      'changeTarget': 'Hedefi değiştir',
+      'vibrationOn': 'Titreşim açık',
+      'vibrationOff': 'Titreşim kapalı',
+      'soundOn': 'Ses açık',
+      'soundOff': 'Ses kapalı',
       'about': 'Hakkında',
+      'confettiOn': 'Konfeti açık',
+      'confettiOff': 'Konfeti kapalı',
+      'setReminder': 'Hatırlatıcı Ayarla',
+      'cancelReminder': 'İptal Et',
     },
     'en': {
       'app_name': 'Tasbih Counter',
@@ -79,6 +84,7 @@ class AppLocalizations {
       'arabic': 'العربية',
       'turkish': 'Türkçe',
       'english': 'English',
+      'indonesian': 'Bahasa Indonesia',
       'incrementCounter': 'Increment counter',
       'resetCounter': 'Reset counter',
       'changeTarget': 'Change target',
@@ -87,6 +93,10 @@ class AppLocalizations {
       'soundOn': 'Sound on',
       'soundOff': 'Sound off',
       'about': 'About',
+      'confettiOn': 'Confetti on',
+      'confettiOff': 'Confetti off',
+      'setReminder': 'Set Reminder',
+      'cancelReminder': 'Cancel',
     },
     'ar': {
       'app_name': 'مسبحة إلكترونية',
@@ -121,6 +131,7 @@ class AppLocalizations {
       'arabic': 'العربية',
       'turkish': 'Türkçe',
       'english': 'English',
+      'indonesian': 'Bahasa Indonesia',
       'incrementCounter': 'زيادة العداد',
       'resetCounter': 'إعادة ضبط العداد',
       'changeTarget': 'تغيير الهدف',
@@ -129,6 +140,57 @@ class AppLocalizations {
       'soundOn': 'الصوت قيد التشغيل',
       'soundOff': 'الصوت مغلق',
       'about': 'حول',
+      'confettiOn': 'الاحتفال مفعل',
+      'confettiOff': 'الاحتفال معطل',
+      'setReminder': 'تعيين تذكير',
+      'cancelReminder': 'إلغاء',
+    },
+    'id': {
+      'app_name': 'Tasbih Digital',
+      'counter': 'Penghitung',
+      'target': 'Target',
+      'reset': 'Atur Ulang',
+      'continue': 'Lanjutkan',
+      'cancel': 'Batal',
+      'ok': 'OK',
+      'settings': 'Pengaturan',
+      'theme': 'Tema',
+      'language': 'Bahasa',
+      'vibration': 'Getaran',
+      'sound': 'Suara',
+      'select_zikr': 'Pilih Dzikir',
+      'add_zikr': 'Tambah Dzikir',
+      'custom_zikrs': 'Dzikir Kustom',
+      'zikr_name_ar': 'Nama Arab',
+      'zikr_name_tr': 'Nama Turki',
+      'zikr_name_en': 'Nama Inggris',
+      'default_count': 'Jumlah Default',
+      'set_target': 'Atur Target',
+      'quick_select': 'Pilihan Cepat',
+      'custom_target': 'Target Kustom',
+      'enter_target': 'Masukkan nomor target',
+      'success_title': 'MashaAllah! 🎉',
+      'success_message': 'Target tercapai!',
+      'zikr_count': 'Dzikir',
+      'edit': 'Edit',
+      'delete': 'Hapus',
+      'save': 'Simpan',
+      'arabic': 'العربية',
+      'turkish': 'Türkçe',
+      'english': 'English',
+      'indonesian': 'Bahasa Indonesia',
+      'incrementCounter': 'Tambah penghitung',
+      'resetCounter': 'Atur ulang penghitung',
+      'changeTarget': 'Ubah target',
+      'vibrationOn': 'Getaran aktif',
+      'vibrationOff': 'Getaran nonaktif',
+      'soundOn': 'Suara aktif',
+      'soundOff': 'Suara nonaktif',
+      'about': 'Tentang',
+      'confettiOn': 'Konfeti aktif',
+      'confettiOff': 'Konfeti nonaktif',
+      'setReminder': 'Atur Pengingat',
+      'cancelReminder': 'Batal',
     },
   };
 
@@ -168,6 +230,7 @@ class AppLocalizations {
   String get arabic => translate('arabic');
   String get turkish => translate('turkish');
   String get english => translate('english');
+  String get indonesian => translate('indonesian');
   String get incrementCounter => translate('incrementCounter');
   String get resetCounter => translate('resetCounter');
   String get changeTarget => translate('changeTarget');
@@ -176,4 +239,8 @@ class AppLocalizations {
   String get soundOn => translate('soundOn');
   String get soundOff => translate('soundOff');
   String get about => translate('about');
+  String get confettiOn => translate('confettiOn');
+  String get confettiOff => translate('confettiOff');
+  String get setReminder => translate('setReminder');
+  String get cancelReminder => translate('cancelReminder');
 }

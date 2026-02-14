@@ -9,6 +9,12 @@ class SettingsService {
   static const String _soundKey = 'sound_enabled';
   static const String _customZikrsKey = 'custom_zikrs';
   static const String _selectedZikrKey = 'selected_zikr';
+  static const String _dailyCountKey = 'daily_count_';
+  static const String _totalCountKey = 'total_count';
+  static const String _confettiKey = 'confetti_enabled';
+  static const String _reminderHourKey = 'reminder_hour';
+  static const String _reminderMinuteKey = 'reminder_minute';
+  static const String _currentCountKey = 'current_count';
 
   // Theme
   Future<void> saveTheme(String themeId) async {
@@ -29,7 +35,7 @@ class SettingsService {
 
   Future<String> getLanguage() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_languageKey) ?? 'tr';
+    return prefs.getString(_languageKey) ?? 'en'; // Default İngilizce
   }
 
   // Vibration
@@ -40,7 +46,7 @@ class SettingsService {
 
   Future<bool> getVibration() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_vibrationKey) ?? true;
+    return prefs.getBool(_vibrationKey) ?? false;
   }
 
   // Sound
@@ -51,7 +57,7 @@ class SettingsService {
 
   Future<bool> getSound() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_soundKey) ?? true;
+    return prefs.getBool(_soundKey) ?? false;
   }
 
   // Custom Zikrs
@@ -76,5 +82,66 @@ class SettingsService {
   Future<String?> getSelectedZikr() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_selectedZikrKey);
+  }
+
+  // Statistics
+  Future<void> saveDailyCount(DateTime date, int count) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_dailyCountKey${date.year}_${date.month}_${date.day}';
+    await prefs.setInt(key, count);
+  }
+
+  Future<int> getDailyCount(DateTime date) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_dailyCountKey${date.year}_${date.month}_${date.day}';
+    return prefs.getInt(key) ?? 0;
+  }
+
+  Future<void> incrementTotalCount(int amount) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getInt(_totalCountKey) ?? 0;
+    await prefs.setInt(_totalCountKey, current + amount);
+  }
+
+  Future<int> getTotalCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_totalCountKey) ?? 0;
+  }
+
+  // Confetti
+  Future<void> saveConfetti(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_confettiKey, enabled);
+  }
+
+  Future<bool> getConfetti() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_confettiKey) ?? false;
+  }
+
+  // Reminder Time
+  Future<void> saveReminderTime(int hour, int minute) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_reminderHourKey, hour);
+    await prefs.setInt(_reminderMinuteKey, minute);
+  }
+
+  Future<Map<String, int>> getReminderTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'hour': prefs.getInt(_reminderHourKey) ?? 9,
+      'minute': prefs.getInt(_reminderMinuteKey) ?? 0,
+    };
+  }
+
+  // Current Counter
+  Future<void> saveCurrentCount(int count) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_currentCountKey, count);
+  }
+
+  Future<int> getCurrentCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_currentCountKey) ?? 0;
   }
 }

@@ -47,6 +47,10 @@
 	<true/>
 	<key>GADApplicationIdentifier</key>
 <string>ca-app-pub-8195806446886861~7752273879</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to automatically set your preferred language based on your region.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>We need your location to automatically set your preferred language based on your region.</string>
 <key>SKAdNetworkItems</key>
 <array>
   <dict>

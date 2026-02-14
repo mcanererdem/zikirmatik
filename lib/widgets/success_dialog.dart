@@ -120,7 +120,9 @@ class SuccessDialog extends StatelessWidget {
                     icon: Icons.refresh_rounded,
                     onPressed: () {
                       Navigator.pop(context);
-                      onReset();
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        onReset();
+                      });
                     },
                     isPrimary: false,
                   ),
@@ -133,7 +135,9 @@ class SuccessDialog extends StatelessWidget {
                     icon: Icons.arrow_forward_rounded,
                     onPressed: () {
                       Navigator.pop(context);
-                      onContinue();
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        onContinue();
+                      });
                     },
                     isPrimary: true,
                   ),
