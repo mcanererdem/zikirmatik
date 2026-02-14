@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _currentPlayerIndex = 0;
   final int _maxPlayers = 5;
   
-  List<ZikrModel> _defaultZikrs = DefaultZikrs.zikrs;
+  final List<ZikrModel> _defaultZikrs = DefaultZikrs.zikrs;
   List<ZikrModel> _customZikrs = [];
   ZikrModel? _selectedZikr;
   
@@ -621,22 +621,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ],
           ),
           
-          GestureDetector(
-            onTap: _openSettings,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 1.5,
+          Semantics(
+            label: _localizations.settings,
+            child: GestureDetector(
+              onTap: _openSettings,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1.5,
+                  ),
                 ),
-              ),
-              child: const Icon(
-                Icons.settings_rounded,
-                color: Colors.white,
-                size: 24,
+                child: const Icon(
+                  Icons.settings_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ),
           ),
@@ -773,43 +776,46 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       children: [
         ScaleTransition(
           scale: _buttonScaleAnimation,
-          child: GestureDetector(
-            onTap: _incrementCounter,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: _currentTheme.buttonGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: _currentTheme.primaryColor.withOpacity(0.5),
-                    blurRadius: 30,
-                    spreadRadius: 5,
+          child: Semantics(
+            label: _localizations.incrementCounter,
+            child: GestureDetector(
+              onTap: _incrementCounter,
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: _currentTheme.buttonGradient,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _currentTheme.primaryColor.withOpacity(0.5),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    ),
+                    BoxShadow(
+                      color: _currentTheme.accentColor.withOpacity(0.3),
+                      blurRadius: 40,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    zikrText,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.rtl,
                   ),
-                  BoxShadow(
-                    color: _currentTheme.accentColor.withOpacity(0.3),
-                    blurRadius: 40,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  zikrText,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                  textDirection: TextDirection.rtl,
                 ),
               ),
             ),
@@ -819,28 +825,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Positioned(
           bottom: -10,
           right: -10,
-          child: GestureDetector(
-            onTap: _resetCounter,
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE74C3C), Color(0xFFC0392B)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFE74C3C).withOpacity(0.5),
-                    blurRadius: 15,
-                    spreadRadius: 2,
+          child: Semantics(
+            label: _localizations.resetCounter,
+            child: GestureDetector(
+              onTap: _resetCounter,
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE74C3C), Color(0xFFC0392B)],
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.refresh_rounded,
-                color: Colors.white,
-                size: 28,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE74C3C).withOpacity(0.5),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.refresh_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
           ),
@@ -855,20 +864,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildControlButton(
-            icon: Icons.flag_rounded,
-            isActive: true,
-            onTap: _changeTarget,
+          Semantics(
+            label: _localizations.changeTarget,
+            child: _buildControlButton(
+              icon: Icons.flag_rounded,
+              isActive: true,
+              onTap: _changeTarget,
+            ),
           ),
-          _buildControlButton(
-            icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
-            isActive: _isVibrationOn,
-            onTap: _toggleVibration,
+          Semantics(
+            label: _isVibrationOn ? _localizations.vibrationOn : _localizations.vibrationOff,
+            child: _buildControlButton(
+              icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
+              isActive: _isVibrationOn,
+              onTap: _toggleVibration,
+            ),
           ),
-          _buildControlButton(
-            icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-            isActive: _isSoundOn,
-            onTap: _toggleSound,
+          Semantics(
+            label: _isSoundOn ? _localizations.soundOn : _localizations.soundOff,
+            child: _buildControlButton(
+              icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+              isActive: _isSoundOn,
+              onTap: _toggleSound,
+            ),
           ),
         ],
       ),

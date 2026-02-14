@@ -44,6 +44,11 @@ class _TargetDialogState extends State<TargetDialog> {
     }
   }
 
+  void _updateTarget(int target) {
+    _controller.text = target.toString();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -201,10 +206,10 @@ class _TargetDialogState extends State<TargetDialog> {
   }
 
   Widget _buildQuickTargetButton(int target) {
-    final isSelected = target == widget.currentTarget;
+    final isSelected = target.toString() == _controller.text;
     
     return InkWell(
-      onTap: () => _setTarget(target),
+      onTap: () => _updateTarget(target),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

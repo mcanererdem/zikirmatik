@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import 'custom_about_dialog.dart';
 
 class SettingsDialog extends StatefulWidget {
   final ThemeConfig currentTheme;
@@ -158,6 +160,49 @@ class _SettingsDialogState extends State<SettingsDialog> {
               ),
 
               const SizedBox(height: 24),
+
+              // About Button
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context); // Close settings
+                  showDialog(
+                    context: context,
+                    builder: (context) => CustomAboutDialog(
+                      currentTheme: _selectedTheme,
+                      localizations: _localizations,
+                    ),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        _localizations.translate('about'), // You'll need to add 'about' to your localizations
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
 
               // Close Button
               Container(

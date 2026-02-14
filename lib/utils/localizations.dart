@@ -37,6 +37,14 @@ class AppLocalizations {
       'arabic': 'العربية',
       'turkish': 'Türkçe',
       'english': 'English',
+      'incrementCounter': 'Increment counter',
+      'resetCounter': 'Reset counter',
+      'changeTarget': 'Change target',
+      'vibrationOn': 'Vibration on',
+      'vibrationOff': 'Vibration off',
+      'soundOn': 'Sound on',
+      'soundOff': 'Sound off',
+      'about': 'Hakkında',
     },
     'en': {
       'app_name': 'Tasbih Counter',
@@ -71,6 +79,14 @@ class AppLocalizations {
       'arabic': 'العربية',
       'turkish': 'Türkçe',
       'english': 'English',
+      'incrementCounter': 'Increment counter',
+      'resetCounter': 'Reset counter',
+      'changeTarget': 'Change target',
+      'vibrationOn': 'Vibration on',
+      'vibrationOff': 'Vibration off',
+      'soundOn': 'Sound on',
+      'soundOff': 'Sound off',
+      'about': 'About',
     },
     'ar': {
       'app_name': 'مسبحة إلكترونية',
@@ -105,6 +121,14 @@ class AppLocalizations {
       'arabic': 'العربية',
       'turkish': 'Türkçe',
       'english': 'English',
+      'incrementCounter': 'زيادة العداد',
+      'resetCounter': 'إعادة ضبط العداد',
+      'changeTarget': 'تغيير الهدف',
+      'vibrationOn': 'الاهتزاز قيد التشغيل',
+      'vibrationOff': 'الاهتزاز متوقف',
+      'soundOn': 'الصوت قيد التشغيل',
+      'soundOff': 'الصوت مغلق',
+      'about': 'حول',
     },
   };
 
@@ -144,4 +168,12 @@ class AppLocalizations {
   String get arabic => translate('arabic');
   String get turkish => translate('turkish');
   String get english => translate('english');
+  String get incrementCounter => translate('incrementCounter');
+  String get resetCounter => translate('resetCounter');
+  String get changeTarget => translate('changeTarget');
+  String get vibrationOn => translate('vibrationOn');
+  String get vibrationOff => translate('vibrationOff');
+  String get soundOn => translate('soundOn');
+  String get soundOff => translate('soundOff');
+  String get about => translate('about');
 }
