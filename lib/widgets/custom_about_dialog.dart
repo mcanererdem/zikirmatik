@@ -116,9 +116,9 @@ class _CustomAboutDialogState extends State<CustomAboutDialog> {
             const SizedBox(width: 15),
             Text(
               text,
-              style: const TextStyle(
-                color: Colors.white,
-                decoration: TextDecoration.underline,
+              style: TextStyle(
+                color: widget.currentTheme.accentColor,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

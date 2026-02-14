@@ -30,6 +30,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   late ThemeConfig _selectedTheme;
   late String _selectedLanguage;
   late AppLocalizations _localizations;
+  late ThemeMode _currentThemeMode;
 
   @override
   void initState() {
@@ -37,6 +38,15 @@ class _SettingsDialogState extends State<SettingsDialog> {
     _selectedTheme = widget.currentTheme;
     _selectedLanguage = widget.currentLanguage;
     _localizations = widget.localizations;
+    _loadThemeMode();
+  }
+
+  Future<void> _loadThemeMode() async {
+    final settingsService = SettingsService();
+    final mode = await settingsService.getThemeMode();
+    setState(() {
+      _currentThemeMode = mode == 'light' ? ThemeMode.light : mode == 'dark' ? ThemeMode.dark : ThemeMode.system;
+    });
   }
 
   void _updateTheme(ThemeConfig theme) {
@@ -467,20 +477,28 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   Widget _buildThemeModeBtn(ThemeMode mode, IconData icon, String label) {
+    final isSelected = _currentThemeMode == mode;
     return GestureDetector(
-      onTap: () => widget.onThemeModeChanged?.call(mode),
+      onTap: () {
+        setState(() => _currentThemeMode = mode);
+        widget.onThemeModeChanged?.call(mode);
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          gradient: isSelected ? _selectedTheme.goldGradient : null,
+          color: isSelected ? null : Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+          border: Border.all(
+            color: isSelected ? _selectedTheme.accentColor : Colors.white.withOpacity(0.3),
+            width: 1.5,
+          ),
         ),
         child: Column(
           children: [
             Icon(icon, color: Colors.white, size: 20),
             const SizedBox(height: 4),
-            Text(label, style: const TextStyle(color: Colors.white, fontSize: 11)),
+            Text(label, style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),

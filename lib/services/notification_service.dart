@@ -24,10 +24,11 @@ class NotificationService {
 
     await _notifications.initialize(settings);
     
-    // Request permissions for Android 13+
-    await _notifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    // Request permissions
+    final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.requestNotificationsPermission();
+    await androidImpl?.requestExactAlarmsPermission();
+    print('Notification permissions requested');
   }
 
   static Future<void> scheduleReminder(int hour, int minute) async {
