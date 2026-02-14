@@ -46,10 +46,12 @@
             android:value="2" />
         
         <receiver
-            android:name=".ZikrWidgetProvider"
+            android:name="com.example.zikirmatik.ZikrWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="INCREMENT_COUNTER" />
+                <action android:name="RESET_COUNTER" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

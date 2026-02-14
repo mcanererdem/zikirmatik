@@ -1,4 +1,4 @@
-package com.example.zikirmatik_app
+package com.example.zikirmatik
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager

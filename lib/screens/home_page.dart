@@ -209,21 +209,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _counterAnimationController.reverse();
     });
 
-    // Konfeti açıksa ses ve titreşim
-    if (_isConfettiOn) {
+    // Her tıklamada ses ve titreşim (ayarlar açıksa)
+    if (_isSoundOn) {
       _playSound();
+    }
 
-      if (_isVibrationOn) {
-        try {
-          final hasVibrator = await Vibration.hasVibrator();
-          if (hasVibrator == true) {
-            Vibration.vibrate(duration: 50);
-          } else {
-            HapticFeedback.lightImpact();
-          }
-        } catch (e) {
+    if (_isVibrationOn) {
+      try {
+        final hasVibrator = await Vibration.hasVibrator();
+        if (hasVibrator == true) {
+          Vibration.vibrate(duration: 50);
+        } else {
           HapticFeedback.lightImpact();
         }
+      } catch (e) {
+        HapticFeedback.lightImpact();
       }
     }
 
@@ -233,16 +233,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _showSuccessAnimation() {
-    // Konfeti açıksa tüm efektler
+    // Titreşim açıksa hedef titreşimi
+    if (_isVibrationOn) {
+      _vibrateSuccess();
+    }
+
+    // Ses açıksa hedef sesi
+    if (_isSoundOn) {
+      _playSuccessSound();
+    }
+
+    // Konfeti açıksa konfeti + dialog
     if (_isConfettiOn) {
-      if (_isVibrationOn) {
-        _vibrateSuccess();
-      }
-
-      if (_isSoundOn) {
-        _playSuccessSound();
-      }
-
       setState(() {
         _showConfetti = true;
       });
@@ -269,7 +271,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         }
       });
     }
-    // Konfeti kapalıysa hiçbir şey yapma
   }
 
   Future<void> _vibrateSuccess() async {

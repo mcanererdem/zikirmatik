@@ -4,7 +4,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="12dp"
-    android:background="@drawable/widget_background">
+    android:background="@drawable/widget_background"
+    android:clickable="false"
+    android:focusable="false">
 
     <TextView
         android:id="@+id/widget_title"
@@ -14,7 +16,9 @@
         android:textSize="14sp"
         android:textColor="#FFFFFF"
         android:textStyle="bold"
-        android:gravity="center" />
+        android:gravity="center"
+        android:clickable="false"
+        android:focusable="false" />
 
     <TextView
         android:id="@+id/widget_counter"
@@ -25,13 +29,17 @@
         android:textSize="36sp"
         android:textColor="#FFD700"
         android:textStyle="bold"
-        android:gravity="center" />
+        android:gravity="center"
+        android:clickable="false"
+        android:focusable="false" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:clickable="false"
+        android:focusable="false">
 
         <TextView
             android:id="@+id/widget_increment"
@@ -45,7 +53,9 @@
             android:gravity="center"
             android:background="@drawable/widget_button_background"
             android:padding="6dp"
-            android:layout_marginEnd="4dp" />
+            android:layout_marginEnd="4dp"
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/widget_reset"
@@ -59,7 +69,9 @@
             android:gravity="center"
             android:background="#E74C3C"
             android:padding="6dp"
-            android:layout_marginStart="4dp" />
+            android:layout_marginStart="4dp"
+            android:clickable="true"
+            android:focusable="true" />
 
     </LinearLayout>
 
