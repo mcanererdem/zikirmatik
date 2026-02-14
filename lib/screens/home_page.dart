@@ -209,18 +209,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _counterAnimationController.reverse();
     });
 
-    _playSound();
+    // Konfeti açıksa ses ve titreşim
+    if (_isConfettiOn) {
+      _playSound();
 
-    if (_isVibrationOn) {
-      try {
-        final hasVibrator = await Vibration.hasVibrator();
-        if (hasVibrator == true) {
-          Vibration.vibrate(duration: 50);
-        } else {
+      if (_isVibrationOn) {
+        try {
+          final hasVibrator = await Vibration.hasVibrator();
+          if (hasVibrator == true) {
+            Vibration.vibrate(duration: 50);
+          } else {
+            HapticFeedback.lightImpact();
+          }
+        } catch (e) {
           HapticFeedback.lightImpact();
         }
-      } catch (e) {
-        HapticFeedback.lightImpact();
       }
     }
 
