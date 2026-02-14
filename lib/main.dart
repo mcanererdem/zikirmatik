@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/home_page.dart';
-import 'core/theme/app_theme.dart';
 import 'services/location_service.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
@@ -83,8 +82,14 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Zikirmatik',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.blue,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.blue,
+      ),
       themeMode: _themeMode,
       home: HomePage(onThemeModeChanged: (mode) {
         setState(() => _themeMode = mode);
