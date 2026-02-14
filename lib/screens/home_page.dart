@@ -257,12 +257,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             builder: (context) => SuccessDialog(
               count: _counter,
               onContinue: () {
-                Navigator.pop(context);
-                setState(() => _showConfetti = false);
+                if (mounted) {
+                  setState(() => _showConfetti = false);
+                }
               },
               onReset: () {
-                Navigator.pop(context);
-                _resetCounter();
+                if (mounted) {
+                  _resetCounter();
+                }
               },
               themeConfig: _currentTheme,
               localizations: _localizations,
