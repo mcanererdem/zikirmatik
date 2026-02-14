@@ -37,7 +37,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   void initState() {
     super.initState();
     _selectedTheme = widget.currentTheme;
-    _selectedLanguage = widget.currentLanguage;
+    _selectedLanguage = widget.currentLanguage.isEmpty ? 'en' : widget.currentLanguage;
     _localizations = widget.localizations;
     _loadThemeMode();
   }
@@ -60,7 +60,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   void _updateLanguage(String languageCode) {
-    // Arapça seçilirse direkt değiştir
     if (languageCode == 'ar') {
       setState(() {
         _selectedLanguage = languageCode;
@@ -70,7 +69,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
       return;
     }
 
-    // Diğer diller için seçenek sun
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
