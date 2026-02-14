@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../services/settings_service.dart';
 import 'custom_about_dialog.dart';
 
 class SettingsDialog extends StatefulWidget {
@@ -44,9 +45,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
   Future<void> _loadThemeMode() async {
     final settingsService = SettingsService();
     final mode = await settingsService.getThemeMode();
-    setState(() {
-      _currentThemeMode = mode == 'light' ? ThemeMode.light : mode == 'dark' ? ThemeMode.dark : ThemeMode.system;
-    });
+    if (mounted) {
+      setState(() {
+        _currentThemeMode = mode == 'light' ? ThemeMode.light : mode == 'dark' ? ThemeMode.dark : ThemeMode.system;
+      });
+    }
   }
 
   void _updateTheme(ThemeConfig theme) {
