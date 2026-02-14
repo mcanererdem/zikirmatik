@@ -50,6 +50,13 @@ class AppLocalizations {
       'confettiOff': 'Konfeti kapalı',
       'setReminder': 'Hatırlatıcı Ayarla',
       'cancelReminder': 'İptal Et',
+      'goals': 'Hedefler',
+      'dailyGoal': 'Günlük Hedef',
+      'weeklyGoal': 'Haftalık Hedef',
+      'monthlyGoal': 'Aylık Hedef',
+      'setGoal': 'Hedef Belirle',
+      'goalCompleted': 'Hedef Tamamlandı! 🎯',
+      'progress': 'İlerleme',
     },
     'en': {
       'app_name': 'Tasbih Counter',
@@ -97,6 +104,13 @@ class AppLocalizations {
       'confettiOff': 'Confetti off',
       'setReminder': 'Set Reminder',
       'cancelReminder': 'Cancel',
+      'goals': 'Goals',
+      'dailyGoal': 'Daily Goal',
+      'weeklyGoal': 'Weekly Goal',
+      'monthlyGoal': 'Monthly Goal',
+      'setGoal': 'Set Goal',
+      'goalCompleted': 'Goal Completed! 🎯',
+      'progress': 'Progress',
     },
     'ar': {
       'app_name': 'مسبحة إلكترونية',
@@ -144,6 +158,13 @@ class AppLocalizations {
       'confettiOff': 'الاحتفال معطل',
       'setReminder': 'تعيين تذكير',
       'cancelReminder': 'إلغاء',
+      'goals': 'الأهداف',
+      'dailyGoal': 'الهدف اليومي',
+      'weeklyGoal': 'الهدف الأسبوعي',
+      'monthlyGoal': 'الهدف الشهري',
+      'setGoal': 'تحديد الهدف',
+      'goalCompleted': 'تم إنجاز الهدف! 🎯',
+      'progress': 'التقدم',
     },
     'id': {
       'app_name': 'Tasbih Digital',
@@ -191,6 +212,13 @@ class AppLocalizations {
       'confettiOff': 'Konfeti nonaktif',
       'setReminder': 'Atur Pengingat',
       'cancelReminder': 'Batal',
+      'goals': 'Target',
+      'dailyGoal': 'Target Harian',
+      'weeklyGoal': 'Target Mingguan',
+      'monthlyGoal': 'Target Bulanan',
+      'setGoal': 'Atur Target',
+      'goalCompleted': 'Target Tercapai! 🎯',
+      'progress': 'Kemajuan',
     },
   };
 
@@ -243,4 +271,11 @@ class AppLocalizations {
   String get confettiOff => translate('confettiOff');
   String get setReminder => translate('setReminder');
   String get cancelReminder => translate('cancelReminder');
+  String get goals => translate('goals');
+  String get dailyGoal => translate('dailyGoal');
+  String get weeklyGoal => translate('weeklyGoal');
+  String get monthlyGoal => translate('monthlyGoal');
+  String get setGoal => translate('setGoal');
+  String get goalCompleted => translate('goalCompleted');
+  String get progress => translate('progress');
 }

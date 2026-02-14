@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/zikr_model.dart';
+import '../models/goal_model.dart';
 
 class SettingsService {
   static const String _themeKey = 'theme_id';
@@ -18,6 +19,7 @@ class SettingsService {
   static const String _themeModeKey = 'theme_mode';
   static const String _lastActivityDateKey = 'last_activity_date';
   static const String _streakCountKey = 'streak_count';
+  static const String _goalsKey = 'goals';
 
   // Theme
   Future<void> saveTheme(String themeId) async {
@@ -186,5 +188,37 @@ class SettingsService {
   Future<int> getStreak() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_streakCountKey) ?? 0;
+  }
+
+  // Goals
+  Future<void> saveGoals(List<Goal> goals) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = goals.map((g) => jsonEncode(g.toJson())).toList();
+    await prefs.setStringList(_goalsKey, jsonList);
+  }
+
+  Future<List<Goal>> getGoals() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = prefs.getStringList(_goalsKey) ?? [];
+    return jsonList.map((json) => Goal.fromJson(jsonDecode(json))).toList();
+  }
+
+  Future<void> updateGoalProgress(String goalId, int progress) async {
+    final goals = await getGoals();
+    final index = goals.indexWhere((g) => g.id == goalId);
+    if (index != -1) {
+      goals[index] = goals[index].copyWith(
+        currentProgress: progress,
+        isCompleted: progress >= goals[index].targetCount,
+        completedDate: progress >= goals[index].targetCount ? DateTime.now() : null,
+      );
+      await saveGoals(goals);
+    }
+  }
+
+  Future<void> cleanExpiredGoals() async {
+    final goals = await getGoals();
+    final activeGoals = goals.where((g) => !g.isExpired()).toList();
+    await saveGoals(activeGoals);
   }
 }

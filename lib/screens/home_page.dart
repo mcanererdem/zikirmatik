@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../models/zikr_model.dart';
 import '../models/theme_model.dart';
+import '../models/goal_model.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
 import '../services/widget_service.dart';
@@ -15,6 +16,7 @@ import '../widgets/target_dialog.dart';
 import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
 import '../widgets/settings_dialog.dart';
+import '../widgets/goal_dialog.dart';
 import 'statistics_screen.dart';
 import '../widgets/reminder_dialog.dart';
 
@@ -56,6 +58,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   ThemeConfig _currentTheme = AppThemes.themes[0];
   String _currentLanguage = 'en';
   late AppLocalizations _localizations;
+  List<Goal> _goals = [];
 
   @override
   void initState() {
@@ -129,6 +132,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final customZikrs = await _settingsService.getCustomZikrs();
     final selectedZikrId = await _settingsService.getSelectedZikr();
     final savedCount = await _settingsService.getCurrentCount();
+    final goals = await _settingsService.getGoals();
+    await _settingsService.cleanExpiredGoals();
 
     setState(() {
       _currentTheme = AppThemes.getTheme(themeId);
@@ -139,6 +144,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _isConfettiOn = confetti;
       _customZikrs = customZikrs;
       _counter = savedCount;
+      _goals = goals;
       
       if (selectedZikrId != null) {
         _selectedZikr = _defaultZikrs.firstWhere(
@@ -200,6 +206,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final today = DateTime.now();
     await _settingsService.saveDailyCount(today, _counter);
     await _settingsService.incrementTotalCount(1);
+    
+    // Goal progress güncelle
+    await _updateGoalProgress();
 
     _buttonAnimationController.forward().then((_) {
       _buttonAnimationController.reverse();
@@ -230,6 +239,33 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     if (_counter == _target) {
       _showSuccessAnimation();
     }
+  }
+
+  Future<void> _updateGoalProgress() async {
+    final totalCount = await _settingsService.getTotalCount();
+    for (var goal in _goals) {
+      if (!goal.isCompleted && !goal.isExpired()) {
+        await _settingsService.updateGoalProgress(goal.id, totalCount);
+        if (totalCount >= goal.targetCount) {
+          _showGoalCompletedNotification(goal);
+        }
+      }
+    }
+    final updatedGoals = await _settingsService.getGoals();
+    setState(() => _goals = updatedGoals);
+  }
+
+  void _showGoalCompletedNotification(Goal goal) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${_localizations.goalCompleted} ${goal.targetCount}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: _currentTheme.accentColor,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   void _showSuccessAnimation() {
@@ -952,6 +988,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               icon: Icons.flag_rounded,
               isActive: true,
               onTap: _changeTarget,
+            ),
+          ),
+          Semantics(
+            label: _localizations.goals,
+            child: _buildControlButton(
+              icon: Icons.emoji_events_rounded,
+              isActive: _goals.any((g) => !g.isCompleted && !g.isExpired()),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => GoalDialog(
+                    themeConfig: _currentTheme,
+                    localizations: _localizations,
+                    currentGoals: _goals,
+                    onGoalSet: (goal) async {
+                      final updatedGoals = [..._goals, goal];
+                      await _settingsService.saveGoals(updatedGoals);
+                      setState(() => _goals = updatedGoals);
+                    },
+                  ),
+                );
+              },
             ),
           ),
           Semantics(
