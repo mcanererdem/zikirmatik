@@ -207,6 +207,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     await _settingsService.saveDailyCount(today, _counter);
     await _settingsService.incrementTotalCount(1);
     
+    // Zikr-specific count güncelle
+    if (_selectedZikr != null) {
+      for (var type in ['daily', 'weekly', 'monthly']) {
+        final period = _settingsService.getPeriodKey(type);
+        await _settingsService.incrementZikrCount(_selectedZikr!.id, period);
+      }
+    }
+    
     // Goal progress güncelle
     await _updateGoalProgress();
 
@@ -242,11 +250,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Future<void> _updateGoalProgress() async {
-    final totalCount = await _settingsService.getTotalCount();
     for (var goal in _goals) {
-      if (!goal.isCompleted && !goal.isExpired()) {
-        await _settingsService.updateGoalProgress(goal.id, totalCount);
-        if (totalCount >= goal.targetCount) {
+      if (!goal.isCompleted && !goal.isExpired() && goal.zikrId == _selectedZikr?.id) {
+        final period = _settingsService.getPeriodKey(goal.type);
+        final count = await _settingsService.getZikrCount(goal.zikrId!, period);
+        await _settingsService.updateGoalProgress(goal.id, count);
+        if (count >= goal.targetCount) {
           _showGoalCompletedNotification(goal);
         }
       }
@@ -977,10 +986,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomControls() {
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Semantics(
             label: _localizations.changeTarget,
@@ -990,6 +1000,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               onTap: _changeTarget,
             ),
           ),
+          const SizedBox(width: 12),
           Semantics(
             label: _localizations.goals,
             child: _buildControlButton(
@@ -1002,6 +1013,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     themeConfig: _currentTheme,
                     localizations: _localizations,
                     currentGoals: _goals,
+                    availableZikrs: [..._defaultZikrs, ..._customZikrs],
+                    currentLanguage: _currentLanguage,
                     onGoalSet: (goal) async {
                       final updatedGoals = [..._goals, goal];
                       await _settingsService.saveGoals(updatedGoals);
@@ -1012,6 +1025,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               },
             ),
           ),
+          const SizedBox(width: 12),
           Semantics(
             label: 'Reminder',
             child: _buildControlButton(
@@ -1028,6 +1042,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               },
             ),
           ),
+          const SizedBox(width: 12),
           Semantics(
             label: _isVibrationOn ? _localizations.vibrationOn : _localizations.vibrationOff,
             child: _buildControlButton(
@@ -1036,6 +1051,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               onTap: _toggleVibration,
             ),
           ),
+          const SizedBox(width: 12),
           Semantics(
             label: _isSoundOn ? _localizations.soundOn : _localizations.soundOff,
             child: _buildControlButton(
@@ -1044,6 +1060,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               onTap: _toggleSound,
             ),
           ),
+          const SizedBox(width: 12),
           Semantics(
             label: _isConfettiOn ? _localizations.confettiOn : _localizations.confettiOff,
             child: _buildControlButton(

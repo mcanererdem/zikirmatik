@@ -20,6 +20,7 @@ class SettingsService {
   static const String _lastActivityDateKey = 'last_activity_date';
   static const String _streakCountKey = 'streak_count';
   static const String _goalsKey = 'goals';
+  static const String _zikrCountPrefix = 'zikr_count_'; // zikr_count_{zikrId}_{date}
 
   // Theme
   Future<void> saveTheme(String themeId) async {
@@ -220,5 +221,34 @@ class SettingsService {
     final goals = await getGoals();
     final activeGoals = goals.where((g) => !g.isExpired()).toList();
     await saveGoals(activeGoals);
+  }
+
+  // Zikr-specific counts
+  Future<void> incrementZikrCount(String zikrId, String period) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_zikrCountPrefix${zikrId}_$period';
+    final current = prefs.getInt(key) ?? 0;
+    await prefs.setInt(key, current + 1);
+  }
+
+  Future<int> getZikrCount(String zikrId, String period) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_zikrCountPrefix${zikrId}_$period';
+    return prefs.getInt(key) ?? 0;
+  }
+
+  String getPeriodKey(String type) {
+    final now = DateTime.now();
+    switch (type) {
+      case 'daily':
+        return '${now.year}_${now.month}_${now.day}';
+      case 'weekly':
+        final weekStart = now.subtract(Duration(days: now.weekday - 1));
+        return 'week_${weekStart.year}_${weekStart.month}_${weekStart.day}';
+      case 'monthly':
+        return '${now.year}_${now.month}';
+      default:
+        return '';
+    }
   }
 }

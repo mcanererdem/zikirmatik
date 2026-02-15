@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/theme_model.dart';
 import '../models/goal_model.dart';
+import '../models/zikr_model.dart';
 import '../utils/localizations.dart';
 
 class GoalDialog extends StatefulWidget {
@@ -8,6 +9,8 @@ class GoalDialog extends StatefulWidget {
   final AppLocalizations localizations;
   final List<Goal> currentGoals;
   final Function(Goal) onGoalSet;
+  final List<ZikrModel> availableZikrs;
+  final String currentLanguage;
 
   const GoalDialog({
     super.key,
@@ -15,6 +18,8 @@ class GoalDialog extends StatefulWidget {
     required this.localizations,
     required this.currentGoals,
     required this.onGoalSet,
+    required this.availableZikrs,
+    required this.currentLanguage,
   });
 
   @override
@@ -24,6 +29,30 @@ class GoalDialog extends StatefulWidget {
 class _GoalDialogState extends State<GoalDialog> {
   String _selectedType = 'daily';
   final TextEditingController _targetController = TextEditingController();
+  ZikrModel? _selectedZikr;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedZikr = widget.availableZikrs.isNotEmpty ? widget.availableZikrs[0] : null;
+    _loadExistingGoal();
+  }
+
+  void _loadExistingGoal() {
+    final existingGoal = widget.currentGoals.firstWhere(
+      (g) => g.type == _selectedType && !g.isCompleted && !g.isExpired(),
+      orElse: () => Goal(id: '', type: '', targetCount: 0, startDate: DateTime.now()),
+    );
+    if (existingGoal.id.isNotEmpty) {
+      _targetController.text = existingGoal.targetCount.toString();
+      if (existingGoal.zikrId != null) {
+        _selectedZikr = widget.availableZikrs.firstWhere(
+          (z) => z.id == existingGoal.zikrId,
+          orElse: () => widget.availableZikrs[0],
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -33,6 +62,11 @@ class _GoalDialogState extends State<GoalDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final existingGoal = widget.currentGoals.firstWhere(
+      (g) => g.type == _selectedType && !g.isCompleted && !g.isExpired(),
+      orElse: () => Goal(id: '', type: '', targetCount: 0, startDate: DateTime.now()),
+    );
+
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -56,14 +90,46 @@ class _GoalDialogState extends State<GoalDialog> {
                 color: widget.themeConfig.accentColor,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            if (existingGoal.id.isNotEmpty) _buildExistingGoalInfo(existingGoal),
+            const SizedBox(height: 16),
             _buildTypeSelector(),
+            const SizedBox(height: 16),
+            _buildZikrSelector(),
             const SizedBox(height: 16),
             _buildTargetInput(),
             const SizedBox(height: 24),
             _buildButtons(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildExistingGoalInfo(Goal goal) {
+    final zikr = widget.availableZikrs.firstWhere(
+      (z) => z.id == goal.zikrId,
+      orElse: () => widget.availableZikrs[0],
+    );
+    final zikrName = _getZikrName(zikr);
+    
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: widget.themeConfig.accentColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '${widget.localizations.progress}: ${goal.currentProgress}/${goal.targetCount}',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            zikrName,
+            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+          ),
+        ],
       ),
     );
   }
@@ -84,7 +150,12 @@ class _GoalDialogState extends State<GoalDialog> {
     final isSelected = _selectedType == type;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedType = type),
+        onTap: () {
+          setState(() {
+            _selectedType = type;
+            _loadExistingGoal();
+          });
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -110,6 +181,46 @@ class _GoalDialogState extends State<GoalDialog> {
         ),
       ),
     );
+  }
+
+  Widget _buildZikrSelector() {
+    return DropdownButtonFormField<ZikrModel>(
+      value: _selectedZikr,
+      dropdownColor: widget.themeConfig.primaryColor,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.1),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: widget.themeConfig.accentColor.withOpacity(0.3),
+          ),
+        ),
+      ),
+      items: widget.availableZikrs.map((zikr) {
+        return DropdownMenuItem(
+          value: zikr,
+          child: Text(
+            _getZikrName(zikr),
+            style: const TextStyle(color: Colors.white),
+          ),
+        );
+      }).toList(),
+      onChanged: (zikr) => setState(() => _selectedZikr = zikr),
+    );
+  }
+
+  String _getZikrName(ZikrModel zikr) {
+    switch (widget.currentLanguage) {
+      case 'ar':
+        return zikr.nameAr;
+      case 'en':
+        return zikr.nameEn;
+      case 'id':
+        return zikr.nameEn;
+      default:
+        return zikr.nameTr;
+    }
   }
 
   Widget _buildTargetInput() {
@@ -190,7 +301,7 @@ class _GoalDialogState extends State<GoalDialog> {
 
   void _saveGoal() {
     final target = int.tryParse(_targetController.text);
-    if (target == null || target <= 0) {
+    if (target == null || target <= 0 || _selectedZikr == null) {
       return;
     }
 
@@ -199,6 +310,7 @@ class _GoalDialogState extends State<GoalDialog> {
       type: _selectedType,
       targetCount: target,
       startDate: DateTime.now(),
+      zikrId: _selectedZikr!.id,
     );
 
     widget.onGoalSet(goal);

@@ -6,6 +6,7 @@ class Goal {
   final DateTime? completedDate;
   final bool isCompleted;
   final int currentProgress;
+  final String? zikrId; // Hangi zikr için hedef
 
   Goal({
     required this.id,
@@ -15,6 +16,7 @@ class Goal {
     this.completedDate,
     this.isCompleted = false,
     this.currentProgress = 0,
+    this.zikrId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -25,6 +27,7 @@ class Goal {
     'completedDate': completedDate?.toIso8601String(),
     'isCompleted': isCompleted,
     'currentProgress': currentProgress,
+    'zikrId': zikrId,
   };
 
   factory Goal.fromJson(Map<String, dynamic> json) => Goal(
@@ -35,7 +38,8 @@ class Goal {
     completedDate: json['completedDate'] != null ? DateTime.parse(json['completedDate']) : null,
     isCompleted: json['isCompleted'] ?? false,
     currentProgress: json['currentProgress'] ?? 0,
-  );
+    zikrId: json['zikrId'],
+  });
 
   Goal copyWith({
     String? id,
@@ -45,6 +49,7 @@ class Goal {
     DateTime? completedDate,
     bool? isCompleted,
     int? currentProgress,
+    String? zikrId,
   }) => Goal(
     id: id ?? this.id,
     type: type ?? this.type,
@@ -53,6 +58,7 @@ class Goal {
     completedDate: completedDate ?? this.completedDate,
     isCompleted: isCompleted ?? this.isCompleted,
     currentProgress: currentProgress ?? this.currentProgress,
+    zikrId: zikrId ?? this.zikrId,
   );
 
   bool isExpired() {
