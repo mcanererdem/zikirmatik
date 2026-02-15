@@ -62,15 +62,15 @@ class _GoalDialogState extends State<GoalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final existingGoal = widget.currentGoals.firstWhere(
-      (g) => g.type == _selectedType && !g.isCompleted && !g.isExpired(),
-      orElse: () => Goal(id: '', type: '', targetCount: 0, startDate: DateTime.now()),
-    );
+    final activeGoals = widget.currentGoals
+        .where((g) => !g.isCompleted && !g.isExpired())
+        .toList();
 
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxHeight: 600),
         decoration: BoxDecoration(
           gradient: widget.themeConfig.backgroundGradient,
           borderRadius: BorderRadius.circular(24),
@@ -91,8 +91,16 @@ class _GoalDialogState extends State<GoalDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            if (existingGoal.id.isNotEmpty) _buildExistingGoalInfo(existingGoal),
-            const SizedBox(height: 16),
+            if (activeGoals.isNotEmpty) ..[
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: activeGoals.map((goal) => _buildGoalCard(goal)).toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             _buildTypeSelector(),
             const SizedBox(height: 16),
             _buildZikrSelector(),
@@ -102,6 +110,62 @@ class _GoalDialogState extends State<GoalDialog> {
             _buildButtons(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildGoalCard(Goal goal) {
+    final zikr = widget.availableZikrs.firstWhere(
+      (z) => z.id == goal.zikrId,
+      orElse: () => widget.availableZikrs[0],
+    );
+    final zikrName = _getZikrName(zikr);
+    final typeLabel = goal.type == 'daily'
+        ? widget.localizations.dailyGoal
+        : goal.type == 'weekly'
+            ? widget.localizations.weeklyGoal
+            : widget.localizations.monthlyGoal;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: widget.themeConfig.accentColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  typeLabel,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  zikrName,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${goal.currentProgress}/${goal.targetCount}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -227,12 +291,14 @@ class _GoalDialogState extends State<GoalDialog> {
     return TextField(
       controller: _targetController,
       keyboardType: TextInputType.number,
+      maxLength: 6,
       style: const TextStyle(color: Colors.white, fontSize: 18),
       decoration: InputDecoration(
         hintText: widget.localizations.enterTarget,
         hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
         filled: true,
         fillColor: Colors.white.withOpacity(0.1),
+        counterText: '',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
