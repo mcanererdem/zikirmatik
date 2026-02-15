@@ -7,22 +7,27 @@ Sade, kullanımı kolay ve erişilebilirlik odaklı bir dijital tesbih (zikirmat
 
 ## Özellikler ✨
 
+### Temel Özellikler
 - 🔢 **Tıklanabilir Sayaç:** Ana butona tıklayarak sayıyı artırın
 - 💾 **Veri Korunması:** Uygulama kapandıktan sonra bile veriler kaydedilir (SharedPreferences)
-- 🌍 **Çoklu Dil:** Türkçe, İngilizce, Arapça, Endonezce desteği
-- 📍 **Otomatik Dil:** İlk açılış İngilizce, sonra lokasyona göre otomatik dil seçimi
+- 🌍 **15 Dil Desteği:** Türkçe, İngilizce, Arapça, Endonezce, Urduca, Bengalce, Malayca, Farsça, Fransızca, Çince, Japonca, Rusça, Almanca, Svahili, Hausa
 - 🎨 **Tema Seçenekleri:** Mavi/Altın, Koyu, Mint vb temalar + Dark mode
 - ⚙️ **Ayarlanabilir:** Titreşim, ses, konfeti, dil, tema ayarları (İlk açılışta tümü kapalı)
-- 📊 **İstatistikler:** Günlük, toplam ve son 7 gün grafiği + streak takibi
-- 🎯 **Hedef Sistemi:** Günlük/haftalık/aylık zikr bazlı hedefler
-- 🔔 **Hatırlatıcılar:** Zamanlanmış günlük bildirimler
-- 📊 **Özel Hedefler:** Hızlı seçenekler (33, 99, 100, 500, 1000) veya özel sayı girin
-- ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin (sadece Arapça alan, diğer diller otomatik)
-- 📢 **AdMob Entegrasyonu:** Banner reklamlar (test mode aktif)
+
+### Hedef ve İstatistikler
+- 🎯 **Çoklu Hedef Sistemi:** Günlük/haftalık/aylık zikr bazlı hedefler (bağımsız ilerleme takibi)
+- 🏆 **Trophy Sistemi:** Tamamlanan hedefler için kupa ve başarı takibi
+- 🔥 **Streak Takibi:** Ardışık gün/hafta/ay başarı serileri
+- 📊 **Gelişmiş İstatistikler:** Günlük, haftalık, aylık grafikler ve detaylı analiz
+
+### Ek Özellikler
+- 📱 **Home Screen Widget:** Android ana ekran widget'ı ile hızlı erişim (tam senkronizasyon)
+- ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin (15 dil desteği ile)
+- 📢 **Reklam Desteği:** Banner ve rewarded reklamlar (test mode aktif)
 - 🔄 **Rotasyon Desteği:** Cihazı döndürünce veri korunur
 - ♿ **Erişilebilirlik:** Ekran okuyucu desteği (TalkBack/VoiceOver)
 - 🎯 **Hedef Bildirimi:** Hedefe ulaşınca titreşim ve animasyon
-- 📱 **Home Screen Widget:** Android ana ekran widget’ı ile hızlı erişim
+- 💬 **Hakkında Sayfası:** GitHub repo ve iletişim bilgileri
 
 ## Başlangıç
 
@@ -67,10 +72,10 @@ flutter build ios
 - **SharedPreferences:** Yerel veri depolama
 - **Vibration:** Titreşim efektleri
 - **AudioPlayers:** Ses efektleri
-- **Google Mobile Ads:** AdMob entegrasyonu
-- **Flutter Local Notifications:** Hatırlatıcılar
-- **Geolocator & Geocoding:** Lokasyon bazlı dil seçimi
-- **Flutter Launcher Icons:** Uygulama ikonu
+- **Google Mobile Ads:** AdMob entegrasyonu (banner + rewarded)
+- **Home Widget:** Android widget desteği
+- **URL Launcher:** Dış bağlantılar için
+- **Package Info Plus:** Uygulama versiyon bilgisi
 
 ## Proje Yapısı
 
@@ -79,27 +84,30 @@ zikirmatik/
 ├── lib/
 │   ├── main.dart                 # Uygulama giriş noktası
 │   ├── screens/
-│   │   ├── home_page.dart        # Ana ekran
-│   │   └── statistics_screen.dart # İstatistik ekranı
+│   │   ├── home_page.dart        # Ana ekran (650 satır - refactored)
+│   │   ├── statistics_screen.dart # İstatistik ekranı (trophy + streak)
+│   │   └── about_screen.dart      # Hakkında sayfası
 │   ├── widgets/
 │   │   ├── target_dialog.dart    # Hedef belirleme dialogu
-│   │   ├── add_zikr_dialog.dart  # Zikir ekleme dialogu
-│   │   ├── settings_dialog.dart  # Ayarlar dialogu
-│   │   ├── reminder_dialog.dart  # Hatırlatıcı dialogu
+│   │   ├── add_zikr_dialog.dart  # Zikir ekleme dialogu (15 dil)
+│   │   ├── settings_dialog.dart  # Ayarlar dialogu (rewarded ad)
+│   │   ├── goal_dialog.dart      # Hedef dialogu
 │   │   └── success_dialog.dart   # Başarı dialogu
 │   ├── models/
 │   │   ├── zikr_model.dart       # Zikir modeli
 │   │   ├── theme_model.dart      # Tema modeli
 │   │   ├── goal_model.dart       # Hedef modeli
+│   │   ├── trophy_model.dart     # Trophy ve streak modeli
 │   │   └── statistics_model.dart # İstatistik modeli
 │   ├── services/
 │   │   ├── settings_service.dart # Ayarlar servisi
-│   │   ├── ad_service.dart       # AdMob servisi
-│   │   ├── notification_service.dart # Bildirim servisi
-│   │   ├── location_service.dart # Lokasyon servisi
-│   │   └── widget_service.dart   # Widget servisi
+│   │   ├── ad_service.dart       # AdMob servisi (banner + rewarded)
+│   │   ├── widget_service.dart   # Widget servisi
+│   │   ├── counter_logic.dart    # Sayaç mantığı (extracted)
+│   │   ├── audio_manager.dart    # Ses yönetimi (extracted)
+│   │   └── feedback_manager.dart # Titreşim yönetimi (extracted)
 │   └── utils/
-│       └── localizations.dart    # Çoklu dil
+│       └── localizations.dart    # Çoklu dil (15 dil, 80+ key)
 ├── assets/
 │   ├── icons/                    # Uygulama ikonu
 │   └── sounds/                   # Ses efektleri
@@ -117,10 +125,11 @@ zikirmatik/
 
 ### Google Play Store'a Yükleme
 
-Uygulamayı Google Play Store'a yüklemek isteyenler için ayrıntılı rehberler:
+Uygulamanın Google Play Store'a yüklenmesi için ayrıntılı rehberler:
 
 - **[RELEASE_BUILD_GUIDE.md](RELEASE_BUILD_GUIDE.md)** — Keystore oluşturma, release build alma, ve store'a yükleme adım adım
 - **[STORE_LISTING.md](STORE_LISTING.md)** — Google Play Store listeleme bilgisi, açıklamalar, ekran görüntüleri
+- **[SCREENSHOT_GUIDE.md](SCREENSHOT_GUIDE.md)** — Ekran görüntüsü alma rehberi
 - **[PRIVACY_POLICY.md](PRIVACY_POLICY.md)** — Gizlilik politikası (store tarafından gerekli)
 
 ### Release Build Yöntemi
@@ -139,6 +148,11 @@ flutter build appbundle --release
 ```
 
 Detaylı talimatlar için [RELEASE_BUILD_GUIDE.md](RELEASE_BUILD_GUIDE.md) dosyasını okuyunuz.
+
+## İletişim 💬
+
+- **Email:** mcanererdem@gmail.com
+- **GitHub:** [github.com/mcanererdem/zikirmatik](https://github.com/mcanererdem/zikirmatik)
 
 ## Geri Bildirim 💬
 
