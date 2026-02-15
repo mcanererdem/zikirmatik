@@ -1,12 +1,12 @@
 class Goal {
   final String id;
-  final String type; // 'daily', 'weekly', 'monthly'
+  final String type;
   final int targetCount;
   final DateTime startDate;
   final DateTime? completedDate;
   final bool isCompleted;
   final int currentProgress;
-  final String? zikrId; // Hangi zikr için hedef
+  final String? zikrId;
 
   Goal({
     required this.id,
@@ -20,26 +20,28 @@ class Goal {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type,
-    'targetCount': targetCount,
-    'startDate': startDate.toIso8601String(),
-    'completedDate': completedDate?.toIso8601String(),
-    'isCompleted': isCompleted,
-    'currentProgress': currentProgress,
-    'zikrId': zikrId,
-  };
+        'id': id,
+        'type': type,
+        'targetCount': targetCount,
+        'startDate': startDate.toIso8601String(),
+        'completedDate': completedDate?.toIso8601String(),
+        'isCompleted': isCompleted,
+        'currentProgress': currentProgress,
+        'zikrId': zikrId,
+      };
 
   factory Goal.fromJson(Map<String, dynamic> json) => Goal(
-    id: json['id'],
-    type: json['type'],
-    targetCount: json['targetCount'],
-    startDate: DateTime.parse(json['startDate']),
-    completedDate: json['completedDate'] != null ? DateTime.parse(json['completedDate']) : null,
-    isCompleted: json['isCompleted'] ?? false,
-    currentProgress: json['currentProgress'] ?? 0,
-    zikrId: json['zikrId'],
-  });
+        id: json['id'],
+        type: json['type'],
+        targetCount: json['targetCount'],
+        startDate: DateTime.parse(json['startDate']),
+        completedDate: json['completedDate'] != null
+            ? DateTime.parse(json['completedDate'])
+            : null,
+        isCompleted: json['isCompleted'] ?? false,
+        currentProgress: json['currentProgress'] ?? 0,
+        zikrId: json['zikrId'],
+      );
 
   Goal copyWith({
     String? id,
@@ -50,16 +52,17 @@ class Goal {
     bool? isCompleted,
     int? currentProgress,
     String? zikrId,
-  }) => Goal(
-    id: id ?? this.id,
-    type: type ?? this.type,
-    targetCount: targetCount ?? this.targetCount,
-    startDate: startDate ?? this.startDate,
-    completedDate: completedDate ?? this.completedDate,
-    isCompleted: isCompleted ?? this.isCompleted,
-    currentProgress: currentProgress ?? this.currentProgress,
-    zikrId: zikrId ?? this.zikrId,
-  );
+  }) =>
+      Goal(
+        id: id ?? this.id,
+        type: type ?? this.type,
+        targetCount: targetCount ?? this.targetCount,
+        startDate: startDate ?? this.startDate,
+        completedDate: completedDate ?? this.completedDate,
+        isCompleted: isCompleted ?? this.isCompleted,
+        currentProgress: currentProgress ?? this.currentProgress,
+        zikrId: zikrId ?? this.zikrId,
+      );
 
   bool isExpired() {
     final now = DateTime.now();
