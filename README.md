@@ -11,9 +11,10 @@ Sade, kullanımı kolay ve erişilebilirlik odaklı bir dijital tesbih (zikirmat
 - 💾 **Veri Korunması:** Uygulama kapandıktan sonra bile veriler kaydedilir (SharedPreferences)
 - 🌍 **Çoklu Dil:** Türkçe, İngilizce, Arapça, Endonezce desteği
 - 📍 **Otomatik Dil:** İlk açılış İngilizce, sonra lokasyona göre otomatik dil seçimi
-- 🎨 **Tema Seçenekleri:** Mavi/Altın, Koyu, Mint vb temalar
+- 🎨 **Tema Seçenekleri:** Mavi/Altın, Koyu, Mint vb temalar + Dark mode
 - ⚙️ **Ayarlanabilir:** Titreşim, ses, konfeti, dil, tema ayarları (İlk açılışta tümü kapalı)
-- 📊 **İstatistikler:** Günlük, toplam ve son 7 gün grafiği
+- 📊 **İstatistikler:** Günlük, toplam ve son 7 gün grafiği + streak takibi
+- 🎯 **Hedef Sistemi:** Günlük/haftalık/aylık zikr bazlı hedefler
 - 🔔 **Hatırlatıcılar:** Zamanlanmış günlük bildirimler
 - 📊 **Özel Hedefler:** Hızlı seçenekler (33, 99, 100, 500, 1000) veya özel sayı girin
 - ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin (sadece Arapça alan, diğer diller otomatik)
@@ -21,6 +22,7 @@ Sade, kullanımı kolay ve erişilebilirlik odaklı bir dijital tesbih (zikirmat
 - 🔄 **Rotasyon Desteği:** Cihazı döndürünce veri korunur
 - ♿ **Erişilebilirlik:** Ekran okuyucu desteği (TalkBack/VoiceOver)
 - 🎯 **Hedef Bildirimi:** Hedefe ulaşınca titreşim ve animasyon
+- 📱 **Home Screen Widget:** Android ana ekran widget’ı ile hızlı erişim
 
 ## Başlangıç
 
@@ -87,12 +89,15 @@ zikirmatik/
 │   │   └── success_dialog.dart   # Başarı dialogu
 │   ├── models/
 │   │   ├── zikr_model.dart       # Zikir modeli
-│   │   └── theme_model.dart      # Tema modeli
+│   │   ├── theme_model.dart      # Tema modeli
+│   │   ├── goal_model.dart       # Hedef modeli
+│   │   └── statistics_model.dart # İstatistik modeli
 │   ├── services/
 │   │   ├── settings_service.dart # Ayarlar servisi
 │   │   ├── ad_service.dart       # AdMob servisi
 │   │   ├── notification_service.dart # Bildirim servisi
-│   │   └── location_service.dart # Lokasyon servisi
+│   │   ├── location_service.dart # Lokasyon servisi
+│   │   └── widget_service.dart   # Widget servisi
 │   └── utils/
 │       └── localizations.dart    # Çoklu dil
 ├── assets/
