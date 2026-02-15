@@ -69,6 +69,24 @@ class _SettingsDialogState extends State<SettingsDialog> {
       return;
     }
 
+    // Tüm dilleri göster
+    final languages = [
+      {'code': 'en', 'name': 'English'},
+      {'code': 'tr', 'name': 'Türkçe'},
+      {'code': 'id', 'name': 'Bahasa Indonesia'},
+      {'code': 'ur', 'name': 'اردو (Urdu)'},
+      {'code': 'bn', 'name': 'বাংলা (Bengali)'},
+      {'code': 'ms', 'name': 'Bahasa Melayu'},
+      {'code': 'fa', 'name': 'فارسی (Persian)'},
+      {'code': 'fr', 'name': 'Français'},
+      {'code': 'zh', 'name': '中文 (Chinese)'},
+      {'code': 'ja', 'name': '日本語 (Japanese)'},
+      {'code': 'ru', 'name': 'Русский (Russian)'},
+      {'code': 'de', 'name': 'Deutsch'},
+      {'code': 'sw', 'name': 'Kiswahili'},
+      {'code': 'ha', 'name': 'Hausa'},
+    ];
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -77,15 +95,21 @@ class _SettingsDialogState extends State<SettingsDialog> {
           _localizations.language,
           style: const TextStyle(color: Colors.white),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildLanguageSelectButton(ctx, 'en', _localizations.english),
-            const SizedBox(height: 8),
-            _buildLanguageSelectButton(ctx, 'tr', _localizations.turkish),
-            const SizedBox(height: 8),
-            _buildLanguageSelectButton(ctx, 'id', _localizations.indonesian),
-          ],
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: languages.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, index) {
+              final lang = languages[index];
+              return _buildLanguageSelectButton(
+                ctx,
+                lang['code']!,
+                lang['name']!,
+              );
+            },
+          ),
         ),
       ),
     );
