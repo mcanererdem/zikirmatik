@@ -91,7 +91,7 @@ class _GoalDialogState extends State<GoalDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            if (activeGoals.isNotEmpty) ..[
+            if (activeGoals.isNotEmpty)
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -99,8 +99,7 @@ class _GoalDialogState extends State<GoalDialog> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
+            if (activeGoals.isNotEmpty) const SizedBox(height: 16),
             _buildTypeSelector(),
             const SizedBox(height: 16),
             _buildZikrSelector(),
