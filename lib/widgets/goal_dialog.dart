@@ -82,12 +82,16 @@ class _GoalDialogState extends State<GoalDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              widget.localizations.setGoal,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: widget.themeConfig.accentColor,
+            Flexible(
+              child: Text(
+                widget.localizations.setGoal,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: widget.themeConfig.accentColor,
+                ),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 16),

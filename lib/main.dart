@@ -22,23 +22,13 @@ void main() async {
     ),
   );
 
-  // İlk açılışta lokasyon bazlı dil ayarı
+  // İlk açılışta dil İngilizce olarak ayarlanır
   final settingsService = SettingsService();
   final savedLanguage = await settingsService.getLanguage();
   
-  // Eğer varsayılan dil hala İngilizce ise (ilk açılış), lokasyona göre belirle
-  if (savedLanguage == 'en') {
-    try {
-      final locationService = LocationService();
-      final locationLanguage = await locationService.getLanguageByLocation();
-      // Sadece İngilizce dışında bir dil bulunduysa değiştir
-      if (locationLanguage != 'en') {
-        await settingsService.saveLanguage(locationLanguage);
-      }
-    } catch (e) {
-      // Lokasyon alınamazsa veya hata olursa İngilizce kalır
-      print('Location-based language detection failed: $e');
-    }
+  // Eğer dil hiç ayarlanmamışsa (ilk açılış), İngilizce olarak ayarla
+  if (savedLanguage.isEmpty) {
+    await settingsService.saveLanguage('en');
   }
 
   // Run the app immediately to avoid delaying the first frame.

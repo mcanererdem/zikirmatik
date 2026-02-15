@@ -8,12 +8,14 @@ class AddZikrDialog extends StatefulWidget {
   final ThemeConfig themeConfig;
   final AppLocalizations localizations;
   final Function(ZikrModel) onZikrAdded;
+  final String currentLanguage;
 
   const AddZikrDialog({
     super.key,
     required this.themeConfig,
     required this.localizations,
     required this.onZikrAdded,
+    required this.currentLanguage,
   });
 
   @override
@@ -21,36 +23,140 @@ class AddZikrDialog extends StatefulWidget {
 }
 
 class _AddZikrDialogState extends State<AddZikrDialog> {
-  final _nameArController = TextEditingController();
+  final _primaryController = TextEditingController();
+  final _secondaryController = TextEditingController();
   final _countController = TextEditingController(text: '100');
 
   @override
   void dispose() {
-    _nameArController.dispose();
+    _primaryController.dispose();
+    _secondaryController.dispose();
     _countController.dispose();
     super.dispose();
   }
 
+  String get _primaryLabel {
+    switch (widget.currentLanguage) {
+      case 'ar':
+        return widget.localizations.zikrNameAr;
+      case 'en':
+        return widget.localizations.zikrNameEn;
+      case 'tr':
+      case 'id':
+      case 'ur':
+      case 'bn':
+      case 'ms':
+      case 'fa':
+      case 'fr':
+      case 'zh':
+      case 'ja':
+      case 'ru':
+      case 'de':
+      case 'sw':
+      case 'ha':
+        return widget.localizations.translate('zikr_name_${widget.currentLanguage}') ?? widget.localizations.zikrNameTr;
+      default:
+        return widget.localizations.zikrNameTr;
+    }
+  }
+
+  String get _secondaryLabel {
+    if (widget.currentLanguage == 'ar') {
+      return '${widget.localizations.translate('transliteration') ?? 'Transliteration'} (${widget.localizations.translate('optional') ?? 'Optional'})';
+    }
+    return '${widget.localizations.zikrNameAr} (${widget.localizations.translate('optional') ?? 'Optional'})';
+  }
+
+  String get _primaryHint {
+    switch (widget.currentLanguage) {
+      case 'ar':
+        return 'سُبْحَانَ اللّٰهِ';
+      case 'en':
+        return 'Glory be to Allah';
+      case 'tr':
+        return 'Sübhanallah';
+      case 'id':
+        return 'Subhanallah';
+      case 'ur':
+        return 'سبحان اللہ';
+      case 'bn':
+        return 'সুবহানাল্লাহ';
+      case 'ms':
+        return 'Subhanallah';
+      case 'fa':
+        return 'سبحان الله';
+      case 'fr':
+        return 'Gloire à Allah';
+      case 'zh':
+        return '赞美真主';
+      case 'ja':
+        return 'アッラーに栄光あれ';
+      case 'ru':
+        return 'Слава Аллаху';
+      case 'de':
+        return 'Ehre sei Allah';
+      case 'sw':
+        return 'Subhanallah';
+      case 'ha':
+        return 'Subhanallah';
+      default:
+        return 'Sübhanallah';
+    }
+  }
+
+  String get _secondaryHint {
+    if (widget.currentLanguage == 'ar') {
+      return 'Subhanallah';
+    }
+    return 'سُبْحَانَ اللّٰهِ';
+  }
+
   void _saveZikr() {
-    if (_nameArController.text.trim().isEmpty) {
+    if (_primaryController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(widget.localizations.zikrNameAr),
+          content: Text('$_primaryLabel ${widget.localizations.translate('required') ?? 'required'}'),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
 
     final count = int.tryParse(_countController.text) ?? 100;
-    final nameAr = _nameArController.text.trim();
+    if (count == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.localizations.translate('count_cannot_be_zero') ?? 'Count cannot be 0'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final primaryText = _primaryController.text.trim();
+    final secondaryText = _secondaryController.text.trim();
+
+    String nameAr, nameTr, nameEn;
+    
+    if (widget.currentLanguage == 'ar') {
+      nameAr = primaryText;
+      nameTr = secondaryText.isEmpty ? primaryText : secondaryText;
+      nameEn = secondaryText.isEmpty ? primaryText : secondaryText;
+    } else if (widget.currentLanguage == 'en') {
+      nameEn = primaryText;
+      nameAr = secondaryText.isEmpty ? primaryText : secondaryText;
+      nameTr = primaryText;
+    } else {
+      nameTr = primaryText;
+      nameAr = secondaryText.isEmpty ? primaryText : secondaryText;
+      nameEn = primaryText;
+    }
 
     final newZikr = ZikrModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       nameAr: nameAr,
-      nameTr: nameAr,
-      nameEn: nameAr,
+      nameTr: nameTr,
+      nameEn: nameEn,
       defaultCount: count,
     );
 
@@ -101,12 +207,15 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    widget.localizations.addZikr,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Flexible(
+                    child: Text(
+                      widget.localizations.addZikr,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -114,12 +223,22 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
 
               const SizedBox(height: 24),
 
-              // Arabic Name (Required)
+              // Primary Field (Required - based on language)
               _buildTextField(
-                controller: _nameArController,
-                label: '${widget.localizations.zikrNameAr} *',
-                hint: 'سُبْحَانَ اللّٰهِ',
-                textDirection: TextDirection.rtl,
+                controller: _primaryController,
+                label: '$_primaryLabel *',
+                hint: _primaryHint,
+                textDirection: widget.currentLanguage == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Secondary Field (Optional - Arabic or Transliteration)
+              _buildTextField(
+                controller: _secondaryController,
+                label: _secondaryLabel,
+                hint: _secondaryHint,
+                textDirection: widget.currentLanguage == 'ar' ? TextDirection.ltr : TextDirection.rtl,
               ),
 
               const SizedBox(height: 16),

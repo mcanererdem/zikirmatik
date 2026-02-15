@@ -35,9 +35,16 @@ class NotificationService {
     try {
       await cancelAll();
       
-      final scheduledTime = _nextInstanceOfTime(hour, minute);
+      final now = tz.TZDateTime.now(tz.local);
+      var scheduledTime = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+      
+      if (scheduledTime.isBefore(now)) {
+        scheduledTime = scheduledTime.add(const Duration(days: 1));
+      }
+      
       print('Scheduling notification for: $scheduledTime');
-      print('Current time: ${tz.TZDateTime.now(tz.local)}');
+      print('Current time: $now');
+      print('Time difference: ${scheduledTime.difference(now).inMinutes} minutes');
       
       await _notifications.zonedSchedule(
         0,
@@ -53,6 +60,7 @@ class NotificationService {
             priority: Priority.high,
             enableVibration: true,
             playSound: true,
+            icon: '@mipmap/ic_launcher',
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -64,26 +72,12 @@ class NotificationService {
         matchDateTimeComponents: DateTimeComponents.time,
       );
       
-      // Verify scheduled notification
       final pending = await _notifications.pendingNotificationRequests();
-      print('Pending notifications: ${pending.length}');
-      for (var notif in pending) {
-        print('ID: ${notif.id}, Title: ${notif.title}');
-      }
+      print('Scheduled successfully! Pending: ${pending.length}');
     } catch (e) {
       print('Error scheduling notification: $e');
+      rethrow;
     }
-  }
-
-  static tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-    
-    return scheduledDate;
   }
 
   static Future<void> cancelAll() async {

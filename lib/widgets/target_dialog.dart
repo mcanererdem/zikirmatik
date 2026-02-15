@@ -41,6 +41,13 @@ class _TargetDialogState extends State<TargetDialog> {
     if (target > 0 && target <= 999999) {
       widget.onTargetChanged(target);
       Navigator.pop(context);
+    } else if (target == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.localizations.translate('target_cannot_be_zero') ?? 'Target cannot be 0'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -91,12 +98,15 @@ class _TargetDialogState extends State<TargetDialog> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  widget.localizations.setTarget,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Flexible(
+                  child: Text(
+                    widget.localizations.setTarget,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

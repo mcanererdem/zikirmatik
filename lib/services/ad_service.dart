@@ -9,20 +9,10 @@ class AdService {
 
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
+  RewardedAd? _rewardedAd;
+  bool _isRewardedAdLoaded = false;
 
-  /// Banner Ad Unit IDs
-  /// 
-  /// DEBUG MODE (kDebugMode = true):
-  /// - Uses Google's test Ad Unit IDs → guaranteed test ads, perfect for development
-  /// 
-  /// RELEASE MODE (kDebugMode = false):
-  /// - Android: ca-app-pub-8195806446886861/1390869911 (User's production ID)
-  /// - iOS: [TODO - Add your iOS production Ad Unit ID when available]
-  /// 
-  /// Note: App approval status must be "Approved" for production IDs to serve real ads.
-  /// Until then, test IDs in debug mode will work reliably.
   static String get bannerAdUnitId {
-    // Use Google's test ad unit IDs in debug mode to ensure reliable test ads
     if (kDebugMode) {
       if (Platform.isAndroid) {
         return 'ca-app-pub-3940256099942544/6300978111';
@@ -32,57 +22,118 @@ class AdService {
     }
 
     if (Platform.isAndroid) {
-      // Production Ad Unit ID (Android): ca-app-pub-8195806446886861/1390869911
       return 'ca-app-pub-8195806446886861/1390869911';
     } else if (Platform.isIOS) {
-      // TODO: Replace with your iOS production Ad Unit ID
-      // Format should be: ca-app-pub-XXXXXXXX/NNNNNNNN
-      return 'ca-app-pub-3940256099942544/2934735716'; // placeholder/test ID for now
+      return 'ca-app-pub-3940256099942544/2934735716';
     }
     return '';
   }
 
-  // Banner reklamı yükle
+  static String get rewardedAdUnitId {
+    if (kDebugMode) {
+      if (Platform.isAndroid) {
+        return 'ca-app-pub-3940256099942544/5224354917';
+      } else if (Platform.isIOS) {
+        return 'ca-app-pub-3940256099942544/1712485313';
+      }
+    }
+
+    if (Platform.isAndroid) {
+      return 'ca-app-pub-8195806446886861/1390869911'; // TODO: Replace with rewarded ad unit
+    } else if (Platform.isIOS) {
+      return 'ca-app-pub-3940256099942544/1712485313';
+    }
+    return '';
+  }
+
   Future<void> loadBannerAd({
     required Function(BannerAd) onAdLoaded,
     required Function(LoadAdError) onAdFailedToLoad,
   }) async {
-    print('[AdService] Loading banner ad with Unit ID: $bannerAdUnitId');
     _bannerAd = BannerAd(
       adUnitId: bannerAdUnitId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          print('[AdService] Banner ad loaded successfully');
           _isBannerAdLoaded = true;
           onAdLoaded(ad as BannerAd);
         },
         onAdFailedToLoad: (ad, error) {
-          print('[AdService] Banner ad failed to load: code=${error.code}, message=${error.message}');
           _isBannerAdLoaded = false;
           ad.dispose();
           onAdFailedToLoad(error);
         },
       ),
     );
-
-    print('[AdService] Calling _bannerAd!.load()...');
-    try {
-      await _bannerAd!.load();
-      print('[AdService] load() completed successfully');
-    } catch (e) {
-      print('[AdService] load() error: $e');
-    }
+    await _bannerAd!.load();
   }
 
-  // Banner reklamı dispose et
+  Future<void> loadRewardedAd({
+    required Function() onAdLoaded,
+    required Function(LoadAdError) onAdFailedToLoad,
+  }) async {
+    await RewardedAd.load(
+      adUnitId: rewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          _rewardedAd = ad;
+          _isRewardedAdLoaded = true;
+          onAdLoaded();
+        },
+        onAdFailedToLoad: (error) {
+          _isRewardedAdLoaded = false;
+          onAdFailedToLoad(error);
+        },
+      ),
+    );
+  }
+
+  void showRewardedAd({
+    required Function() onUserEarnedReward,
+    required Function() onAdDismissed,
+  }) {
+    if (_rewardedAd == null || !_isRewardedAdLoaded) {
+      onAdDismissed();
+      return;
+    }
+
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _rewardedAd = null;
+        _isRewardedAdLoaded = false;
+        onAdDismissed();
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        _rewardedAd = null;
+        _isRewardedAdLoaded = false;
+        onAdDismissed();
+      },
+    );
+
+    _rewardedAd!.show(
+      onUserEarnedReward: (ad, reward) {
+        onUserEarnedReward();
+      },
+    );
+  }
+
   void disposeBannerAd() {
     _bannerAd?.dispose();
     _bannerAd = null;
     _isBannerAdLoaded = false;
   }
 
+  void disposeRewardedAd() {
+    _rewardedAd?.dispose();
+    _rewardedAd = null;
+    _isRewardedAdLoaded = false;
+  }
+
   bool get isBannerAdLoaded => _isBannerAdLoaded;
+  bool get isRewardedAdLoaded => _isRewardedAdLoaded;
   BannerAd? get bannerAd => _bannerAd;
 }

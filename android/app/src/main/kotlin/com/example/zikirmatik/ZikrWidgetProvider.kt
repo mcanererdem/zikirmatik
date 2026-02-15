@@ -26,8 +26,9 @@ class ZikrWidgetProvider : AppWidgetProvider() {
         when (intent.action) {
             "INCREMENT_COUNTER" -> {
                 val widgetData = HomeWidgetPlugin.getData(context)
-                val counter = widgetData.getInt("counter", 0) + 1
-                widgetData.edit().putInt("counter", counter).apply()
+                val currentCounter = widgetData.getInt("counter", 0)
+                val newCounter = currentCounter + 1
+                widgetData.edit().putInt("counter", newCounter).apply()
                 
                 val appWidgetManager = AppWidgetManager.getInstance(context)
                 val ids = appWidgetManager.getAppWidgetIds(

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:vibration/vibration.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../models/zikr_model.dart';
 import '../models/theme_model.dart';
 import '../models/goal_model.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
+import '../services/counter_logic.dart';
+import '../services/audio_manager.dart';
+import '../services/feedback_manager.dart';
 import '../services/widget_service.dart';
 import '../utils/localizations.dart';
 import '../widgets/confetti_animation.dart';
@@ -18,7 +18,6 @@ import '../widgets/add_zikr_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/goal_dialog.dart';
 import 'statistics_screen.dart';
-import '../widgets/reminder_dialog.dart';
 
 class HomePage extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
@@ -29,7 +28,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin, WidgetsBindingObserver {
   int _counter = 0;
   int _target = 100;
   bool _isVibrationOn = true;
@@ -43,13 +42,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late Animation<double> _counterScaleAnimation;
 
   final SettingsService _settingsService = SettingsService();
-  final AdService _adService = AdService(); // YENİ
-  BannerAd? _bannerAd; // YENİ
-  bool _isBannerAdLoaded = false; // YENİ
+  final AdService _adService = AdService();
+  final CounterLogic _counterLogic = CounterLogic();
+  final AudioManager _audioManager = AudioManager();
+  final FeedbackManager _feedbackManager = FeedbackManager();
   
-  final List<AudioPlayer> _audioPlayers = [];
-  int _currentPlayerIndex = 0;
-  final int _maxPlayers = 5;
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
   
   final List<ZikrModel> _defaultZikrs = DefaultZikrs.zikrs;
   List<ZikrModel> _customZikrs = [];
@@ -63,10 +62,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _localizations = AppLocalizations('en');
     _loadSettings();
-    _initAudio();
-    // Ensure MobileAds initialized before loading banners to improve reliability.
+    _audioManager.initialize();
+    _syncWidgetCounter();
     MobileAds.instance.initialize().then((_) {
       _loadBannerAd();
     });
@@ -96,7 +96,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // YENİ: Banner reklam yükle
+  Future<void> _syncWidgetCounter() async {
+    final widgetCounter = await WidgetService.getWidgetCounter();
+    final appCounter = await _settingsService.getCurrentCount();
+    
+    print('Initial sync - Widget: $widgetCounter, App: $appCounter');
+    
+    if (widgetCounter != appCounter) {
+      setState(() => _counter = widgetCounter);
+      await _settingsService.saveCurrentCount(widgetCounter);
+      print('Synced to: $widgetCounter');
+    }
+  }
+
   Future<void> _loadBannerAd() async {
     await _adService.loadBannerAd(
       onAdLoaded: (ad) {
@@ -106,21 +118,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         });
       },
       onAdFailedToLoad: (error) {
-        print('Banner ad failed to load: $error');
         setState(() {
           _isBannerAdLoaded = false;
         });
       },
     );
-  }
-
-  Future<void> _initAudio() async {
-    for (int i = 0; i < _maxPlayers; i++) {
-      final player = AudioPlayer();
-      await player.setReleaseMode(ReleaseMode.stop);
-      await player.setVolume(1.0);
-      _audioPlayers.add(player);
-    }
   }
 
   Future<void> _loadSettings() async {
@@ -164,191 +166,121 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _buttonAnimationController.dispose();
     _counterAnimationController.dispose();
-    
-    for (var player in _audioPlayers) {
-      player.dispose();
-    }
-    
-    _bannerAd?.dispose(); // YENİ: Reklam dispose
-    
+    _audioManager.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
-  Future<void> _playSound() async {
-    if (_isSoundOn) {
-      try {
-        final player = _audioPlayers[_currentPlayerIndex];
-        await player.stop();
-        await player.play(AssetSource('sounds/click.mp3'));
-        _currentPlayerIndex = (_currentPlayerIndex + 1) % _maxPlayers;
-      } catch (e) {
-        try {
-          await SystemSound.play(SystemSoundType.click);
-        } catch (e2) {
-          // Sessizce devam et
-        }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      final widgetCounter = await WidgetService.getWidgetCounter();
+      
+      print('=== WIDGET SYNC ===');
+      print('Widget counter: $widgetCounter');
+      print('App counter before sync: $_counter');
+      
+      if (widgetCounter != _counter) {
+        print('Syncing: updating app counter from $_counter to $widgetCounter');
+        setState(() => _counter = widgetCounter);
+        await _settingsService.saveCurrentCount(widgetCounter);
+        print('Sync complete: $_counter');
+      } else {
+        print('No sync needed, counters match');
       }
     }
   }
 
   void _incrementCounter() async {
-    setState(() {
-      _counter++;
-    });
+    setState(() => _counter++);
 
-    // Sayacı kaydet
-    await _settingsService.saveCurrentCount(_counter);
-    await _settingsService.updateStreak();
+    await _counterLogic.incrementCounter(_counter, _selectedZikr?.id);
     await WidgetService.updateWidget(_counter);
-
-    final today = DateTime.now();
-    await _settingsService.saveDailyCount(today, _counter);
-    await _settingsService.incrementTotalCount(1);
+    final result = await _counterLogic.updateGoalProgress(_goals, _selectedZikr?.id);
     
-    // Zikr-specific count güncelle
-    if (_selectedZikr != null) {
-      for (var type in ['daily', 'weekly', 'monthly']) {
-        final period = _settingsService.getPeriodKey(type);
-        await _settingsService.incrementZikrCount(_selectedZikr!.id, period);
+    final updatedGoals = result['goals'] as List<Goal>;
+    final streakInfo = result['streakInfo'] as Map<String, dynamic>?;
+    final goalType = result['goalType'] as String?;
+    
+    for (var goal in updatedGoals) {
+      final oldGoal = _goals.firstWhere((g) => g.id == goal.id, orElse: () => goal);
+      if (!oldGoal.isCompleted && goal.isCompleted) {
+        _showGoalCompletedNotification(goal, streakInfo, goalType);
       }
     }
-    
-    // Goal progress güncelle
-    await _updateGoalProgress();
+    setState(() => _goals = updatedGoals);
 
     _buttonAnimationController.forward().then((_) {
       _buttonAnimationController.reverse();
     });
     
-    _counterAnimationController.forward().then((_) {
-      _counterAnimationController.reverse();
-    });
+    _counterAnimationController.forward().then((_) => _counterAnimationController.reverse());
 
-    // Her tıklamada ses ve titreşim (ayarlar açıksa)
-    if (_isSoundOn) {
-      _playSound();
-    }
-
-    if (_isVibrationOn) {
-      try {
-        final hasVibrator = await Vibration.hasVibrator();
-        if (hasVibrator == true) {
-          Vibration.vibrate(duration: 50);
-        } else {
-          HapticFeedback.lightImpact();
-        }
-      } catch (e) {
-        HapticFeedback.lightImpact();
-      }
-    }
+    if (_isSoundOn) _audioManager.playClick();
+    if (_isVibrationOn) _feedbackManager.vibrateLight();
 
     if (_counter == _target) {
       _showSuccessAnimation();
     }
   }
 
-  Future<void> _updateGoalProgress() async {
-    for (var goal in _goals) {
-      if (!goal.isCompleted && !goal.isExpired() && goal.zikrId == _selectedZikr?.id) {
-        final period = _settingsService.getPeriodKey(goal.type);
-        final count = await _settingsService.getZikrCount(goal.zikrId!, period);
-        await _settingsService.updateGoalProgress(goal.id, count);
-        if (count >= goal.targetCount) {
-          _showGoalCompletedNotification(goal);
-        }
+  void _showGoalCompletedNotification(Goal goal, Map<String, dynamic>? streakInfo, String? goalType) {
+    String message = '${_localizations.goalCompleted} ${goal.targetCount}';
+    
+    if (streakInfo != null && streakInfo['streak'] > 1) {
+      final streak = streakInfo['streak'];
+      final typeLabel = goalType == 'daily' ? _localizations.dailyGoal :
+                       goalType == 'weekly' ? _localizations.weeklyGoal :
+                       _localizations.monthlyGoal;
+      message += '\n🔥 $streak ${typeLabel} ${_localizations.translate('streak_continues') ?? 'streak!'}';
+      
+      if (streakInfo['isNewBest'] == true) {
+        message += '\n🏆 ${_localizations.translate('new_record') ?? 'New record!'}';
       }
     }
-    final updatedGoals = await _settingsService.getGoals();
-    setState(() => _goals = updatedGoals);
-  }
-
-  void _showGoalCompletedNotification(Goal goal) {
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${_localizations.goalCompleted} ${goal.targetCount}',
+          message,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: _currentTheme.accentColor,
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
 
   void _showSuccessAnimation() {
-    // Titreşim açıksa hedef titreşimi
-    if (_isVibrationOn) {
-      _vibrateSuccess();
-    }
+    if (_isVibrationOn) _feedbackManager.vibrateSuccess();
+    if (_isSoundOn) _audioManager.playSuccess();
 
-    // Ses açıksa hedef sesi
-    if (_isSoundOn) {
-      _playSuccessSound();
-    }
-
-    // Konfeti açıksa konfeti + dialog
     if (_isConfettiOn) {
-      setState(() {
-        _showConfetti = true;
-      });
+      setState(() => _showConfetti = true);
 
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => SuccessDialog(
-              count: _counter,
-              onContinue: () {
-                if (mounted) {
-                  setState(() => _showConfetti = false);
-                }
-              },
-              onReset: () {
-                if (mounted) {
-                  _resetCounter();
-                }
-              },
-              themeConfig: _currentTheme,
-              localizations: _localizations,
-            ),
-          );
-        }
-      });
-    }
-  }
-
-  Future<void> _vibrateSuccess() async {
-    try {
-      final hasVibrator = await Vibration.hasVibrator();
-      if (hasVibrator == true) {
-        Vibration.vibrate(duration: 100);
-        await Future.delayed(const Duration(milliseconds: 150));
-        Vibration.vibrate(duration: 100);
-      } else {
-        HapticFeedback.heavyImpact();
-        await Future.delayed(const Duration(milliseconds: 100));
-        HapticFeedback.mediumImpact();
-      }
-    } catch (e) {
-      HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 100));
-      HapticFeedback.mediumImpact();
-    }
-  }
-
-  Future<void> _playSuccessSound() async {
-    try {
-      final player = _audioPlayers[0];
-      await player.play(AssetSource('sounds/click.mp3'));
-      await Future.delayed(const Duration(milliseconds: 200));
-      await player.play(AssetSource('sounds/click.mp3'));
-    } catch (e) {
-      try {
-        await SystemSound.play(SystemSoundType.alert);
-      } catch (e2) {}
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => SuccessDialog(
+          count: _counter,
+          onContinue: () {
+            if (mounted) {
+              setState(() => _showConfetti = false);
+            }
+          },
+          onReset: () {
+            if (mounted) {
+              _resetCounter();
+            }
+          },
+          themeConfig: _currentTheme,
+          localizations: _localizations,
+        ),
+      );
     }
   }
 
@@ -357,15 +289,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _counter = 0;
       _showConfetti = false;
     });
-    _settingsService.saveCurrentCount(0);
+    _counterLogic.resetCounter();
     WidgetService.updateWidget(0);
-    
-    if (_isVibrationOn) {
-      HapticFeedback.mediumImpact();
-    }
+    if (_isVibrationOn) _feedbackManager.vibrateMedium();
   }
 
-  // GÜNCELLENMİŞ: Hedef değiştiğinde zikr listesinde de güncelle
   void _changeTarget() {
     showDialog(
       context: context,
@@ -443,6 +371,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       builder: (context) => AddZikrDialog(
         themeConfig: _currentTheme,
         localizations: _localizations,
+        currentLanguage: _currentLanguage,
         onZikrAdded: (zikr) {
           setState(() {
             _customZikrs.add(zikr);
@@ -532,31 +461,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _toggleVibration() {
-    setState(() {
-      _isVibrationOn = !_isVibrationOn;
-    });
+    setState(() => _isVibrationOn = !_isVibrationOn);
     _settingsService.saveVibration(_isVibrationOn);
-    
-    if (_isVibrationOn) {
-      HapticFeedback.mediumImpact();
-    }
+    if (_isVibrationOn) _feedbackManager.vibrateMedium();
   }
 
   void _toggleSound() {
-    setState(() {
-      _isSoundOn = !_isSoundOn;
-    });
+    setState(() => _isSoundOn = !_isSoundOn);
     _settingsService.saveSound(_isSoundOn);
-    
-    if (_isSoundOn) {
-      _playSound();
-    }
+    if (_isSoundOn) _audioManager.playClick();
   }
 
   void _toggleConfetti() {
-    setState(() {
-      _isConfettiOn = !_isConfettiOn;
-    });
+    setState(() => _isConfettiOn = !_isConfettiOn);
     _settingsService.saveConfetti(_isConfettiOn);
   }
 
@@ -598,24 +515,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             constraints: BoxConstraints(
                               minHeight: constraints.maxHeight,
                             ),
-                            child: IntrinsicHeight(
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 20),
-                                  _buildHeader(),
-                                  const SizedBox(height: 30),
-                                  _buildCounterDisplay(),
-                                  const SizedBox(height: 20),
-                                  _buildProgressBar(progress),
-                                  const SizedBox(height: 15),
-                                  _buildTargetInfo(),
-                                  const Spacer(),
-                                  _buildZikrButton(zikrText),
-                                  const SizedBox(height: 40),
-                                  _buildBottomControls(),
-                                  const SizedBox(height: 20),
-                                ],
-                              ),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 20),
+                                _buildHeader(),
+                                const SizedBox(height: 30),
+                                _buildCounterDisplay(),
+                                const SizedBox(height: 20),
+                                _buildProgressBar(progress),
+                                const SizedBox(height: 15),
+                                _buildTargetInfo(),
+                                SizedBox(height: constraints.maxHeight * 0.1),
+                                _buildZikrButton(zikrText),
+                                const SizedBox(height: 40),
+                                _buildBottomControls(),
+                                const SizedBox(height: 20),
+                              ],
                             ),
                           ),
                         );
@@ -623,8 +538,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   ),
                   
-                  // Banner area - always reserve space so we can see placeholder when
-                  // ad isn't loaded yet (helps debugging on devices where ads fail).
                   Container(
                     width: double.infinity,
                     height: (_bannerAd?.size.height ?? AdSize.banner.height).toDouble(),
@@ -986,91 +899,68 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomControls() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Semantics(
-            label: _localizations.changeTarget,
-            child: _buildControlButton(
-              icon: Icons.flag_rounded,
-              isActive: true,
-              onTap: _changeTarget,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final buttonSize = (constraints.maxWidth - 80) / 5;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildControlButton(
+                icon: Icons.flag_rounded,
+                isActive: true,
+                onTap: _changeTarget,
+                size: buttonSize.clamp(48, 56),
+              ),
+              const SizedBox(width: 8),
+              _buildControlButton(
+                icon: Icons.emoji_events_rounded,
+                isActive: _goals.any((g) => !g.isCompleted && !g.isExpired()),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => GoalDialog(
+                      themeConfig: _currentTheme,
+                      localizations: _localizations,
+                      currentGoals: _goals,
+                      availableZikrs: [..._defaultZikrs, ..._customZikrs],
+                      currentLanguage: _currentLanguage,
+                      onGoalSet: (goal) async {
+                        final updatedGoals = [..._goals, goal];
+                        await _settingsService.saveGoals(updatedGoals);
+                        setState(() => _goals = updatedGoals);
+                      },
+                    ),
+                  );
+                },
+                size: buttonSize.clamp(48, 56),
+              ),
+              const SizedBox(width: 8),
+              _buildControlButton(
+                icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
+                isActive: _isVibrationOn,
+                onTap: _toggleVibration,
+                size: buttonSize.clamp(48, 56),
+              ),
+              const SizedBox(width: 8),
+              _buildControlButton(
+                icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                isActive: _isSoundOn,
+                onTap: _toggleSound,
+                size: buttonSize.clamp(48, 56),
+              ),
+              const SizedBox(width: 8),
+              _buildControlButton(
+                icon: Icons.celebration_rounded,
+                isActive: _isConfettiOn,
+                onTap: _toggleConfetti,
+                size: buttonSize.clamp(48, 56),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Semantics(
-            label: _localizations.goals,
-            child: _buildControlButton(
-              icon: Icons.emoji_events_rounded,
-              isActive: _goals.any((g) => !g.isCompleted && !g.isExpired()),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => GoalDialog(
-                    themeConfig: _currentTheme,
-                    localizations: _localizations,
-                    currentGoals: _goals,
-                    availableZikrs: [..._defaultZikrs, ..._customZikrs],
-                    currentLanguage: _currentLanguage,
-                    onGoalSet: (goal) async {
-                      final updatedGoals = [..._goals, goal];
-                      await _settingsService.saveGoals(updatedGoals);
-                      setState(() => _goals = updatedGoals);
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Semantics(
-            label: 'Reminder',
-            child: _buildControlButton(
-              icon: Icons.notifications_rounded,
-              isActive: true,
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => ReminderDialog(
-                    themeConfig: _currentTheme,
-                    localizations: _localizations,
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Semantics(
-            label: _isVibrationOn ? _localizations.vibrationOn : _localizations.vibrationOff,
-            child: _buildControlButton(
-              icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
-              isActive: _isVibrationOn,
-              onTap: _toggleVibration,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Semantics(
-            label: _isSoundOn ? _localizations.soundOn : _localizations.soundOff,
-            child: _buildControlButton(
-              icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-              isActive: _isSoundOn,
-              onTap: _toggleSound,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Semantics(
-            label: _isConfettiOn ? _localizations.confettiOn : _localizations.confettiOff,
-            child: _buildControlButton(
-              icon: Icons.celebration_rounded,
-              isActive: _isConfettiOn,
-              onTap: _toggleConfetti,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1078,12 +968,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     required IconData icon,
     required bool isActive,
     required VoidCallback onTap,
+    required double size,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 56,
-        height: 56,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isActive
@@ -1099,7 +990,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         child: Icon(
           icon,
           color: isActive ? _currentTheme.accentColor : Colors.white70,
-          size: 28,
+          size: size * 0.5,
         ),
       ),
     );

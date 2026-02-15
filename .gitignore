@@ -40,6 +40,8 @@ ios/GoogleService-Info.plist
 *.p12
 *.key
 *.mobileprovision
+key.properties
+KEYSTORE_GUIDE.md
 
 # Logs
 *.log

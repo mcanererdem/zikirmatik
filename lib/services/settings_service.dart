@@ -208,13 +208,103 @@ class SettingsService {
     final goals = await getGoals();
     final index = goals.indexWhere((g) => g.id == goalId);
     if (index != -1) {
-      goals[index] = goals[index].copyWith(
-        currentProgress: progress,
-        isCompleted: progress >= goals[index].targetCount,
-        completedDate: progress >= goals[index].targetCount ? DateTime.now() : null,
-      );
+      goals[index] = goals[index].copyWith(currentProgress: progress);
       await saveGoals(goals);
     }
+  }
+
+  Future<Map<String, dynamic>?> completeGoal(String goalId) async {
+    final goals = await getGoals();
+    final index = goals.indexWhere((g) => g.id == goalId);
+    if (index != -1) {
+      goals[index] = goals[index].copyWith(
+        isCompleted: true,
+        completedDate: DateTime.now(),
+      );
+      await saveGoals(goals);
+      return await _updateGoalStreaks(goals[index].type);
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>> _updateGoalStreaks(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'goal_streak_$type';
+    final lastKey = 'goal_last_$type';
+    final bestKey = 'goal_best_$type';
+    final todayCountKey = 'goal_today_count_$type';
+    
+    final now = DateTime.now();
+    final today = '${now.year}_${now.month}_${now.day}';
+    final lastCompleted = prefs.getString(lastKey);
+    final todayCount = prefs.getInt(todayCountKey) ?? 0;
+    
+    if (lastCompleted == null || lastCompleted != today) {
+      // Yeni gün - streak kontrolü
+      if (lastCompleted != null) {
+        final last = DateTime.parse(lastCompleted.replaceAll('_', '-'));
+        final isConsecutive = _isConsecutivePeriod(type, last, now);
+        
+        if (isConsecutive) {
+          final current = prefs.getInt(key) ?? 0;
+          final newStreak = current + 1;
+          await prefs.setInt(key, newStreak);
+          
+          final best = prefs.getInt(bestKey) ?? 0;
+          if (newStreak > best) {
+            await prefs.setInt(bestKey, newStreak);
+          }
+        } else {
+          await prefs.setInt(key, 1);
+        }
+      } else {
+        await prefs.setInt(key, 1);
+        await prefs.setInt(bestKey, 1);
+      }
+      
+      await prefs.setString(lastKey, today);
+      await prefs.setInt(todayCountKey, 1);
+    } else {
+      // Aynı gün - sadece sayıyı artır
+      await prefs.setInt(todayCountKey, todayCount + 1);
+    }
+    
+    final currentStreak = prefs.getInt(key) ?? 0;
+    final bestStreak = prefs.getInt(bestKey) ?? 0;
+    final isNewBest = currentStreak == bestStreak && currentStreak > 1;
+    
+    return {
+      'streak': currentStreak,
+      'best': bestStreak,
+      'isNewBest': isNewBest,
+      'todayCount': prefs.getInt(todayCountKey) ?? 0,
+    };
+  }
+
+  bool _isConsecutivePeriod(String type, DateTime last, DateTime now) {
+    switch (type) {
+      case 'daily':
+        return now.difference(last).inDays == 1;
+      case 'weekly':
+        return now.difference(last).inDays >= 7 && now.difference(last).inDays <= 14;
+      case 'monthly':
+        return (now.month == last.month + 1 && now.year == last.year) ||
+               (now.month == 1 && last.month == 12 && now.year == last.year + 1);
+      default:
+        return false;
+    }
+  }
+
+  Future<Map<String, int>> getGoalStreaks() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'daily': prefs.getInt('goal_streak_daily') ?? 0,
+      'weekly': prefs.getInt('goal_streak_weekly') ?? 0,
+      'monthly': prefs.getInt('goal_streak_monthly') ?? 0,
+      'daily_best': prefs.getInt('goal_best_daily') ?? 0,
+      'weekly_best': prefs.getInt('goal_best_weekly') ?? 0,
+      'monthly_best': prefs.getInt('goal_best_monthly') ?? 0,
+    };
   }
 
   Future<void> cleanExpiredGoals() async {

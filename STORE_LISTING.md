@@ -9,7 +9,7 @@ Complete this information when creating the app listing on Google Play Console.
 
 ### Short Description (80 characters max)
 ```
-Islamic prayer counter with customizable zikir and offline-first design
+Digital tasbih counter with 15 languages, goals, streaks & offline support
 ```
 
 ### Full Description (4000 characters max)
@@ -21,7 +21,8 @@ precision and ease.
 ✨ Features:
 
 📱 Smart Counter
-- Tap to increment, long-press or shake device to reset
+- Tap to increment counter
+- Reset button for quick restart
 - Set target numbers for guided dhikr sessions
 - Customizable counter animations and sounds
 
@@ -29,7 +30,41 @@ precision and ease.
 - Turkish (Türkçe)
 - English
 - Arabic (العربية)
-- Easily switch between languages in settings
+- Indonesian (Bahasa Indonesia)
+- Urdu (اردو)
+- Bengali (বাংলা)
+- Malay (Bahasa Melayu)
+- Persian (فارسی)
+- French (Français)
+- Chinese (中文)
+- Japanese (日本語)
+- Russian (Русский)
+- German (Deutsch)
+- Swahili (Kiswahili)
+- Hausa
+- Easily switch between 15 languages in settings
+
+🏆 Goals & Streaks
+- Set daily, weekly, or monthly goals
+- Track your progress with trophy system
+- Build streaks with consecutive goal completions
+- Get motivated with achievement notifications
+
+📊 Statistics & Analytics
+- View daily, weekly, and monthly progress
+- Beautiful charts showing your zikir history
+- Track total count and current streaks
+- Monitor goal completion rates
+
+📢 Coming Soon
+- Daily reminders for your zikir practice
+- Customizable notification times
+- Never miss your spiritual routine
+
+📱 Home Screen Widget
+- Quick access from your home screen
+- Increment counter without opening app
+- Real-time sync with main app
 
 🎨 Beautiful Themes
 - Multiple color themes including dark mode

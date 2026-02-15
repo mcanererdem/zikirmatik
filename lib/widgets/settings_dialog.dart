@@ -3,7 +3,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../services/settings_service.dart';
-import 'custom_about_dialog.dart';
+import '../services/ad_service.dart';
+import '../screens/about_screen.dart';
 
 class SettingsDialog extends StatefulWidget {
   final ThemeConfig currentTheme;
@@ -32,6 +33,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
   late String _selectedLanguage;
   late AppLocalizations _localizations;
   late ThemeMode _currentThemeMode;
+  final AdService _adService = AdService();
+  bool _isLoadingAd = false;
 
   @override
   void initState() {
@@ -40,6 +43,45 @@ class _SettingsDialogState extends State<SettingsDialog> {
     _selectedLanguage = widget.currentLanguage.isEmpty ? 'en' : widget.currentLanguage;
     _localizations = widget.localizations;
     _loadThemeMode();
+  }
+
+  void _showRewardedAd() {
+    setState(() => _isLoadingAd = true);
+    _adService.loadRewardedAd(
+      onAdLoaded: () {
+        if (mounted) {
+          setState(() => _isLoadingAd = false);
+          _adService.showRewardedAd(
+            onUserEarnedReward: () {
+              Navigator.pop(context);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(_localizations.translate('thank_you_support') ?? 'Thank you! 🙏'),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+            },
+            onAdDismissed: () {
+              Navigator.pop(context);
+            },
+          );
+        }
+      },
+      onAdFailedToLoad: (error) {
+        if (mounted) {
+          setState(() => _isLoadingAd = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_localizations.translate('ad_not_ready') ?? 'Ad not ready'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      },
+    );
   }
 
   Future<void> _loadThemeMode() async {
@@ -69,7 +111,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
       return;
     }
 
-    // Tüm dilleri göster
     final languages = [
       {'code': 'en', 'name': 'English'},
       {'code': 'tr', 'name': 'Türkçe'},
@@ -177,7 +218,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
                 children: [
                   Container(
@@ -193,12 +233,15 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    _localizations.settings,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Flexible(
+                    child: Text(
+                      _localizations.settings,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -206,7 +249,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
               const SizedBox(height: 24),
 
-              // Theme Selection
               Text(
                 _localizations.theme,
                 style: TextStyle(
@@ -228,7 +270,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
               const SizedBox(height: 24),
 
-              // Language Selection
               Text(
                 _localizations.language,
                 style: TextStyle(
@@ -286,50 +327,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
               const SizedBox(height: 24),
 
-              // About Button
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context); // Close settings
-                  showDialog(
-                    context: context,
-                    builder: (context) => CustomAboutDialog(
-                      currentTheme: _selectedTheme,
-                      localizations: _localizations,
-                    ),
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        _localizations.translate('about'), // You'll need to add 'about' to your localizations
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Close Button
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -364,6 +361,142 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   ),
                 ),
               ),
+
+              const SizedBox(height: 16),
+
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      _selectedTheme.accentColor.withOpacity(0.2),
+                      _selectedTheme.primaryColor.withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _selectedTheme.accentColor.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.favorite_rounded,
+                          color: _selectedTheme.accentColor,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _localizations.translate('support_us') ?? 'Support Us',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: _selectedTheme.accentColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _localizations.translate('support_description') ?? 'Help us by watching a short ad',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: _isLoadingAd ? null : _showRewardedAd,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: _selectedTheme.goldGradient,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_isLoadingAd)
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            else
+                              const Icon(
+                                Icons.play_circle_filled_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _localizations.translate('watch_ad') ?? 'Watch Ad',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AboutScreen(
+                        themeConfig: _selectedTheme,
+                        localizations: _localizations,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        _localizations.about,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -372,7 +505,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   String _getSecondaryLanguage() {
-    // Mevcut dil TR/ID ise onu göster, değilse EN göster
     if (_selectedLanguage == 'tr' || _selectedLanguage == 'id') {
       return _selectedLanguage;
     }
@@ -484,35 +616,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildThemeModeBtn(ThemeMode mode, IconData icon, String label) {
-    final isSelected = _currentThemeMode == mode;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _currentThemeMode = mode);
-        widget.onThemeModeChanged?.call(mode);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          gradient: isSelected ? _selectedTheme.goldGradient : null,
-          color: isSelected ? null : Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? _selectedTheme.accentColor : Colors.white.withOpacity(0.3),
-            width: 1.5,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(height: 4),
-            Text(label, style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),
