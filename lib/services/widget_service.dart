@@ -1,4 +1,5 @@
 import 'package:home_widget/home_widget.dart';
+import 'settings_service.dart';
 
 class WidgetService {
   static Future<void> updateWidget(int counter) async {
@@ -11,5 +12,10 @@ class WidgetService {
 
   static Future<void> initialize() async {
     await HomeWidget.setAppGroupId('group.zikirmatik');
+    
+    // Uygulama açılınca widget'ı senkronize et
+    final settingsService = SettingsService();
+    final currentCount = await settingsService.getCurrentCount();
+    await updateWidget(currentCount);
   }
 }
