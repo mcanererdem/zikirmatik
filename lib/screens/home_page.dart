@@ -86,14 +86,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     );
 
     _counterAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 100),
       vsync: this,
     );
     
-    _counterScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+    _counterScaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(
         parent: _counterAnimationController,
-        curve: Curves.easeOut,
+        curve: Curves.easeInOut,
       ),
     );
   }

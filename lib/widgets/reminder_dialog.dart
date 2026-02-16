@@ -53,19 +53,20 @@ class _ReminderDialogState extends State<ReminderDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: widget.themeConfig.backgroundGradient,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
-            width: 2,
+      child: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: widget.themeConfig.backgroundGradient,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: widget.themeConfig.accentColor.withOpacity(0.3),
+              width: 2,
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Text(
               widget.localizations.setReminder,
               style: TextStyle(

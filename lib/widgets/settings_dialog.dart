@@ -688,6 +688,51 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ],
               ),
 
+              const SizedBox(width: 16),
+
+              GestureDetector(
+                onTap: () async {
+                  final exportService = ExportService(SettingsService());
+                  final data = await exportService.importFromFile();
+                  if (data != null) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Import successful!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.green.withOpacity(0.5),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.file_upload_outlined, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Import',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
               GestureDetector(
