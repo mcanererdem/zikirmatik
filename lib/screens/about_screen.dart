@@ -77,6 +77,7 @@ class AboutScreen extends StatelessWidget {
 
   Widget _buildAppInfo() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
@@ -124,6 +125,7 @@ class AboutScreen extends StatelessWidget {
 
   Widget _buildContactSection() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -214,6 +216,7 @@ class AboutScreen extends StatelessWidget {
     ];
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),

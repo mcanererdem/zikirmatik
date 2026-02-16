@@ -60,9 +60,15 @@ class ZikrWidgetProvider : AppWidgetProvider() {
     ) {
         val widgetData = HomeWidgetPlugin.getData(context)
         val counter = widgetData.getInt("counter", 0)
+        val todayCount = widgetData.getInt("today_count", 0)
+        val totalCount = widgetData.getInt("total_count", 0)
+        val streak = widgetData.getInt("streak", 0)
 
         val views = RemoteViews(context.packageName, R.layout.zikr_widget)
         views.setTextViewText(R.id.widget_counter, counter.toString())
+        views.setTextViewText(R.id.widget_today_count, todayCount.toString())
+        views.setTextViewText(R.id.widget_total, totalCount.toString())
+        views.setTextViewText(R.id.widget_streak, streak.toString())
         
         val incrementIntent = Intent(context, ZikrWidgetProvider::class.java)
         incrementIntent.action = "INCREMENT_COUNTER"

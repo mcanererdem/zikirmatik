@@ -365,7 +365,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildTrophyItem(String label, int count, String emoji, Color color) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 110),
+      constraints: const BoxConstraints(minHeight: 120),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),

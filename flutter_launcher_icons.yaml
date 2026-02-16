@@ -1,5 +1,5 @@
 flutter_launcher_icons:
-  image_path: "assets/icons/app_icon.png"
+  image_path: "assets/icons/app_icon2.png"
   
   android:
     notification_icon: "notification_icon"

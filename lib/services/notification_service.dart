@@ -8,7 +8,7 @@ class NotificationService {
 
   static Future<void> initialize() async {
     tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Europe/Istanbul')); // Default timezone
+    tz.setLocalLocation(tz.getLocation('Europe/Istanbul'));
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -24,11 +24,16 @@ class NotificationService {
 
     await _notifications.initialize(settings);
     
-    // Request permissions
     final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await androidImpl?.requestNotificationsPermission();
-    await androidImpl?.requestExactAlarmsPermission();
-    print('Notification permissions requested');
+    
+    final granted = await androidImpl?.requestNotificationsPermission();
+    print('[BILDIRICIM] Notification permission: $granted');
+    
+    final exactAlarmGranted = await androidImpl?.requestExactAlarmsPermission();
+    print('[BILDIRICIM] Exact alarm permission: $exactAlarmGranted');
+    
+    final canSchedule = await androidImpl?.canScheduleExactNotifications();
+    print('[BILDIRICIM] Can schedule exact: $canSchedule');
   }
 
   static Future<void> scheduleReminder(int hour, int minute) async {
@@ -42,9 +47,9 @@ class NotificationService {
         scheduledTime = scheduledTime.add(const Duration(days: 1));
       }
       
-      print('Scheduling notification for: $scheduledTime');
-      print('Current time: $now');
-      print('Time difference: ${scheduledTime.difference(now).inMinutes} minutes');
+      print('[BILDIRICIM] Scheduling for: $scheduledTime');
+      print('[BILDIRICIM] Current: $now');
+      print('[BILDIRICIM] Minutes from now: ${scheduledTime.difference(now).inMinutes}');
       
       await _notifications.zonedSchedule(
         0,
@@ -60,29 +65,25 @@ class NotificationService {
             priority: Priority.high,
             enableVibration: true,
             playSound: true,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
+            fullScreenIntent: true,
+            category: AndroidNotificationCategory.alarm,
+            visibility: NotificationVisibility.public,
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
       );
       
       final pending = await _notifications.pendingNotificationRequests();
-      print('Scheduled successfully! Pending: ${pending.length}');
+      print('[BILDIRICIM] Scheduled! Pending: ${pending.length}');
     } catch (e) {
-      print('Error scheduling notification: $e');
+      print('[BILDIRICIM] Error: $e');
       rethrow;
     }
   }
 
   static Future<void> cancelAll() async {
     await _notifications.cancelAll();
-    print('All notifications cancelled');
+    print('[BILDIRICIM] All notifications cancelled');
   }
 
   static Future<List<PendingNotificationRequest>> getPendingNotifications() async {

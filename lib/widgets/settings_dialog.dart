@@ -4,6 +4,7 @@ import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
+import '../widgets/confetti_animation.dart';
 import '../screens/about_screen.dart';
 
 class SettingsDialog extends StatefulWidget {
@@ -35,6 +36,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   late ThemeMode _currentThemeMode;
   final AdService _adService = AdService();
   bool _isLoadingAd = false;
+  bool _showConfetti = false;
 
   @override
   void initState() {
@@ -53,19 +55,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
           setState(() => _isLoadingAd = false);
           _adService.showRewardedAd(
             onUserEarnedReward: () {
-              Navigator.pop(context);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(_localizations.translate('thank_you_support') ?? 'Thank you! 🙏'),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
+                _showThankYouDialog();
               }
             },
             onAdDismissed: () {
-              Navigator.pop(context);
+              // Dialog kapatıldığında hiçbir şey yapma
             },
           );
         }
@@ -73,14 +68,128 @@ class _SettingsDialogState extends State<SettingsDialog> {
       onAdFailedToLoad: (error) {
         if (mounted) {
           setState(() => _isLoadingAd = false);
+          Navigator.pop(context); // Ayarlar sayfasını kapat
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(_localizations.translate('ad_not_ready') ?? 'Ad not ready'),
-              backgroundColor: Colors.orange,
+              content: Text(
+                _localizations.translate('ad_not_ready') ?? 'Ad not ready',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              backgroundColor: Colors.orange.shade700,
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.fixed,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              action: SnackBarAction(
+                label: _localizations.ok,
+                textColor: Colors.white,
+                onPressed: () {},
+              ),
             ),
           );
         }
       },
+    );
+  }
+
+  void _showThankYouDialog() {
+    setState(() => _showConfetti = true);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Stack(
+        children: [
+          if (_showConfetti)
+            ConfettiAnimation(
+              onComplete: () {
+                if (mounted) setState(() => _showConfetti = false);
+              },
+            ),
+          Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: _selectedTheme.backgroundGradient,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: _selectedTheme.accentColor.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: _selectedTheme.goldGradient,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    _localizations.translate('thank_you_support') ?? 'Thank you! 🙏',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: _selectedTheme.accentColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _localizations.translate('support_description') ?? 'Your support means a lot!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: _selectedTheme.goldGradient,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          setState(() => _showConfetti = false);
+                          Navigator.pop(context); // Teşekkür dialogunu kapat
+                          Navigator.pop(context); // Ayarlar sayfasını kapat
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            _localizations.ok,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -448,6 +557,54 @@ class _SettingsDialogState extends State<SettingsDialog> {
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.orange.withOpacity(0.4),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.notifications_active_rounded,
+                          color: Colors.orange.shade300,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedLanguage == 'tr' ? 'Huawei Cihazlar İçin' : 'For Huawei Devices',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade300,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _selectedLanguage == 'tr'
+                          ? 'Bildirimler için: Ayarlar → Uygulamalar → BILDIRICIM → Pil → Uygulama başlatma → Manuel yönet → tüm seçenekleri açın'
+                          : 'For notifications: Settings → Apps → BILDIRICIM → Battery → App launch → Manage manually → enable all options',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withOpacity(0.8),
+                        height: 1.3,
                       ),
                     ),
                   ],

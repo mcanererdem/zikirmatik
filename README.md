@@ -17,16 +17,16 @@ Sade, kullanımı kolay ve erişilebilirlik odaklı bir dijital tesbih (zikirmat
 ### Hedef ve İstatistikler
 - 🎯 **Çoklu Hedef Sistemi:** Günlük/haftalık/aylık zikr bazlı hedefler (bağımsız ilerleme takibi)
 - 🏆 **Trophy Sistemi:** Tamamlanan hedefler için kupa ve başarı takibi
-- 🔥 **Streak Takibi:** Ardışık gün/hafta/ay başarı serileri
+- 🔥 **Streak Takibi:** Ardışık gün/hafta/ay başarı serileri (aynı gün birden fazla hedef desteği)
 - 📊 **Gelişmiş İstatistikler:** Günlük, haftalık, aylık grafikler ve detaylı analiz
 
 ### Ek Özellikler
-- 📱 **Home Screen Widget:** Android ana ekran widget'ı ile hızlı erişim (tam senkronizasyon)
+- 📱 **Home Screen Widget:** Android ana ekran widget'ı ile hızlı erişim (tam senkronizasyon + istatistik gösterimi)
 - ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin (15 dil desteği ile)
 - 📢 **Reklam Desteği:** Banner ve rewarded reklamlar (test mode aktif)
 - 🔄 **Rotasyon Desteği:** Cihazı döndürünce veri korunur
 - ♿ **Erişilebilirlik:** Ekran okuyucu desteği (TalkBack/VoiceOver)
-- 🎯 **Hedef Bildirimi:** Hedefe ulaşınca titreşim ve animasyon
+- 🎯 **Hedef Bildirimi:** Hedefe ulaşınca titreşim, animasyon ve streak mesajları
 - 💬 **Hakkında Sayfası:** GitHub repo ve iletişim bilgileri
 
 ## Başlangıç

@@ -17,6 +17,7 @@ import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/goal_dialog.dart';
+import '../widgets/reminder_dialog.dart';
 import 'statistics_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -58,6 +59,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   String _currentLanguage = 'en';
   late AppLocalizations _localizations;
   List<Goal> _goals = [];
+  Map<String, dynamic>? _lastStreakInfo;
 
   @override
   void initState() {
@@ -212,7 +214,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         _showGoalCompletedNotification(goal, streakInfo, goalType);
       }
     }
-    setState(() => _goals = updatedGoals);
+    setState(() {
+      _goals = updatedGoals;
+      if (streakInfo != null) {
+        _lastStreakInfo = streakInfo;
+      }
+    });
 
     _buttonAnimationController.forward().then((_) {
       _buttonAnimationController.reverse();
@@ -279,6 +286,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           },
           themeConfig: _currentTheme,
           localizations: _localizations,
+          streakInfo: _lastStreakInfo,
         ),
       );
     }
@@ -508,33 +516,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 children: [
                   // Ana içerik
                   Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 20),
-                                _buildHeader(),
-                                const SizedBox(height: 30),
-                                _buildCounterDisplay(),
-                                const SizedBox(height: 20),
-                                _buildProgressBar(progress),
-                                const SizedBox(height: 15),
-                                _buildTargetInfo(),
-                                SizedBox(height: constraints.maxHeight * 0.1),
-                                _buildZikrButton(zikrText),
-                                const SizedBox(height: 40),
-                                _buildBottomControls(),
-                                const SizedBox(height: 20),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildHeader(),
+                        const SizedBox(height: 30),
+                        _buildCounterDisplay(),
+                        const SizedBox(height: 20),
+                        _buildProgressBar(progress),
+                        const SizedBox(height: 15),
+                        _buildTargetInfo(),
+                        const Spacer(),
+                        _buildZikrButton(zikrText),
+                        const Spacer(),
+                        _buildBottomControls(),
+                        const SizedBox(height: 20),
+                      ],
                     ),
                   ),
                   
@@ -592,42 +589,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: _currentTheme.goldGradient,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _currentTheme.accentColor.withOpacity(0.3),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: Text(
-                    _localizations.appName,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+            child: Text(
+              _localizations.appName,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 0.5,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Row(
@@ -899,68 +869,78 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   Widget _buildBottomControls() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final buttonSize = (constraints.maxWidth - 80) / 5;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildControlButton(
-                icon: Icons.flag_rounded,
-                isActive: true,
-                onTap: _changeTarget,
-                size: buttonSize.clamp(48, 56),
-              ),
-              const SizedBox(width: 8),
-              _buildControlButton(
-                icon: Icons.emoji_events_rounded,
-                isActive: _goals.any((g) => !g.isCompleted && !g.isExpired()),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => GoalDialog(
-                      themeConfig: _currentTheme,
-                      localizations: _localizations,
-                      currentGoals: _goals,
-                      availableZikrs: [..._defaultZikrs, ..._customZikrs],
-                      currentLanguage: _currentLanguage,
-                      onGoalSet: (goal) async {
-                        final updatedGoals = [..._goals, goal];
-                        await _settingsService.saveGoals(updatedGoals);
-                        setState(() => _goals = updatedGoals);
-                      },
-                    ),
-                  );
-                },
-                size: buttonSize.clamp(48, 56),
-              ),
-              const SizedBox(width: 8),
-              _buildControlButton(
-                icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
-                isActive: _isVibrationOn,
-                onTap: _toggleVibration,
-                size: buttonSize.clamp(48, 56),
-              ),
-              const SizedBox(width: 8),
-              _buildControlButton(
-                icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-                isActive: _isSoundOn,
-                onTap: _toggleSound,
-                size: buttonSize.clamp(48, 56),
-              ),
-              const SizedBox(width: 8),
-              _buildControlButton(
-                icon: Icons.celebration_rounded,
-                isActive: _isConfettiOn,
-                onTap: _toggleConfetti,
-                size: buttonSize.clamp(48, 56),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildControlButton(
+            icon: Icons.flag_rounded,
+            isActive: true,
+            onTap: _changeTarget,
+            size: 48,
           ),
-        );
-      },
+          const SizedBox(width: 6),
+          _buildControlButton(
+            icon: Icons.emoji_events_rounded,
+            isActive: _goals.any((g) => !g.isCompleted && !g.isExpired()),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => GoalDialog(
+                  themeConfig: _currentTheme,
+                  localizations: _localizations,
+                  currentGoals: _goals,
+                  availableZikrs: [..._defaultZikrs, ..._customZikrs],
+                  currentLanguage: _currentLanguage,
+                  onGoalSet: (goal) async {
+                    final updatedGoals = [..._goals, goal];
+                    await _settingsService.saveGoals(updatedGoals);
+                    setState(() => _goals = updatedGoals);
+                  },
+                ),
+              );
+            },
+            size: 48,
+          ),
+          const SizedBox(width: 6),
+          _buildControlButton(
+            icon: Icons.notifications_rounded,
+            isActive: true,
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => ReminderDialog(
+                  themeConfig: _currentTheme,
+                  localizations: _localizations,
+                ),
+              );
+            },
+            size: 48,
+          ),
+          const SizedBox(width: 6),
+          _buildControlButton(
+            icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
+            isActive: _isVibrationOn,
+            onTap: _toggleVibration,
+            size: 48,
+          ),
+          const SizedBox(width: 6),
+          _buildControlButton(
+            icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+            isActive: _isSoundOn,
+            onTap: _toggleSound,
+            size: 48,
+          ),
+          const SizedBox(width: 6),
+          _buildControlButton(
+            icon: Icons.celebration_rounded,
+            isActive: _isConfettiOn,
+            onTap: _toggleConfetti,
+            size: 48,
+          ),
+        ],
+      ),
     );
   }
 

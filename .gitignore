@@ -41,7 +41,15 @@ ios/GoogleService-Info.plist
 *.key
 *.mobileprovision
 key.properties
-KEYSTORE_GUIDE.md
+
+# Screenshots
+screenshots/
+
+# Store docs (keep in repo)
+# GOOGLE_PLAY_CONSOLE.md
+# KEYSTORE_CREATION.md
+# SCREENSHOT_GUIDE.md
+# STORE_LISTING_PREP.md
 
 # Logs
 *.log

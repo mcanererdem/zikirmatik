@@ -156,6 +156,8 @@ class _ReminderDialogState extends State<ReminderDialog> {
                         _selectedTime.hour,
                         _selectedTime.minute,
                       );
+                      print('=== REMINDER SET ===');
+                      print('Time: ${_selectedTime.hour}:${_selectedTime.minute}');
                       await NotificationService.scheduleReminder(
                         _selectedTime.hour,
                         _selectedTime.minute,
@@ -167,7 +169,7 @@ class _ReminderDialogState extends State<ReminderDialog> {
                           SnackBar(
                             content: Text('Reminder set for ${_selectedTime.format(context)}'),
                             backgroundColor: Colors.green,
-                            duration: const Duration(seconds: 2),
+                            duration: const Duration(seconds: 3),
                           ),
                         );
                       }

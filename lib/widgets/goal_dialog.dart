@@ -68,50 +68,45 @@ class _GoalDialogState extends State<GoalDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        constraints: const BoxConstraints(maxHeight: 600),
-        decoration: BoxDecoration(
-          gradient: widget.themeConfig.backgroundGradient,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
-            width: 2,
+      child: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: widget.themeConfig.backgroundGradient,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: widget.themeConfig.accentColor.withOpacity(0.3),
+              width: 2,
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
                 widget.localizations.setGoal,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: widget.themeConfig.accentColor,
                 ),
-                overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 16),
-            if (activeGoals.isNotEmpty)
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: activeGoals.map((goal) => _buildGoalCard(goal)).toList(),
-                  ),
-                ),
-              ),
-            if (activeGoals.isNotEmpty) const SizedBox(height: 16),
-            _buildTypeSelector(),
-            const SizedBox(height: 16),
-            _buildZikrSelector(),
-            const SizedBox(height: 16),
-            _buildTargetInput(),
-            const SizedBox(height: 24),
-            _buildButtons(),
-          ],
+              const SizedBox(height: 16),
+              if (activeGoals.isNotEmpty)
+                ...activeGoals.map((goal) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _buildGoalCard(goal),
+                )),
+              if (activeGoals.isNotEmpty) const SizedBox(height: 16),
+              _buildTypeSelector(),
+              const SizedBox(height: 16),
+              _buildZikrSelector(),
+              const SizedBox(height: 16),
+              _buildTargetInput(),
+              const SizedBox(height: 24),
+              _buildButtons(),
+            ],
+          ),
         ),
       ),
     );

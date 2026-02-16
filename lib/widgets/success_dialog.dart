@@ -8,6 +8,7 @@ class SuccessDialog extends StatelessWidget {
   final VoidCallback onReset;
   final ThemeConfig themeConfig;
   final AppLocalizations localizations;
+  final Map<String, dynamic>? streakInfo;
 
   const SuccessDialog({
     super.key,
@@ -16,6 +17,7 @@ class SuccessDialog extends StatelessWidget {
     required this.onReset,
     required this.themeConfig,
     required this.localizations,
+    this.streakInfo,
   });
 
   @override
@@ -108,6 +110,8 @@ class SuccessDialog extends StatelessWidget {
               ),
             ),
             
+            if (streakInfo != null) ..._buildStreakInfo(),
+            
             const SizedBox(height: 32),
             
             // Buttons
@@ -196,5 +200,81 @@ class SuccessDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildStreakInfo() {
+    if (streakInfo == null) return [];
+    
+    final streak = streakInfo!['streak'] ?? 0;
+    final best = streakInfo!['best'] ?? 0;
+    final isNewBest = streakInfo!['isNewBest'] ?? false;
+    final todayCount = streakInfo!['todayCount'] ?? 1;
+    
+    return [
+      const SizedBox(height: 16),
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.orange.withOpacity(0.2),
+              Colors.red.withOpacity(0.1),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.orange.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('🔥', style: TextStyle(fontSize: 24)),
+                const SizedBox(width: 8),
+                Text(
+                  '$streak ${localizations.translate('day_streak') ?? 'Day Streak'}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+              ],
+            ),
+            if (isNewBest) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🏆', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  Text(
+                    localizations.translate('new_best') ?? 'New Best!',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.yellow,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            if (todayCount > 1) ...[
+              const SizedBox(height: 8),
+              Text(
+                '${localizations.translate('completed_today') ?? 'Completed today'}: $todayCount',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ];
   }
 }
