@@ -5,47 +5,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zikirmatik - Privacy Policy</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
-        h1 { color: #2c3e50; }
-        h2 { color: #34495e; margin-top: 30px; }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; border-left: 4px solid #3498db; padding-left: 10px; }
+        h3 { color: #555; margin-top: 20px; }
         p { margin: 10px 0; }
+        ul { margin: 10px 0; padding-left: 30px; }
+        li { margin: 5px 0; }
+        .update-date { color: #7f8c8d; font-style: italic; }
+        .important { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <h1>Privacy Policy for Zikirmatik</h1>
-    <p><strong>Last updated:</strong> January 2025</p>
+    <p class="update-date"><strong>Last updated:</strong> January 17, 2025</p>
+    <p class="update-date"><strong>Effective date:</strong> January 17, 2025</p>
 
-    <h2>1. Overview</h2>
-    <p>Zikirmatik ("we", "our", or "the app") is committed to protecting your privacy. This Privacy Policy explains how we handle your information.</p>
+    <div class="important">
+        <strong>Summary:</strong> Zikirmatik stores all your data locally on your device. We do not collect, transmit, or store any personal information on external servers. The only third-party service is Google AdMob for advertisements.
+    </div>
 
-    <h2>2. Data Collection</h2>
-    <p>Zikirmatik stores all data locally on your device. We do not collect, transmit, or store any personal information on external servers.</p>
+    <h2>1. Introduction</h2>
+    <p>Zikirmatik ("we", "our", "the app", or "the application") is committed to protecting your privacy. This Privacy Policy explains how we handle information when you use our digital tasbih (dhikr counter) mobile application.</p>
+    <p>By using Zikirmatik, you agree to the collection and use of information in accordance with this policy.</p>
+
+    <h2>2. Information We Collect</h2>
     
-    <h3>Data stored locally includes:</h3>
+    <h3>2.1 Information Stored Locally on Your Device</h3>
+    <p>All of your personal data is stored locally on your device using Android's SharedPreferences. This data never leaves your device unless you explicitly export it. The locally stored data includes:</p>
     <ul>
-        <li>Zikr counter values</li>
-        <li>Custom zikr names and counts</li>
-        <li>Goals and statistics</li>
-        <li>App settings and preferences</li>
+        <li>Dhikr counter values and history</li>
+        <li>Custom dhikr names and counts</li>
+        <li>Goals and trophies you create</li>
+        <li>Statistics and progress data</li>
+        <li>App settings and preferences (theme, language, sound, vibration)</li>
+        <li>Streak and achievement data</li>
+    </ul>
+    <p><strong>Important:</strong> This data is stored only on your device and is not transmitted to us or any third party.</p>
+
+    <h3>2.2 Information We Do NOT Collect</h3>
+    <p>We do not collect, store, or transmit:</p>
+    <ul>
+        <li>Personal identification information (name, email, phone number)</li>
+        <li>Device identifiers (except as required by AdMob - see section 3)</li>
+        <li>Usage analytics or app behavior data</li>
+        <li>Location data (except for language detection - see section 2.3)</li>
+        <li>Contacts, photos, or other device data</li>
+    </ul>
+
+    <h3>2.3 Location Permission</h3>
+    <p>The app requests location permission (ACCESS_COARSE_LOCATION) solely to determine your country for automatic language selection. This permission is:</p>
+    <ul>
+        <li><strong>Optional:</strong> You can deny this permission and manually select your language</li>
+        <li><strong>Not stored:</strong> Location data is not saved or transmitted</li>
+        <li><strong>One-time use:</strong> Only used once during initial app setup</li>
     </ul>
 
     <h2>3. Third-Party Services</h2>
-    <p>The app uses Google AdMob to display advertisements. AdMob may collect certain information as described in Google's Privacy Policy:</p>
-    <p><a href="https://policies.google.com/privacy">https://policies.google.com/privacy</a></p>
+    
+    <h3>3.1 Google AdMob</h3>
+    <p>The app uses Google AdMob to display advertisements (banner ads and rewarded ads). AdMob may collect and process certain information as described in Google's Privacy Policy:</p>
+    <ul>
+        <li><strong>Google Privacy Policy:</strong> <a href="https://policies.google.com/privacy" target="_blank">https://policies.google.com/privacy</a></li>
+        <li><strong>Google AdMob:</strong> <a href="https://support.google.com/admob/answer/6128543" target="_blank">https://support.google.com/admob/answer/6128543</a></li>
+    </ul>
+    
+    <h3>3.2 Information Collected by AdMob</h3>
+    <p>AdMob may collect:</p>
+    <ul>
+        <li>Device advertising ID</li>
+        <li>IP address</li>
+        <li>Device information (model, OS version)</li>
+        <li>Ad interaction data</li>
+    </ul>
+    <p><strong>Note:</strong> You can opt out of personalized advertising by adjusting your device settings (Google Settings → Ads → Opt out of Ads Personalization).</p>
 
-    <h2>4. Location Data</h2>
-    <p>The app requests location permission solely to determine your country for automatic language selection. Location data is not stored or transmitted.</p>
+    <h2>4. Data Export and Import</h2>
+    <p>The app provides export and import functionality:</p>
+    <ul>
+        <li><strong>Export:</strong> You can export your data to a JSON file stored on your device</li>
+        <li><strong>Import:</strong> You can import previously exported data</li>
+        <li><strong>Your control:</strong> These files remain under your complete control</li>
+        <li><strong>Sharing:</strong> If you share exported files (e.g., via WhatsApp, email), you are responsible for the data</li>
+    </ul>
+    <p><strong>Important:</strong> Exported files are not encrypted. Do not share them with untrusted parties.</p>
 
-    <h2>5. Data Export/Import</h2>
-    <p>You can export your data to CSV/JSON files. These files remain under your control and are not sent to us or any third party.</p>
+    <h2>5. Data Security</h2>
+    <p>We take data security seriously:</p>
+    <ul>
+        <li>All data is stored locally using Android's secure SharedPreferences</li>
+        <li>No data transmission to external servers (except AdMob as described)</li>
+        <li>No user accounts or authentication required</li>
+        <li>No cloud storage or backup to our servers</li>
+    </ul>
+    <p>However, please note that no method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your data, we cannot guarantee its absolute security.</p>
 
     <h2>6. Children's Privacy</h2>
-    <p>The app does not knowingly collect information from children under 13. The app is suitable for all ages.</p>
+    <p>Zikirmatik is suitable for users of all ages, including children. The app:</p>
+    <ul>
+        <li>Does not knowingly collect personal information from children under 13</li>
+        <li>Does not require registration or account creation</li>
+        <li>Stores all data locally on the device</li>
+        <li>Complies with COPPA (Children's Online Privacy Protection Act)</li>
+    </ul>
+    <p>If you are a parent or guardian and believe your child has provided personal information, please contact us immediately.</p>
 
-    <h2>7. Changes to This Policy</h2>
-    <p>We may update this Privacy Policy from time to time. Changes will be posted on this page.</p>
+    <h2>7. Your Rights</h2>
+    <p>You have the following rights regarding your data:</p>
+    <ul>
+        <li><strong>Access:</strong> All your data is accessible within the app</li>
+        <li><strong>Export:</strong> You can export your data at any time</li>
+        <li><strong>Delete:</strong> You can delete all data by uninstalling the app or using the reset function</li>
+        <li><strong>Control:</strong> You have complete control over your data as it's stored locally</li>
+    </ul>
 
-    <h2>8. Contact</h2>
-    <p>If you have questions about this Privacy Policy, please contact us at: [YOUR_EMAIL]</p>
+    <h2>8. Data Retention</h2>
+    <p>Your data is retained:</p>
+    <ul>
+        <li><strong>On your device:</strong> Until you uninstall the app or clear app data</li>
+        <li><strong>On our servers:</strong> We do not store any of your data on our servers</li>
+    </ul>
+
+    <h2>9. International Data Transfers</h2>
+    <p>Since all data is stored locally on your device, there are no international data transfers. The only exception is AdMob, which may transfer data as described in Google's Privacy Policy.</p>
+
+    <h2>10. Changes to This Privacy Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date. We encourage you to review this Privacy Policy periodically.</p>
+    <p>Continued use of the app after changes constitutes acceptance of the updated Privacy Policy.</p>
+
+    <h2>11. Permissions Explained</h2>
+    <p>The app requests the following Android permissions:</p>
+    <ul>
+        <li><strong>INTERNET:</strong> Required for displaying AdMob advertisements</li>
+        <li><strong>ACCESS_NETWORK_STATE:</strong> To check internet connectivity for ads</li>
+        <li><strong>ACCESS_COARSE_LOCATION:</strong> Optional, for automatic language detection based on country</li>
+        <li><strong>VIBRATE:</strong> For haptic feedback when counting dhikr (can be disabled in settings)</li>
+        <li><strong>RECEIVE_BOOT_COMPLETED:</strong> For reminder notifications (if enabled)</li>
+    </ul>
+
+    <h2>12. Contact Us</h2>
+    <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your data, please contact us:</p>
+    <ul>
+        <li><strong>Email:</strong> mcanererdem@gmail.com</li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/mcanererdem/zikirmatik" target="_blank">https://github.com/mcanererdem/zikirmatik</a></li>
+    </ul>
+    <p>We will respond to your inquiry within 30 days.</p>
+
+    <h2>13. Legal Compliance</h2>
+    <p>This Privacy Policy complies with:</p>
+    <ul>
+        <li><strong>GDPR</strong> (General Data Protection Regulation) - EU</li>
+        <li><strong>COPPA</strong> (Children's Online Privacy Protection Act) - USA</li>
+        <li><strong>CCPA</strong> (California Consumer Privacy Act) - USA</li>
+        <li><strong>Google Play Store</strong> requirements</li>
+    </ul>
+
+    <h2>14. Disclaimer</h2>
+    <p>Zikirmatik is provided "as is" without warranties of any kind. We are not responsible for:</p>
+    <ul>
+        <li>Data loss due to device malfunction or user error</li>
+        <li>Third-party services (AdMob) data practices</li>
+        <li>Unauthorized access to your device</li>
+    </ul>
+
+    <hr style="margin: 40px 0; border: none; border-top: 1px solid #ddd;">
+    
+    <p style="text-align: center; color: #7f8c8d; font-size: 14px;">
+        © 2025 Zikirmatik. All rights reserved.<br>
+        Made with ❤️ for the Muslim community.
+    </p>
 </body>
 </html>
