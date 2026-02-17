@@ -114,6 +114,10 @@
       'ttsOn': 'Sesli okuma açık',
       'ttsOff': 'Sesli okuma kapalı',
       'speak_zikr': 'Zikri Oku',
+      'export': 'Dışa Aktar',
+      'import': 'İçe Aktar',
+      'import_success': 'İçe aktarma başarılı!',
+      'import_failed': 'İçe aktarma başarısız',
     },
     'en': {
       'app_name': 'Tasbih Counter',
@@ -225,6 +229,10 @@
       'ttsOn': 'Voice reading on',
       'ttsOff': 'Voice reading off',
       'speak_zikr': 'Speak Dhikr',
+      'export': 'Export',
+      'import': 'Import',
+      'import_success': 'Import successful!',
+      'import_failed': 'Import failed',
     },
     'ar': {
       'app_name': 'مسبحة إلكترونية',
@@ -336,6 +344,10 @@
       'ttsOn': 'القراءة الصوتية قيد التشغيل',
       'ttsOff': 'القراءة الصوتية متوقفة',
       'speak_zikr': 'اقرأ الذكر',
+      'export': 'تصدير',
+      'import': 'استيراد',
+      'import_success': 'تم الاستيراد بنجاح!',
+      'import_failed': 'فشل الاستيراد',
     },
     'id': {
       'app_name': 'Tasbih Digital',
@@ -447,6 +459,10 @@
       'ttsOn': 'Pembacaan suara aktif',
       'ttsOff': 'Pembacaan suara nonaktif',
       'speak_zikr': 'Bacakan Dzikir',
+      'export': 'Ekspor',
+      'import': 'Impor',
+      'import_success': 'Impor berhasil!',
+      'import_failed': 'Impor gagal',
     },
     // Urduca (Pakistan, Hindistan)
     'ur': {

@@ -636,7 +636,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       const Icon(Icons.file_download_outlined, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        _localizations.translate('export_data') ?? 'Export Data',
+                        _localizations.translate('export') ?? 'Export',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -688,7 +688,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       const Icon(Icons.file_upload_outlined, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'Import',
+                        _localizations.translate('import') ?? 'Import',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,

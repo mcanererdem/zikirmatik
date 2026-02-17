@@ -55,6 +55,7 @@ class ExportService {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        initialDirectory: '/storage/emulated/0/Download', // Android Downloads
       );
 
       if (result == null || result.files.isEmpty) return null;
