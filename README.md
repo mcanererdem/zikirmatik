@@ -1,58 +1,59 @@
 # Zikirmatik 📿
 
-Sade, kullanımı kolay ve erişilebilirlik odaklı bir dijital tesbih (zikirmatik) uygulaması.
+A simple, user-friendly, and accessible digital tasbih (dhikr counter) app.
 
-**Geliştirici:** Caner Erdem  
-**Temel Amaç:** Zikir saymayı kolaylaştırmak ve sayıyı kaydetmek. Müslümanlar tarafından günlük ibadetlerinde veya kişisel zikirlerinde kullanılabilir.
+**Developer:** Caner Erdem  
+**Purpose:** To simplify dhikr counting and save progress. Designed for Muslims to use in their daily worship or personal remembrance.
 
-## Özellikler ✨
+## Features ✨
 
-### Temel Özellikler
-- 🔢 **Tıklanabilir Sayaç:** Ana butona tıklayarak sayıyı artırın
-- 💾 **Veri Korunması:** Uygulama kapandıktan sonra bile veriler kaydedilir (SharedPreferences)
-- 🌍 **15 Dil Desteği:** Türkçe, İngilizce, Arapça, Endonezce, Urduca, Bengalce, Malayca, Farsça, Fransızca, Çince, Japonca, Rusça, Almanca, Svahili, Hausa
-- 🎨 **Tema Seçenekleri:** Mavi/Altın, Koyu, Mint vb temalar + Dark mode
-- ⚙️ **Ayarlanabilir:** Titreşim, ses, konfeti, dil, tema ayarları (İlk açılışta tümü kapalı)
+### Core Features
+- 🔢 **Tap Counter:** Increment count by tapping the main button
+- 💾 **Data Persistence:** All data saved even after closing the app (SharedPreferences)
+- 🌍 **15 Language Support:** Turkish, English, Arabic, Indonesian, Urdu, Bengali, Malay, Persian, French, Chinese, Japanese, Russian, German, Swahili, Hausa
+- 🎨 **Theme Options:** Blue/Gold, Dark, Mint themes + Dark mode
+- ⚙️ **Customizable:** Vibration, sound, confetti, language, theme settings (all off by default)
 
-### Hedef ve İstatistikler
-- 🎯 **Çoklu Hedef Sistemi:** Günlük/haftalık/aylık zikr bazlı hedefler (bağımsız ilerleme takibi)
-- 🏆 **Trophy Sistemi:** Tamamlanan hedefler için kupa ve başarı takibi
-- 🔥 **Streak Takibi:** Ardışık gün/hafta/ay başarı serileri (aynı gün birden fazla hedef desteği)
-- 📊 **Gelişmiş İstatistikler:** Günlük, haftalık, aylık grafikler ve detaylı analiz
+### Goals & Statistics
+- 🎯 **Multiple Goal System:** Daily/weekly/monthly dhikr-based goals (independent progress tracking)
+- 🏆 **Trophy System:** Track completed goals with trophies and achievements
+- 🔥 **Streak Tracking:** Consecutive day/week/month achievement series (supports multiple goals per day)
+- 📊 **Advanced Statistics:** Daily, weekly, monthly charts with detailed analysis
 
-### Ek Özellikler
-- 📱 **Home Screen Widget:** Android ana ekran widget'ı ile hızlı erişim (tam senkronizasyon + istatistik gösterimi)
-- ➕ **Özel Zikir:** Kendi zikirlerinizi ekleyin (15 dil desteği ile)
-- 📢 **Reklam Desteği:** Banner ve rewarded reklamlar (test mode aktif)
-- 🔄 **Rotasyon Desteği:** Cihazı döndürünce veri korunur
-- ♿ **Erişilebilirlik:** Ekran okuyucu desteği (TalkBack/VoiceOver)
-- 🎯 **Hedef Bildirimi:** Hedefe ulaşınca titreşim, animasyon ve streak mesajları
-- 💬 **Hakkında Sayfası:** GitHub repo ve iletişim bilgileri
+### Additional Features
+- 📱 **Home Screen Widget:** Quick access via Android home screen widget (full sync + statistics display)
+- ➕ **Custom Dhikr:** Add your own dhikr (with 15 language support)
+- 📢 **Ad Support:** Banner and rewarded ads (test mode active)
+- 🔄 **Rotation Support:** Data preserved when device rotates
+- ♿ **Accessibility:** Screen reader support (TalkBack/VoiceOver)
+- 🎯 **Goal Notifications:** Vibration, animation, and streak messages on goal completion
+- 💬 **About Page:** GitHub repo and contact information
+- 📤 **Export/Import:** Backup and restore data (JSON format)
 
-## Başlangıç
+## Getting Started
 
-### Gereksinimler
+### Requirements
 
 - Flutter 3.0+ SDK
 - Dart 3.0+
-- Android SDK (Android geliştirme için)
-- Xcode (iOS geliştirme için)
+- Android SDK (for Android development)
+- Xcode (for iOS development)
 
-### Kurulum
+### Installation
 
 ```bash
-# Repository klonla
+# Clone repository
 git clone https://github.com/mcanererdem/zikirmatik.git
 cd zikirmatik
 
-# Bağımlılıkları yükle
+# Install dependencies
 flutter pub get
 
-# Uygulamayı çalıştır
+# Run the app
 flutter run
 ```
 
-### Uygulamayı Build Et
+### Build the App
 
 ```bash
 # Debug APK (Android)
@@ -65,103 +66,101 @@ flutter build apk --release
 flutter build ios
 ```
 
-## Teknolojiler 🛠️
+## Technologies 🛠️
 
 - **Flutter:** UI framework
-- **Dart:** Programlama dili
-- **SharedPreferences:** Yerel veri depolama
-- **Vibration:** Titreşim efektleri
-- **AudioPlayers:** Ses efektleri
-- **Google Mobile Ads:** AdMob entegrasyonu (banner + rewarded)
-- **Home Widget:** Android widget desteği
-- **URL Launcher:** Dış bağlantılar için
-- **Package Info Plus:** Uygulama versiyon bilgisi
+- **Dart:** Programming language
+- **SharedPreferences:** Local data storage
+- **Vibration:** Haptic feedback
+- **AudioPlayers:** Sound effects
+- **Google Mobile Ads:** AdMob integration (banner + rewarded)
+- **Home Widget:** Android widget support
+- **URL Launcher:** External links
+- **Package Info Plus:** App version info
+- **Path Provider:** File system access
+- **Share Plus:** Data sharing
+- **File Picker:** File selection
 
-## Proje Yapısı
+## Project Structure
 
 ```
 zikirmatik/
 ├── lib/
-│   ├── main.dart                 # Uygulama giriş noktası
+│   ├── main.dart                 # App entry point
 │   ├── screens/
-│   │   ├── home_page.dart        # Ana ekran (650 satır - refactored)
-│   │   ├── statistics_screen.dart # İstatistik ekranı (trophy + streak)
-│   │   └── about_screen.dart      # Hakkında sayfası
+│   │   ├── home_page.dart        # Main screen
+│   │   ├── statistics_screen.dart # Statistics screen (trophy + streak)
+│   │   └── about_screen.dart      # About page
 │   ├── widgets/
-│   │   ├── target_dialog.dart    # Hedef belirleme dialogu
-│   │   ├── add_zikr_dialog.dart  # Zikir ekleme dialogu (15 dil)
-│   │   ├── settings_dialog.dart  # Ayarlar dialogu (rewarded ad)
-│   │   ├── goal_dialog.dart      # Hedef dialogu
-│   │   └── success_dialog.dart   # Başarı dialogu
+│   │   ├── target_dialog.dart    # Target setting dialog
+│   │   ├── add_zikr_dialog.dart  # Add dhikr dialog (15 languages)
+│   │   ├── settings_dialog.dart  # Settings dialog (rewarded ad)
+│   │   ├── goal_dialog.dart      # Goal dialog
+│   │   └── success_dialog.dart   # Success dialog
 │   ├── models/
-│   │   ├── zikr_model.dart       # Zikir modeli
-│   │   ├── theme_model.dart      # Tema modeli
-│   │   ├── goal_model.dart       # Hedef modeli
-│   │   ├── trophy_model.dart     # Trophy ve streak modeli
-│   │   └── statistics_model.dart # İstatistik modeli
+│   │   ├── zikr_model.dart       # Dhikr model
+│   │   ├── theme_model.dart      # Theme model
+│   │   ├── goal_model.dart       # Goal model
+│   │   ├── trophy_model.dart     # Trophy and streak model
+│   │   └── statistics_model.dart # Statistics model
 │   ├── services/
-│   │   ├── settings_service.dart # Ayarlar servisi
-│   │   ├── ad_service.dart       # AdMob servisi (banner + rewarded)
-│   │   ├── widget_service.dart   # Widget servisi
-│   │   ├── counter_logic.dart    # Sayaç mantığı (extracted)
-│   │   ├── audio_manager.dart    # Ses yönetimi (extracted)
-│   │   └── feedback_manager.dart # Titreşim yönetimi (extracted)
+│   │   ├── settings_service.dart # Settings service
+│   │   ├── ad_service.dart       # AdMob service (banner + rewarded)
+│   │   ├── widget_service.dart   # Widget service
+│   │   ├── counter_logic.dart    # Counter logic
+│   │   ├── audio_manager.dart    # Audio management
+│   │   ├── feedback_manager.dart # Haptic feedback
+│   │   └── export_service.dart   # Data export/import
 │   └── utils/
-│       └── localizations.dart    # Çoklu dil (15 dil, 80+ key)
+│       └── localizations.dart    # Multi-language (15 languages, 80+ keys)
 ├── assets/
-│   ├── icons/                    # Uygulama ikonu
-│   └── sounds/                   # Ses efektleri
-└── pubspec.yaml                  # Proje bağımlılıkları
+│   ├── icons/                    # App icon
+│   └── sounds/                   # Sound effects
+└── pubspec.yaml                  # Project dependencies
 ```
 
-## AdMob Ayarı 🎯
+## AdMob Setup 🎯
 
 **Production Ad Unit ID (Android):** `ca-app-pub-8195806446886861/1390869911`
 
-- Debug modda: Test reklamlar otomatik kullanılır
-- Release modda: Production ID aktif (app approval şartıyla)
+- Debug mode: Test ads automatically used
+- Release mode: Production ID active (subject to app approval)
 
-## Store Yayıncılığı 📱
+## Store Publishing 📱
 
-### Google Play Store'a Yükleme
+### Google Play Store Upload
 
-Uygulamanın Google Play Store'a yüklenmesi için ayrıntılı rehberler:
+Detailed guides for uploading to Google Play Store:
 
-- **[RELEASE_BUILD_GUIDE.md](RELEASE_BUILD_GUIDE.md)** — Keystore oluşturma, release build alma, ve store'a yükleme adım adım
-- **[STORE_LISTING.md](STORE_LISTING.md)** — Google Play Store listeleme bilgisi, açıklamalar, ekran görüntüleri
-- **[SCREENSHOT_GUIDE.md](SCREENSHOT_GUIDE.md)** — Ekran görüntüsü alma rehberi
-- **[PRIVACY_POLICY.md](PRIVACY_POLICY.md)** — Gizlilik politikası (store tarafından gerekli)
+- **[STORE_LISTING.md](STORE_LISTING.md)** — Google Play Store listing info, descriptions, screenshots
+- **[GOAL_TROPHY_STREAK_LOGIC.md](GOAL_TROPHY_STREAK_LOGIC.md)** — Complete logic documentation for goals, trophies, and streaks
 
-### Release Build Yöntemi
+### Release Build
 
 ```bash
-# 1. Keystore oluştur (ilk seferinde)
-# bkz. RELEASE_BUILD_GUIDE.md → Step 1
-
-# 2. Environment değişkenlerini ayarla
-# bkz. RELEASE_BUILD_GUIDE.md → Step 2
-
-# 3. Release AAB oluştur
+# Create release AAB
 flutter build appbundle --release
 
-# Çıktı: build/app/outputs/bundle/release/app-release.aab
+# Output: build/app/outputs/bundle/release/app-release.aab
 ```
 
-Detaylı talimatlar için [RELEASE_BUILD_GUIDE.md](RELEASE_BUILD_GUIDE.md) dosyasını okuyunuz.
+### Privacy Policy
 
-## İletişim 💬
+Available at: `https://mcanererdem.github.io/zikirmatik/privacy_policy.html`
+
+## Contact 💬
 
 - **Email:** mcanererdem@gmail.com
 - **GitHub:** [github.com/mcanererdem/zikirmatik](https://github.com/mcanererdem/zikirmatik)
 
-## Geri Bildirim 💬
+## Feedback 💬
 
-Buğ bulunuz veya özellik eklemek isteyenler lütfen [Issues](https://github.com/mcanererdem/zikirmatik/issues) kısmını kullanınız.
+Found a bug or want to request a feature? Please use [Issues](https://github.com/mcanererdem/zikirmatik/issues).
 
-## Lisans 📄
+## License 📄
 
-MIT Lisansı altında sunulmaktadır.
+Released under the MIT License.
 
 ---
 
-صنعته بحب وإخلاص ❤️
+Made with love and dedication ❤️
