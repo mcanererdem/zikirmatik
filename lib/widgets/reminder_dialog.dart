@@ -67,129 +67,130 @@ class _ReminderDialogState extends State<ReminderDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            Text(
-              widget.localizations.setReminder,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: widget.themeConfig.accentColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: () async {
-                final time = await showTimePicker(
-                  context: context,
-                  initialTime: _selectedTime,
-                );
-                if (time != null) {
-                  setState(() => _selectedTime = time);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+              Text(
+                widget.localizations.setReminder,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: widget.themeConfig.accentColor,
                 ),
-                child: Text(
-                  '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(
-                    fontSize: 32,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: () async {
+                  final time = await showTimePicker(
+                    context: context,
+                    initialTime: _selectedTime,
+                  );
+                  if (time != null) {
+                    setState(() => _selectedTime = time);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (_statusMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  _statusMessage,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () async {
-                      await NotificationService.showTestNotification();
-                    },
-                    child: const Text(
-                      'Test',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                      maxLines: 1,
+                  child: Text(
+                    '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+                    style: const TextStyle(
+                      fontSize: 32,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () async {
-                      await NotificationService.cancelAll();
-                      if (context.mounted) Navigator.pop(context);
-                    },
-                    child: Text(
-                      widget.localizations.cancelReminder,
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 24),
+              if (_statusMessage.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    _statusMessage,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.7),
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final savedTime = await _settingsService.getReminderTime();
-                      if (savedTime['hour'] == _selectedTime.hour && savedTime['minute'] == _selectedTime.minute) {
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        await NotificationService.showTestNotification();
+                      },
+                      child: const Text(
+                        'Test',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                        maxLines: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        await NotificationService.cancelAll();
                         if (context.mounted) Navigator.pop(context);
-                        return;
-                      }
-                      await _settingsService.saveReminderTime(
-                        _selectedTime.hour,
-                        _selectedTime.minute,
-                      );
-                      print('=== REMINDER SET ===');
-                      print('Time: ${_selectedTime.hour}:${_selectedTime.minute}');
-                      await NotificationService.scheduleReminder(
-                        _selectedTime.hour,
-                        _selectedTime.minute,
-                      );
-                      await _checkPendingNotifications();
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Reminder set for ${_selectedTime.format(context)}'),
-                            backgroundColor: Colors.green,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.themeConfig.accentColor,
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                    ),
-                    child: Text(
-                      widget.localizations.ok,
-                      style: const TextStyle(fontSize: 12),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      },
+                      child: Text(
+                        widget.localizations.cancelReminder,
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final savedTime = await _settingsService.getReminderTime();
+                        if (savedTime['hour'] == _selectedTime.hour && savedTime['minute'] == _selectedTime.minute) {
+                          if (context.mounted) Navigator.pop(context);
+                          return;
+                        }
+                        await _settingsService.saveReminderTime(
+                          _selectedTime.hour,
+                          _selectedTime.minute,
+                        );
+                        print('=== REMINDER SET ===');
+                        print('Time: ${_selectedTime.hour}:${_selectedTime.minute}');
+                        await NotificationService.scheduleReminder(
+                          _selectedTime.hour,
+                          _selectedTime.minute,
+                        );
+                        await _checkPendingNotifications();
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Reminder set for ${_selectedTime.format(context)}'),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: widget.themeConfig.accentColor,
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      ),
+                      child: Text(
+                        widget.localizations.ok,
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
