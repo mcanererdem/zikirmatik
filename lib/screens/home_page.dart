@@ -250,16 +250,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       }
     }
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: _currentTheme.accentColor,
-        duration: const Duration(seconds: 4),
-      ),
-    );
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              message,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: _currentTheme.accentColor,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    });
   }
 
   void _showSuccessAnimation() {
@@ -511,11 +515,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         ),
         child: Stack(
           children: [
-            SafeArea(
-              child: Column(
-                children: [
-                  // Ana içerik
-                  Expanded(
+            Column(
+              children: [
+                Expanded(
+                  child: SafeArea(
                     child: Column(
                       children: [
                         const SizedBox(height: 20),
@@ -534,43 +537,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                       ],
                     ),
                   ),
-                  
-                  Container(
-                    width: double.infinity,
-                    height: (_bannerAd?.size.height ?? AdSize.banner.height).toDouble(),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.03),
-                      border: Border(
-                        top: BorderSide(
-                          color: _currentTheme.accentColor.withOpacity(0.12),
-                          width: 1,
-                        ),
+                ),
+                Container(
+                  width: double.infinity,
+                  height: (_bannerAd?.size.height ?? AdSize.banner.height).toDouble(),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.03),
+                    border: Border(
+                      top: BorderSide(
+                        color: _currentTheme.accentColor.withOpacity(0.12),
+                        width: 1,
                       ),
                     ),
-                    child: _isBannerAdLoaded && _bannerAd != null
-                        ? Center(
-                            child: AdWidget(ad: _bannerAd!),
-                          )
-                        : Center(
-                            child: Text(
-                              _isBannerAdLoaded ? 'Preparing ad...' : 'Ad not loaded',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.6),
-                                fontSize: 12,
-                              ),
+                  ),
+                  child: _isBannerAdLoaded && _bannerAd != null
+                      ? Center(child: AdWidget(ad: _bannerAd!))
+                      : Center(
+                          child: Text(
+                            _isBannerAdLoaded ? 'Preparing ad...' : 'Ad not loaded',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 12,
                             ),
                           ),
-                  ),
-                ],
-              ),
+                        ),
+                ),
+              ],
             ),
-            
             if (_showConfetti)
               ConfettiAnimation(
                 onComplete: () {
-                  setState(() {
-                    _showConfetti = false;
-                  });
+                  setState(() => _showConfetti = false);
                 },
               ),
           ],

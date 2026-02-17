@@ -23,7 +23,8 @@ class AudioManager {
     try {
       final player = _audioPlayers[_currentPlayerIndex];
       await player.stop();
-      await player.play(AssetSource('sounds/click.mp3'));
+      await player.setSource(AssetSource('sounds/click.mp3'));
+      await player.resume();
       _currentPlayerIndex = (_currentPlayerIndex + 1) % _maxPlayers;
     } catch (e) {
       try {

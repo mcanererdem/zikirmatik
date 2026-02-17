@@ -688,7 +688,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ],
               ),
 
-              const SizedBox(width: 16),
+              const SizedBox(height: 16),
 
               GestureDetector(
                 onTap: () async {
