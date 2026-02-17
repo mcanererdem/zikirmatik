@@ -32,7 +32,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.example.zikirmatik"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "26.1.10909125"
 
     compileOptions {
