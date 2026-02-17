@@ -614,92 +614,59 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
               const SizedBox(height: 16),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        final exportService = ExportService(SettingsService());
-                        await exportService.exportToCSV();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.file_download_outlined, color: Colors.white, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'CSV',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+              GestureDetector(
+                onTap: () async {
+                  final exportService = ExportService(SettingsService());
+                  await exportService.exportData();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.blue.withOpacity(0.5),
+                      width: 1.5,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        final exportService = ExportService(SettingsService());
-                        await exportService.exportToJSON();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.code_rounded, color: Colors.white, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'JSON',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.file_download_outlined, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        _localizations.translate('export_data') ?? 'Export Data',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               GestureDetector(
                 onTap: () async {
                   final exportService = ExportService(SettingsService());
                   final data = await exportService.importFromFile();
-                  if (data != null) {
+                  if (data != null && mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Import successful!'),
+                        content: Text(_localizations.translate('import_success') ?? 'Import successful!'),
                         backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(_localizations.translate('import_failed') ?? 'Import failed'),
+                        backgroundColor: Colors.red,
                       ),
                     );
                   }

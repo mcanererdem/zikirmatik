@@ -242,7 +242,8 @@ class SettingsService {
     if (lastCompleted == null || lastCompleted != today) {
       // Yeni gün - streak kontrolü
       if (lastCompleted != null) {
-        final last = DateTime.parse(lastCompleted.replaceAll('_', '-'));
+        final parts = lastCompleted.split('_');
+        final last = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
         final isConsecutive = _isConsecutivePeriod(type, last, now);
         
         if (isConsecutive) {

@@ -38,9 +38,6 @@ class ZikrWidgetProvider : AppWidgetProvider() {
                 for (appWidgetId in ids) {
                     updateWidget(context, appWidgetManager, appWidgetId)
                 }
-                
-                // Notify Flutter app
-                HomeWidgetPlugin.saveWidgetData(context, "counter", newCounter)
             }
             "RESET_COUNTER" -> {
                 val widgetData = HomeWidgetPlugin.getData(context)
@@ -54,9 +51,6 @@ class ZikrWidgetProvider : AppWidgetProvider() {
                 for (appWidgetId in ids) {
                     updateWidget(context, appWidgetManager, appWidgetId)
                 }
-                
-                // Notify Flutter app
-                HomeWidgetPlugin.saveWidgetData(context, "counter", 0)
             }
         }
     }

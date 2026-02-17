@@ -12,16 +12,10 @@ class ExportService {
 
   ExportService(this._settings);
 
-  Future<void> exportToCSV() async {
-    final data = await _prepareData();
-    final csv = _convertToCSV(data);
-    await _saveAndShare(csv, 'zikirmatik_export.csv');
-  }
-
-  Future<void> exportToJSON() async {
+  Future<void> exportData() async {
     final data = await _prepareData();
     final json = jsonEncode(data);
-    await _saveAndShare(json, 'zikirmatik_export.json');
+    await _saveAndShare(json, 'zikirmatik_backup.json');
   }
 
   Future<Map<String, dynamic>> _prepareData() async {
@@ -45,18 +39,8 @@ class ExportService {
   }
 
   String _convertToCSV(Map<String, dynamic> data) {
-    final buffer = StringBuffer();
-    buffer.writeln('Zikirmatik Export - ${data['export_date']}');
-    buffer.writeln('');
-    buffer.writeln('Current Zikr,${data['current_zikr']}');
-    buffer.writeln('Counter,${data['counter']}');
-    buffer.writeln('Total Counter,${data['total_counter']}');
-    buffer.writeln('');
-    buffer.writeln('Zikr Name,Count');
-    for (var zikr in data['zikrs']) {
-      buffer.writeln('${zikr['name_tr']},${zikr['count']}');
-    }
-    return buffer.toString();
+    // Removed - CSV not needed
+    return '';
   }
 
   Future<void> _saveAndShare(String content, String filename) async {
@@ -70,20 +54,14 @@ class ExportService {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json', 'csv'],
+        allowedExtensions: ['json'],
       );
 
       if (result == null || result.files.isEmpty) return null;
 
       final file = File(result.files.single.path!);
       final content = await file.readAsString();
-      final extension = result.files.single.extension;
-
-      if (extension == 'json') {
-        return _importFromJSON(content);
-      } else if (extension == 'csv') {
-        return _importFromCSV(content);
-      }
+      return _importFromJSON(content);
     } catch (e) {
       print('Import error: $e');
     }
@@ -106,28 +84,7 @@ class ExportService {
   }
 
   Map<String, dynamic>? _importFromCSV(String content) {
-    try {
-      final lines = content.split('\n');
-      int counter = 0;
-      int totalCounter = 0;
-
-      for (var line in lines) {
-        if (line.startsWith('Counter,')) {
-          counter = int.tryParse(line.split(',')[1]) ?? 0;
-        } else if (line.startsWith('Total Counter,')) {
-          totalCounter = int.tryParse(line.split(',')[1]) ?? 0;
-        }
-      }
-
-      return {
-        'counter': counter,
-        'total_counter': totalCounter,
-        'zikrs': <ZikrModel>[],
-        'goals': <Goal>[],
-      };
-    } catch (e) {
-      print('CSV import error: $e');
-      return null;
-    }
+    // Removed - CSV not needed
+    return null;
   }
 }
