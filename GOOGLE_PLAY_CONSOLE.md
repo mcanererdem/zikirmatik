@@ -6,9 +6,9 @@ Bu rehber, uygulamanızı Google Play Store'da yayınlamak için gereken tüm ad
 
 ## 💳 Ön Gereksinimler
 
-- [ ] Google hesabı
-- [ ] $25 tek seferlik geliştirici ücreti
-- [ ] Kredi kartı veya Google Pay
+- [X] Google hesabı
+- [X] $25 tek seferlik geliştirici ücreti
+- [X] Kredi kartı veya Google Pay
 
 ## 📝 Adım 1: Google Play Console Hesabı Oluşturma
 
@@ -46,9 +46,49 @@ Bu rehber, uygulamanızı Google Play Store'da yayınlamak için gereken tüm ad
 
 #### Store Listing
 1. **App details**
-   - App name: `Zikirmatik - Digital Tasbih`
-   - Short description: `Simple digital tasbih counter with goals, statistics & 15 languages support`
-   - Full description: (STORE_LISTING_PREP.md'den kopyala)
+   - **App name:** `Zikirmatik - Digital Tasbih`
+   - **Short description (80 characters):** 
+   ```
+   Digital tasbih counter with goals, statistics & 15 languages support
+   ```
+   
+   - **Full description (4000 characters):**
+   ```
+   Zikirmatik is a simple, accessible digital tasbih (dhikr counter) app designed to help Muslims track their daily prayers and personal dhikr.
+
+   🔢 MAIN FEATURES
+   • Tap counter with haptic feedback
+   • Data persistence - your counts are saved
+   • 15 language support (Turkish, English, Arabic, Indonesian, Urdu, Bengali, Malay, Persian, French, Chinese, Japanese, Russian, German, Swahili, Hausa)
+   • Multiple theme options with dark mode
+   • Customizable settings (vibration, sound, confetti)
+
+   🎯 GOALS & STATISTICS
+   • Multiple goal system (daily/weekly/monthly)
+   • Trophy system for completed goals
+   • Streak tracking (consecutive days/weeks/months)
+   • Detailed statistics with charts
+   • Same-day multiple goal completion support
+
+   📱 ADDITIONAL FEATURES
+   • Home screen widget with live sync
+   • Custom dhikr names (15 languages)
+   • Screen rotation support
+   • Accessibility support (TalkBack/VoiceOver)
+   • Export/Import data (JSON format)
+   • Ad-supported (banner + rewarded ads)
+
+   ♿ ACCESSIBILITY
+   Full screen reader support for visually impaired users.
+
+   🌍 SUPPORTED LANGUAGES
+   Turkish, English, Arabic, Indonesian, Urdu, Bengali, Malay, Persian, French, Chinese, Japanese, Russian, German, Swahili, Hausa
+
+   📊 PRIVACY
+   All data is stored locally on your device. We don't collect or transmit personal information.
+
+   Perfect for daily dhikr, Tasbih, Tahmid, Takbir, and other Islamic remembrances.
+   ```
 
 2. **Graphics**
    - App icon: 512x512 (zaten var)
@@ -65,12 +105,13 @@ Bu rehber, uygulamanızı Google Play Store'da yayınlamak için gereken tüm ad
    - Phone: (opsiyonel)
 
 5. **Privacy Policy**
-   - URL: (GitHub Pages'de yayınlanacak)
+   - **URL:** `https://mcanererdem.github.io/zikirmatik/privacy_policy.html`
+   - (GitHub Pages'de zaten yayında)
 
 ## 🔒 Adım 3: App Content
 
 ### 3.1 Privacy Policy
-1. Privacy policy URL'i ekle
+1. **Privacy policy URL:** `https://mcanererdem.github.io/zikirmatik/privacy_policy.html`
 2. Data safety form'unu doldur:
    - **Data collection:** No data collected
    - **Data sharing:** No data shared
@@ -182,7 +223,57 @@ Perfect for daily dhikr tracking and spiritual goal setting.
 
 ## 📊 Adım 6: Yayın Sonrası
 
-### 6.1 Store Listing Kontrolü
+### 6.1 Türkçe Listing Ekleme (Opsiyonel)
+1. Store presence > Main store listing
+2. "Add language" > Turkish
+3. Bilgileri doldur:
+
+   - **Kısa açıklama (80 karakter):**
+   ```
+   Dijital tesbih - Hedefler, istatistikler ve 15 dil desteği
+   ```
+   
+   - **Tam açıklama:**
+   ```
+   Zikirmatik, Müslümanların günlük ibadetlerini ve kişisel zikirlerini takip etmelerine yardımcı olmak için tasarılanmış sade ve erişilebilir bir dijital tesbih uygulamasıdır.
+
+   🔢 TEMEL ÖZELLİKLER
+   • Dokunmatik sayaç (titreşim desteği)
+   • Veri korunması - sayılarınız kaydedilir
+   • 15 dil desteği (Türkçe, İngilizce, Arapça, Endonezce, Urduca, Bengalce, Malayca, Farsça, Fransızca, Çince, Japonca, Rusça, Almanca, Svahili, Hausa)
+   • Çoklu tema seçenekleri ve karanlık mod
+   • Özelleştirilebilir ayarlar (titreşim, ses, konfeti)
+
+   🎯 HEDEFLER VE İSTATİSTİKLER
+   • Çoklu hedef sistemi (günlük/haftalık/aylık)
+   • Tamamlanan hedefler için kupa sistemi
+   • Seri takibi (ardışık gün/hafta/ay)
+   • Grafikli detaylı istatistikler
+   • Aynı gün birden fazla hedef tamamlama desteği
+
+   📱 EK ÖZELLİKLER
+   • Ana ekran widget'ı (canlı senkronizasyon)
+   • Özel zikir isimleri (15 dil)
+   • Ekran döndürme desteği
+   • Erişilebilirlik desteği (TalkBack/VoiceOver)
+   • Veri dışa/içe aktarma (JSON format)
+   • Reklam destekli (banner + ödüllü reklamlar)
+
+   ♿ ERİŞİLEBİLİRLİK
+   Görme engelli kullanıcılar için tam ekran okuyucu desteği.
+
+   🌍 DESTEKLENEN DİLLER
+   Türkçe, İngilizce, Arapça, Endonezce, Urduca, Bengalce, Malayca, Farsça, Fransızca, Çince, Japonca, Rusça, Almanca, Svahili, Hausa
+
+   📊 GİZLİLİK
+   Tüm veriler cihazınızda yerel olarak saklanır. Kişisel bilgi toplamayız veya iletmiyoruz.
+
+   Günlük zikir, Tesbih, Tahmid, Tekbir ve diğer İslami zikirler için mükemmel.
+   ```
+
+4. Save
+
+### 6.2 Store Listing Kontrolü
 1. Play Store'da uygulamayı ara
 2. Tüm bilgilerin doğru göründüğünden emin ol
 3. Screenshot'ların düzgün yüklendiğini kontrol et
