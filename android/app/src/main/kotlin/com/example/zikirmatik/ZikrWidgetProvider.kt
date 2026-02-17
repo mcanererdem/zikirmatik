@@ -74,7 +74,7 @@ class ZikrWidgetProvider : AppWidgetProvider() {
         incrementIntent.action = "INCREMENT_COUNTER"
         val incrementPendingIntent = PendingIntent.getBroadcast(
             context, 0, incrementIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_increment, incrementPendingIntent)
         
@@ -82,7 +82,7 @@ class ZikrWidgetProvider : AppWidgetProvider() {
         resetIntent.action = "RESET_COUNTER"
         val resetPendingIntent = PendingIntent.getBroadcast(
             context, 1, resetIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_reset, resetPendingIntent)
 
