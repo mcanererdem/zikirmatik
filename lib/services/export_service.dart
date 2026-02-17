@@ -15,7 +15,25 @@ class ExportService {
   Future<void> exportData() async {
     final data = await _prepareData();
     final json = jsonEncode(data);
-    await _saveAndShare(json, 'zikirmatik_backup.json');
+    
+    // Downloads klasörüne kaydet
+    try {
+      final directory = Directory('/storage/emulated/0/Download');
+      if (await directory.exists()) {
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final file = File('${directory.path}/zikirmatik_backup_$timestamp.json');
+        await file.writeAsString(json);
+        
+        // Paylaş
+        await Share.shareXFiles([XFile(file.path)], text: 'Zikirmatik Backup');
+      } else {
+        // Fallback: temp directory
+        await _saveAndShare(json, 'zikirmatik_backup.json');
+      }
+    } catch (e) {
+      // Fallback: temp directory
+      await _saveAndShare(json, 'zikirmatik_backup.json');
+    }
   }
 
   Future<Map<String, dynamic>> _prepareData() async {

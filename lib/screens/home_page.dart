@@ -245,82 +245,90 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   void _showGoalCompletedNotification(Goal goal, Map<String, dynamic>? streakInfo, String? goalType) {
     if (!mounted) return;
     
+    // Önceki snackbar'ı kapat
+    ScaffoldMessenger.of(context).clearSnackBars();
+    
     final typeLabel = goalType == 'daily' ? _localizations.dailyGoal :
                      goalType == 'weekly' ? _localizations.weeklyGoal :
                      _localizations.monthlyGoal;
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Text('🏆', style: TextStyle(fontSize: 24)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    // Kısa gecikme ile göster (önceki snackbar'ın kapanması için)
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Text('🏆', style: TextStyle(fontSize: 24)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _localizations.goalCompleted,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            '$typeLabel: ${goal.targetCount}',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (streakInfo != null && streakInfo['streak'] > 0) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        const Text('🔥', style: TextStyle(fontSize: 20)),
+                        const SizedBox(width: 8),
                         Text(
-                          _localizations.goalCompleted,
+                          '${streakInfo['streak']} ${_localizations.translate('streak_continues') ?? 'streak'}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 14,
                           ),
                         ),
-                        Text(
-                          '$typeLabel: ${goal.targetCount}',
-                          style: const TextStyle(fontSize: 14),
-                        ),
+                        if (streakInfo['isNewBest'] == true) ...[
+                          const SizedBox(width: 8),
+                          const Text('⭐', style: TextStyle(fontSize: 18)),
+                        ],
                       ],
                     ),
                   ),
                 ],
-              ),
-              if (streakInfo != null && streakInfo['streak'] > 0) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('🔥', style: TextStyle(fontSize: 20)),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${streakInfo['streak']} ${_localizations.translate('streak_continues') ?? 'streak'}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      if (streakInfo['isNewBest'] == true) ...[
-                        const SizedBox(width: 8),
-                        const Text('⭐', style: TextStyle(fontSize: 18)),
-                      ],
-                    ],
-                  ),
-                ),
               ],
-            ],
+            ),
+          ),
+          backgroundColor: Colors.green.shade700,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
-        backgroundColor: Colors.green.shade700,
-        duration: const Duration(seconds: 5),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
+      );
+    });
   }
 
   void _showSuccessAnimation() {

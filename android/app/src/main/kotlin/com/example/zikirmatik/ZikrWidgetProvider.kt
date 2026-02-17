@@ -28,9 +28,9 @@ class ZikrWidgetProvider : AppWidgetProvider() {
                 val widgetData = HomeWidgetPlugin.getData(context)
                 val currentCounter = widgetData.getInt("counter", 0)
                 val newCounter = currentCounter + 1
-                widgetData.edit().putInt("counter", newCounter).apply()
+                widgetData.edit().putInt("counter", newCounter).commit()
                 
-                // Update widget display
+                // Update widget display immediately
                 val appWidgetManager = AppWidgetManager.getInstance(context)
                 val ids = appWidgetManager.getAppWidgetIds(
                     android.content.ComponentName(context, ZikrWidgetProvider::class.java)
@@ -41,9 +41,9 @@ class ZikrWidgetProvider : AppWidgetProvider() {
             }
             "RESET_COUNTER" -> {
                 val widgetData = HomeWidgetPlugin.getData(context)
-                widgetData.edit().putInt("counter", 0).apply()
+                widgetData.edit().putInt("counter", 0).commit()
                 
-                // Update widget display
+                // Update widget display immediately
                 val appWidgetManager = AppWidgetManager.getInstance(context)
                 val ids = appWidgetManager.getAppWidgetIds(
                     android.content.ComponentName(context, ZikrWidgetProvider::class.java)

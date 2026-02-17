@@ -118,6 +118,8 @@
       'import': 'İçe Aktar',
       'import_success': 'İçe aktarma başarılı!',
       'import_failed': 'İçe aktarma başarısız',
+      'export_success': 'Dışa aktarma başarılı!',
+      'export_failed': 'Dışa aktarma başarısız',
     },
     'en': {
       'app_name': 'Tasbih Counter',
@@ -233,6 +235,8 @@
       'import': 'Import',
       'import_success': 'Import successful!',
       'import_failed': 'Import failed',
+      'export_success': 'Export successful!',
+      'export_failed': 'Export failed',
     },
     'ar': {
       'app_name': 'مسبحة إلكترونية',
@@ -348,6 +352,8 @@
       'import': 'استيراد',
       'import_success': 'تم الاستيراد بنجاح!',
       'import_failed': 'فشل الاستيراد',
+      'export_success': 'تم التصدير بنجاح!',
+      'export_failed': 'فشل التصدير',
     },
     'id': {
       'app_name': 'Tasbih Digital',
@@ -463,6 +469,8 @@
       'import': 'Impor',
       'import_success': 'Impor berhasil!',
       'import_failed': 'Impor gagal',
+      'export_success': 'Ekspor berhasil!',
+      'export_failed': 'Ekspor gagal',
     },
     // Urduca (Pakistan, Hindistan)
     'ur': {
