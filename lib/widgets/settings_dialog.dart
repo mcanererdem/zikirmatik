@@ -677,12 +677,13 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   final exportService = ExportService(SettingsService());
                   final data = await exportService.importFromFile();
                   if (data != null && mounted) {
+                    Navigator.pop(context); // Ayarlar sayfasını kapat
                     // TODO: Veriyi kaydet
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(_localizations.translate('import_success') ?? 'Import successful!'),
                         backgroundColor: Colors.green,
-                        duration: const Duration(seconds: 3),
+                        duration: const Duration(seconds: 5),
                       ),
                     );
                   } else if (mounted) {
@@ -690,7 +691,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       SnackBar(
                         content: Text(_localizations.translate('import_failed') ?? 'Import failed'),
                         backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 3),
+                        duration: const Duration(seconds: 5),
                       ),
                     );
                   }
