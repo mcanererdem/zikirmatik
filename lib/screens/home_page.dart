@@ -209,13 +209,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final goalType = result['goalType'] as String?;
     
     bool goalCompleted = false;
+    int completedCount = 0;
+    
     for (var goal in updatedGoals) {
       final oldGoal = _goals.firstWhere((g) => g.id == goal.id, orElse: () => goal);
       if (!oldGoal.isCompleted && goal.isCompleted) {
         goalCompleted = true;
-        Future.delayed(const Duration(milliseconds: 500), () {
+        completedCount++;
+        
+        // Her trophy için ayrı bildirim (gecikme ile)
+        final delay = Duration(milliseconds: 500 + (completedCount - 1) * 4500);
+        Future.delayed(delay, () {
           if (mounted) {
-            _showGoalCompletedNotification(goal, streakInfo, goalType);
+            _showGoalCompletedNotification(goal, streakInfo, goal.type);
           }
         });
       }

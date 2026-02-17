@@ -620,11 +620,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   try {
                     await exportService.exportData();
                     if (mounted) {
+                      Navigator.pop(context); // Ayarlar sayfasını kapat
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(_localizations.translate('export_success') ?? 'Data exported successfully!'),
                           backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 3),
+                          duration: const Duration(seconds: 5),
                         ),
                       );
                     }
@@ -634,7 +635,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         SnackBar(
                           content: Text(_localizations.translate('export_failed') ?? 'Export failed'),
                           backgroundColor: Colors.red,
-                          duration: const Duration(seconds: 3),
+                          duration: const Duration(seconds: 5),
                         ),
                       );
                     }

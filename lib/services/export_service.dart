@@ -70,15 +70,22 @@ class ExportService {
 
   Future<Map<String, dynamic>?> importFromFile() async {
     try {
+      // Android Downloads klasörüne direkt git
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
-        initialDirectory: '/storage/emulated/0/Download', // Android Downloads
+        type: FileType.any,
+        allowedExtensions: null,
+        dialogTitle: 'Select Zikirmatik Backup',
       );
 
       if (result == null || result.files.isEmpty) return null;
 
       final file = File(result.files.single.path!);
+      
+      // Sadece .json dosyalarını kabul et
+      if (!file.path.endsWith('.json')) {
+        throw Exception('Please select a JSON file');
+      }
+      
       final content = await file.readAsString();
       return _importFromJSON(content);
     } catch (e) {

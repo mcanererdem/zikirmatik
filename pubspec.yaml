@@ -37,3 +37,11 @@ flutter:
   
   assets:
     - assets/sounds/click.mp3
+    - assets/icons/app_icon.png
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#2C5F2D"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
