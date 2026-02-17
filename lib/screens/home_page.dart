@@ -208,12 +208,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final streakInfo = result['streakInfo'] as Map<String, dynamic>?;
     final goalType = result['goalType'] as String?;
     
+    bool goalCompleted = false;
     for (var goal in updatedGoals) {
       final oldGoal = _goals.firstWhere((g) => g.id == goal.id, orElse: () => goal);
       if (!oldGoal.isCompleted && goal.isCompleted) {
-        _showGoalCompletedNotification(goal, streakInfo, goalType);
+        goalCompleted = true;
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _showGoalCompletedNotification(goal, streakInfo, goalType);
+          }
+        });
       }
     }
+    
     setState(() {
       _goals = updatedGoals;
       if (streakInfo != null) {
@@ -236,7 +243,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   void _showGoalCompletedNotification(Goal goal, Map<String, dynamic>? streakInfo, String? goalType) {
-    String message = '${_localizations.goalCompleted} ${goal.targetCount}';
+    String message = '🏆 ${_localizations.goalCompleted} ${goal.targetCount}';
     
     if (streakInfo != null && streakInfo['streak'] > 1) {
       final streak = streakInfo['streak'];
@@ -246,24 +253,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       message += '\n🔥 $streak ${typeLabel} ${_localizations.translate('streak_continues') ?? 'streak!'}';
       
       if (streakInfo['isNewBest'] == true) {
-        message += '\n🏆 ${_localizations.translate('new_record') ?? 'New record!'}';
+        message += '\n⭐ ${_localizations.translate('new_record') ?? 'New record!'}';
       }
     }
     
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              message,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: _currentTheme.accentColor,
-            duration: const Duration(seconds: 4),
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
-        );
-      }
-    });
+          backgroundColor: Colors.green.shade700,
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
   }
 
   void _showSuccessAnimation() {
@@ -507,6 +514,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     String zikrText = _selectedZikr?.nameAr ?? 'سُبْحَانَ اللّٰهِ';
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         width: double.infinity,
         height: double.infinity,
