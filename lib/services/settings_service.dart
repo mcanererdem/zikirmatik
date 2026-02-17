@@ -229,82 +229,148 @@ class SettingsService {
 
   Future<Map<String, dynamic>> _updateGoalStreaks(String type) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = 'goal_streak_$type';
-    final lastKey = 'goal_last_$type';
-    final bestKey = 'goal_best_$type';
-    final todayCountKey = 'goal_today_count_$type';
+    final streakKey = 'trophy_streak_$type';
+    final lastKey = 'trophy_last_$type';
+    final bestKey = 'trophy_best_$type';
+    final todayCountKey = 'trophy_completed_today_$type';
     
     final now = DateTime.now();
-    final today = '${now.year}_${now.month}_${now.day}';
+    final currentPeriod = _getPeriodString(type, now);
     final lastCompleted = prefs.getString(lastKey);
-    final todayCount = prefs.getInt(todayCountKey) ?? 0;
     
-    if (lastCompleted == null || lastCompleted != today) {
-      // Yeni gün - streak kontrolü
-      if (lastCompleted != null) {
-        final parts = lastCompleted.split('_');
-        final last = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
-        final isConsecutive = _isConsecutivePeriod(type, last, now);
-        
-        if (isConsecutive) {
-          final current = prefs.getInt(key) ?? 0;
-          final newStreak = current + 1;
-          await prefs.setInt(key, newStreak);
-          
-          final best = prefs.getInt(bestKey) ?? 0;
-          if (newStreak > best) {
-            await prefs.setInt(bestKey, newStreak);
-          }
-        } else {
-          await prefs.setInt(key, 1);
-        }
-      } else {
-        await prefs.setInt(key, 1);
-        await prefs.setInt(bestKey, 1);
+    int currentStreak = prefs.getInt(streakKey) ?? 0;
+    int bestStreak = prefs.getInt(bestKey) ?? 0;
+    int todayCount = prefs.getInt(todayCountKey) ?? 0;
+    bool isNewBest = false;
+    
+    // İlk trophy tamamlama
+    if (lastCompleted == null) {
+      currentStreak = 0; // İlk gün streak yok
+      await prefs.setInt(streakKey, currentStreak);
+      await prefs.setString(lastKey, currentPeriod);
+      await prefs.setInt(todayCountKey, 1);
+      
+      if (bestStreak == 0) {
+        await prefs.setInt(bestKey, 0);
       }
       
-      await prefs.setString(lastKey, today);
-      await prefs.setInt(todayCountKey, 1);
-    } else {
-      // Aynı gün - sadece sayıyı artır
-      await prefs.setInt(todayCountKey, todayCount + 1);
+      return {
+        'streak': currentStreak,
+        'best': bestStreak,
+        'isNewBest': false,
+        'todayCount': 1,
+      };
     }
     
-    final currentStreak = prefs.getInt(key) ?? 0;
-    final bestStreak = prefs.getInt(bestKey) ?? 0;
-    final isNewBest = currentStreak == bestStreak && currentStreak > 1;
+    // Aynı period - sadece count artır
+    if (lastCompleted == currentPeriod) {
+      todayCount++;
+      await prefs.setInt(todayCountKey, todayCount);
+      
+      return {
+        'streak': currentStreak,
+        'best': bestStreak,
+        'isNewBest': false,
+        'todayCount': todayCount,
+      };
+    }
+    
+    // Yeni period - streak kontrolü
+    final isConsecutive = _isConsecutivePeriod(type, lastCompleted, currentPeriod);
+    
+    if (isConsecutive) {
+      // Ardışık - streak artır
+      currentStreak++;
+      await prefs.setInt(streakKey, currentStreak);
+      
+      // Best kontrolü
+      if (currentStreak > bestStreak) {
+        bestStreak = currentStreak;
+        await prefs.setInt(bestKey, bestStreak);
+        isNewBest = true;
+      }
+    } else {
+      // Ardışık değil - streak sıfırla
+      currentStreak = 0;
+      await prefs.setInt(streakKey, currentStreak);
+    }
+    
+    // Period ve count güncelle
+    await prefs.setString(lastKey, currentPeriod);
+    await prefs.setInt(todayCountKey, 1);
     
     return {
       'streak': currentStreak,
       'best': bestStreak,
       'isNewBest': isNewBest,
-      'todayCount': prefs.getInt(todayCountKey) ?? 0,
+      'todayCount': 1,
     };
   }
-
-  bool _isConsecutivePeriod(String type, DateTime last, DateTime now) {
+  
+  String _getPeriodString(String type, DateTime date) {
     switch (type) {
       case 'daily':
-        return now.difference(last).inDays == 1;
+        return '${date.year}_${date.month}_${date.day}';
       case 'weekly':
-        return now.difference(last).inDays >= 7 && now.difference(last).inDays <= 14;
+        final weekStart = date.subtract(Duration(days: date.weekday - 1));
+        return 'W_${weekStart.year}_${weekStart.month}_${weekStart.day}';
       case 'monthly':
-        return (now.month == last.month + 1 && now.year == last.year) ||
-               (now.month == 1 && last.month == 12 && now.year == last.year + 1);
+        return 'M_${date.year}_${date.month}';
       default:
-        return false;
+        return '';
+    }
+  }
+
+  bool _isConsecutivePeriod(String type, String lastPeriod, String currentPeriod) {
+    try {
+      switch (type) {
+        case 'daily':
+          final lastParts = lastPeriod.split('_');
+          final currentParts = currentPeriod.split('_');
+          final last = DateTime(int.parse(lastParts[0]), int.parse(lastParts[1]), int.parse(lastParts[2]));
+          final current = DateTime(int.parse(currentParts[0]), int.parse(currentParts[1]), int.parse(currentParts[2]));
+          return current.difference(last).inDays == 1;
+          
+        case 'weekly':
+          final lastParts = lastPeriod.split('_');
+          final currentParts = currentPeriod.split('_');
+          final last = DateTime(int.parse(lastParts[1]), int.parse(lastParts[2]), int.parse(lastParts[3]));
+          final current = DateTime(int.parse(currentParts[1]), int.parse(currentParts[2]), int.parse(currentParts[3]));
+          final diff = current.difference(last).inDays;
+          return diff >= 7 && diff <= 13;
+          
+        case 'monthly':
+          final lastParts = lastPeriod.split('_');
+          final currentParts = currentPeriod.split('_');
+          final lastYear = int.parse(lastParts[1]);
+          final lastMonth = int.parse(lastParts[2]);
+          final currentYear = int.parse(currentParts[1]);
+          final currentMonth = int.parse(currentParts[2]);
+          
+          if (currentYear == lastYear) {
+            return currentMonth == lastMonth + 1;
+          } else if (currentYear == lastYear + 1) {
+            return lastMonth == 12 && currentMonth == 1;
+          }
+          return false;
+          
+        default:
+          return false;
+      }
+    } catch (e) {
+      return false;
     }
   }
 
   Future<Map<String, int>> getGoalStreaks() async {
     final prefs = await SharedPreferences.getInstance();
     return {
-      'daily': prefs.getInt('goal_streak_daily') ?? 0,
-      'weekly': prefs.getInt('goal_streak_weekly') ?? 0,
-      'monthly': prefs.getInt('goal_streak_monthly') ?? 0,
-      'daily_best': prefs.getInt('goal_best_daily') ?? 0,
-      'weekly_best': prefs.getInt('goal_best_weekly') ?? 0,
-      'monthly_best': prefs.getInt('goal_best_monthly') ?? 0,
+      'daily': prefs.getInt('trophy_streak_daily') ?? 0,
+      'weekly': prefs.getInt('trophy_streak_weekly') ?? 0,
+      'monthly': prefs.getInt('trophy_streak_monthly') ?? 0,
+      'daily_best': prefs.getInt('trophy_best_daily') ?? 0,
+      'weekly_best': prefs.getInt('trophy_best_weekly') ?? 0,
+      'monthly_best': prefs.getInt('trophy_best_monthly') ?? 0,
     };
   }
 

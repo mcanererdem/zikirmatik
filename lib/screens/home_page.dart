@@ -243,34 +243,84 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   void _showGoalCompletedNotification(Goal goal, Map<String, dynamic>? streakInfo, String? goalType) {
-    String message = '🏆 ${_localizations.goalCompleted} ${goal.targetCount}';
+    if (!mounted) return;
     
-    if (streakInfo != null && streakInfo['streak'] > 1) {
-      final streak = streakInfo['streak'];
-      final typeLabel = goalType == 'daily' ? _localizations.dailyGoal :
-                       goalType == 'weekly' ? _localizations.weeklyGoal :
-                       _localizations.monthlyGoal;
-      message += '\n🔥 $streak ${typeLabel} ${_localizations.translate('streak_continues') ?? 'streak!'}';
-      
-      if (streakInfo['isNewBest'] == true) {
-        message += '\n⭐ ${_localizations.translate('new_record') ?? 'New record!'}';
-      }
-    }
+    final typeLabel = goalType == 'daily' ? _localizations.dailyGoal :
+                     goalType == 'weekly' ? _localizations.weeklyGoal :
+                     _localizations.monthlyGoal;
     
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('🏆', style: TextStyle(fontSize: 24)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _localizations.goalCompleted,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          '$typeLabel: ${goal.targetCount}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (streakInfo != null && streakInfo['streak'] > 0) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🔥', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${streakInfo['streak']} ${_localizations.translate('streak_continues') ?? 'streak'}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (streakInfo['isNewBest'] == true) ...[
+                        const SizedBox(width: 8),
+                        const Text('⭐', style: TextStyle(fontSize: 18)),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ),
-          backgroundColor: Colors.green.shade700,
-          duration: const Duration(seconds: 5),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
         ),
-      );
-    }
+        backgroundColor: Colors.green.shade700,
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
   }
 
   void _showSuccessAnimation() {
@@ -297,7 +347,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           },
           themeConfig: _currentTheme,
           localizations: _localizations,
-          streakInfo: _lastStreakInfo,
         ),
       );
     }
