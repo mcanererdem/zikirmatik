@@ -6,13 +6,13 @@ class CounterLogic {
   final SettingsService _settingsService = SettingsService();
   
   Future<void> incrementCounter(int currentCount, String? selectedZikrId) async {
-    final newCount = currentCount + 1;
-    await _settingsService.saveCurrentCount(newCount);
+    await _settingsService.saveCurrentCount(currentCount);
     await _settingsService.updateStreak();
-    await WidgetService.updateWidget(newCount);
+    await WidgetService.updateWidget(currentCount);
 
     final today = DateTime.now();
-    await _settingsService.saveDailyCount(today, newCount);
+    final todayCount = await _settingsService.getDailyCount(today);
+    await _settingsService.saveDailyCount(today, todayCount + 1);
     await _settingsService.incrementTotalCount(1);
     
     if (selectedZikrId != null) {

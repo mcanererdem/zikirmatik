@@ -1,18 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:home_widget/home_widget.dart';
 import 'screens/home_page.dart';
-import 'services/location_service.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
 import 'services/widget_service.dart';
 
+@pragma('vm:entry-point')
+void backgroundCallback(Uri? uri) async {
+  final settingsService = SettingsService();
+  int counter = await settingsService.getCurrentCount();
+
+  // Handle different widget button actions by host/path
+  if (uri?.host == 'increment' || uri?.path == '/increment') {
+    counter++;
+    await settingsService.saveCurrentCount(counter);
+    await WidgetService.updateWidget(counter);
+    return;
+  }
+
+  if (uri?.host == 'decrement' || uri?.path == '/decrement') {
+    if (counter > 0) counter--;
+    await settingsService.saveCurrentCount(counter);
+    await WidgetService.updateWidget(counter);
+    return;
+  }
+
+  if (uri?.host == 'reset' || uri?.path == '/reset') {
+    counter = 0;
+    await settingsService.saveCurrentCount(counter);
+    await WidgetService.updateWidget(counter);
+    return;
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  HomeWidget.registerInteractivityCallback(backgroundCallback);
 
   // Bildirim servisi başlat
   await NotificationService.initialize();
-  await WidgetService.initialize();
 
   // Status bar ayarları
   SystemChrome.setSystemUIOverlayStyle(
@@ -26,9 +54,13 @@ void main() async {
   final settingsService = SettingsService();
   final savedLanguage = await settingsService.getLanguage();
   
-  // Eğer dil hiç ayarlanmamışsa (ilk açılış), İngilizce olarak ayarla
+  // Eğer dil hiç ayarlanmamışsa (ilk açılış), cihaz diline göre ayarla
   if (savedLanguage.isEmpty) {
-    await settingsService.saveLanguage('en');
+    final deviceLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode.toLowerCase();
+    const supported = {
+      'tr','en','ar','id','ur','bn','ms','fa','fr','zh','ja','ru','de','sw','ha'
+    };
+    await settingsService.saveLanguage(supported.contains(deviceLang) ? deviceLang : 'en');
   }
 
   // Run the app immediately to avoid delaying the first frame.
@@ -57,6 +89,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _loadThemeMode();
+    _syncWidgetCounter();
   }
 
   Future<void> _loadThemeMode() async {
@@ -67,11 +100,18 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  // Sync app counter with widget counter on app start to reflect widget interactions
+  Future<void> _syncWidgetCounter() async {
+    try {
+      await WidgetService.syncWidgetCounter();
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Zikirmatik',
+      title: 'Tasbih Counter',
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.blue,

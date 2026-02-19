@@ -61,7 +61,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
               }
             },
             onAdDismissed: () {
-              // Dialog kapatıldığında hiçbir şey yapma
+              // Do nothing when the dialog is closed
             },
           );
         }
@@ -69,11 +69,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
       onAdFailedToLoad: (error) {
         if (mounted) {
           setState(() => _isLoadingAd = false);
-          Navigator.pop(context); // Ayarlar sayfasını kapat
+          Navigator.pop(context); // Close the settings page
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                _localizations.translate('ad_not_ready') ?? 'Ad not ready',
+                _localizations.translate('ad_not_ready') ?? 'Ad is not ready yet.',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               backgroundColor: Colors.orange.shade700,
@@ -137,7 +137,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    _localizations.translate('thank_you_support') ?? 'Thank you! 🙏',
+                    _localizations.translate('thank_you_support') ?? 'Thank you for your support! 🙏',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -147,7 +147,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _localizations.translate('support_description') ?? 'Your support means a lot!',
+                    _localizations.translate('support_description') ?? 'Your support keeps this app free.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white.withOpacity(0.8),
@@ -166,14 +166,14 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       child: InkWell(
                         onTap: () {
                           setState(() => _showConfetti = false);
-                          Navigator.pop(context); // Teşekkür dialogunu kapat
-                          Navigator.pop(context); // Ayarlar sayfasını kapat
+                          Navigator.pop(context); // Close the thank you dialog
+                          Navigator.pop(context); // Close the settings page
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           child: Text(
-                            _localizations.ok,
+                            _localizations.translate('ok') ?? 'OK',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
@@ -600,8 +600,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     const SizedBox(height: 6),
                     Text(
                       _selectedLanguage == 'tr'
-                          ? 'Bildirimler için: Ayarlar → Uygulamalar → BILDIRICIM → Pil → Uygulama başlatma → Manuel yönet → tüm seçenekleri açın'
-                          : 'For notifications: Settings → Apps → BILDIRICIM → Battery → App launch → Manage manually → enable all options',
+                          ? 'Bildirimler için: Ayarlar → Uygulamalar → Zikirmatik → Pil → Uygulama başlatma → Manuel yönet → tüm seçenekleri açın'
+                          : 'For notifications: Settings → Apps → Zikirmatik → Battery → App launch → Manage manually → enable all options',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.white.withOpacity(0.8),

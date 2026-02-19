@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:flutter/services.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -8,7 +9,19 @@ class NotificationService {
 
   static Future<void> initialize() async {
     tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Europe/Istanbul'));
+    String timezoneId = 'UTC';
+    try {
+      const channel = MethodChannel('com.example.zikirmatik/timezone');
+      final String? id = await channel.invokeMethod<String>('getLocalTimezoneId');
+      if (id != null && id.isNotEmpty) {
+        timezoneId = id;
+      }
+    } catch (_) {}
+    try {
+      tz.setLocalLocation(tz.getLocation(timezoneId));
+    } catch (_) {
+      tz.setLocalLocation(tz.getLocation('UTC'));
+    }
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -26,18 +39,21 @@ class NotificationService {
     
     final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     
-    final granted = await androidImpl?.requestNotificationsPermission();
-    print('[BILDIRICIM] Notification permission: $granted');
-    
-    final exactAlarmGranted = await androidImpl?.requestExactAlarmsPermission();
-    print('[BILDIRICIM] Exact alarm permission: $exactAlarmGranted');
-    
-    final canSchedule = await androidImpl?.canScheduleExactNotifications();
-    print('[BILDIRICIM] Can schedule exact: $canSchedule');
+    // Uygulama başlarken izinleri iste
+    await androidImpl?.requestNotificationsPermission();
+    await androidImpl?.requestExactAlarmsPermission();
   }
 
-  static Future<void> scheduleReminder(int hour, int minute) async {
+  static Future<bool> hasExactAlarmsPermission() async {
+    final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    return await androidImpl?.canScheduleExactNotifications() ?? false;
+  }
+
+  static Future<bool> scheduleReminder(int hour, int minute) async {
     try {
+      final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final canSchedule = await androidImpl?.canScheduleExactNotifications() ?? false;
+
       await cancelAll();
       
       final now = tz.TZDateTime.now(tz.local);
@@ -48,36 +64,52 @@ class NotificationService {
       }
       
       print('[BILDIRICIM] Scheduling for: $scheduledTime');
-      print('[BILDIRICIM] Current: $now');
-      print('[BILDIRICIM] Minutes from now: ${scheduledTime.difference(now).inMinutes}');
-      
-      await _notifications.zonedSchedule(
-        0,
-        'Zikir Reminder ⏰',
-        'Time for your daily dhikr! 📿',
-        scheduledTime,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'zikir_reminder',
-            'Zikir Reminders',
-            channelDescription: 'Daily zikir reminders',
-            importance: Importance.max,
-            priority: Priority.high,
-            enableVibration: true,
-            playSound: true,
-            fullScreenIntent: true,
-            category: AndroidNotificationCategory.alarm,
-            visibility: NotificationVisibility.public,
-          ),
+      final details = const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'zikir_reminder',
+          'Zikir Reminders',
+          channelDescription: 'Daily zikir reminders',
+          importance: Importance.max,
+          priority: Priority.high,
+          enableVibration: true,
+          playSound: true,
+          visibility: NotificationVisibility.public,
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       );
       
-      final pending = await _notifications.pendingNotificationRequests();
-      print('[BILDIRICIM] Scheduled! Pending: ${pending.length}');
+      if (canSchedule) {
+        await _notifications.zonedSchedule(
+          0,
+          'Zikir Reminder ⏰',
+          'Time for your daily dhikr! 📿',
+          scheduledTime,
+          details,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      } else {
+        print('[BILDIRICIM] Exact alarm permission not granted. Scheduling inexact daily reminder.');
+        await _notifications.zonedSchedule(
+          0,
+          'Zikir Reminder ⏰',
+          'Time for your daily dhikr! 📿',
+          scheduledTime,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexact,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      }
+      
+      print('[BILDIRICIM] Scheduled successfully!');
+      return true;
     } catch (e) {
       print('[BILDIRICIM] Error: $e');
-      rethrow;
+      return false;
     }
   }
 
@@ -94,7 +126,7 @@ class NotificationService {
     await _notifications.show(
       1,
       'Test Notification ✅',
-      'Notifications are working! Your reminder is scheduled.',
+      'Notifications are working! If permissions are granted, your reminder will appear at the scheduled time.',
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'zikir_reminder',

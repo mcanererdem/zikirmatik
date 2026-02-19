@@ -15,6 +15,7 @@ class SettingsService {
   static const String _confettiKey = 'confetti_enabled';
   static const String _reminderHourKey = 'reminder_hour';
   static const String _reminderMinuteKey = 'reminder_minute';
+  static const String _reminderEnabledKey = 'reminder_enabled';
   static const String _currentCountKey = 'current_count';
   static const String _themeModeKey = 'theme_mode';
   static const String _lastActivityDateKey = 'last_activity_date';
@@ -30,7 +31,7 @@ class SettingsService {
 
   Future<String> getTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_themeKey) ?? 'blue_gold';
+    return prefs.getString(_themeKey) ?? 'dark_blue';
   }
 
   // Language
@@ -130,6 +131,7 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_reminderHourKey, hour);
     await prefs.setInt(_reminderMinuteKey, minute);
+    await prefs.setBool(_reminderEnabledKey, true);
   }
 
   Future<Map<String, int>> getReminderTime() async {
@@ -138,6 +140,23 @@ class SettingsService {
       'hour': prefs.getInt(_reminderHourKey) ?? 9,
       'minute': prefs.getInt(_reminderMinuteKey) ?? 0,
     };
+  }
+
+  Future<void> saveReminderEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_reminderEnabledKey, enabled);
+  }
+
+  Future<bool> getReminderEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_reminderEnabledKey) ?? false;
+  }
+
+  Future<void> clearReminder() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_reminderHourKey);
+    await prefs.remove(_reminderMinuteKey);
+    await prefs.setBool(_reminderEnabledKey, false);
   }
 
   // Current Counter

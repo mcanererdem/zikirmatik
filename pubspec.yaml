@@ -1,5 +1,5 @@
 name: zikirmatik_app
-description: Modern ve kullanıcı dostu bir zikirmatik uygulaması
+description: A modern and user-friendly zikirmatik application.
 author: Caner Erdem
 publish_to: 'none'
 version: 1.0.0+1
@@ -37,11 +37,11 @@ flutter:
   
   assets:
     - assets/sounds/click.mp3
-    - assets/icons/app_icon.png
+    - assets/icons/white_misbah.png
 
 flutter_launcher_icons:
   android: true
-  ios: false
-  image_path: "assets/icons/app_icon.png"
-  adaptive_icon_background: "#2C5F2D"
-  adaptive_icon_foreground: "assets/icons/app_icon.png"
+  ios: true
+  image_path: "assets/icons/white_misbah.png"
+  adaptive_icon_background: "#1A1F3A "
+  adaptive_icon_foreground: "assets/icons/white_misbah.png"

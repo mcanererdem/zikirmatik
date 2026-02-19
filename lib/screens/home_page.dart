@@ -9,6 +9,7 @@ import '../services/counter_logic.dart';
 import '../services/audio_manager.dart';
 import '../services/feedback_manager.dart';
 import '../services/widget_service.dart';
+import '../services/notification_service.dart';
 import '../utils/localizations.dart';
 import '../widgets/confetti_animation.dart';
 import '../widgets/success_dialog.dart';
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   bool _isVibrationOn = true;
   bool _isSoundOn = true;
   bool _isConfettiOn = true;
+  bool _isReminderEnabled = false;
   bool _showConfetti = false;
 
   late AnimationController _buttonAnimationController;
@@ -68,7 +70,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     _localizations = AppLocalizations('en');
     _loadSettings();
     _audioManager.initialize();
-    _syncWidgetCounter();
     MobileAds.instance.initialize().then((_) {
       _loadBannerAd();
     });
@@ -98,19 +99,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     );
   }
 
-  Future<void> _syncWidgetCounter() async {
-    final widgetCounter = await WidgetService.getWidgetCounter();
-    final appCounter = await _settingsService.getCurrentCount();
-    
-    print('Initial sync - Widget: $widgetCounter, App: $appCounter');
-    
-    if (widgetCounter != appCounter) {
-      setState(() => _counter = widgetCounter);
-      await _settingsService.saveCurrentCount(widgetCounter);
-      print('Synced to: $widgetCounter');
-    }
-  }
-
   Future<void> _loadBannerAd() async {
     await _adService.loadBannerAd(
       onAdLoaded: (ad) {
@@ -128,6 +116,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   Future<void> _loadSettings() async {
+    await WidgetService.syncWidgetCounter();
     final themeId = await _settingsService.getTheme();
     final languageCode = await _settingsService.getLanguage();
     final vibration = await _settingsService.getVibration();
@@ -137,6 +126,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final selectedZikrId = await _settingsService.getSelectedZikr();
     final savedCount = await _settingsService.getCurrentCount();
     final goals = await _settingsService.getGoals();
+    final reminderEnabled = await _settingsService.getReminderEnabled();
     await _settingsService.cleanExpiredGoals();
 
     setState(() {
@@ -146,6 +136,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       _isVibrationOn = vibration;
       _isSoundOn = sound;
       _isConfettiOn = confetti;
+      _isReminderEnabled = reminderEnabled;
       _customZikrs = customZikrs;
       _counter = savedCount;
       _goals = goals;
@@ -179,29 +170,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      final widgetCounter = await WidgetService.getWidgetCounter();
-      
-      print('=== WIDGET SYNC ===');
-      print('Widget counter: $widgetCounter');
-      print('App counter before sync: $_counter');
-      
-      if (widgetCounter != _counter) {
-        print('Syncing: updating app counter from $_counter to $widgetCounter');
-        setState(() => _counter = widgetCounter);
-        await _settingsService.saveCurrentCount(widgetCounter);
-        print('Sync complete: $_counter');
-      } else {
-        print('No sync needed, counters match');
+      await WidgetService.syncWidgetCounter();
+      final savedCount = await _settingsService.getCurrentCount();
+      if (savedCount != _counter) {
+        setState(() {
+          _counter = savedCount;
+        });
       }
     }
   }
 
   void _incrementCounter() async {
     setState(() => _counter++);
-
     await _counterLogic.incrementCounter(_counter, _selectedZikr?.id);
-    await WidgetService.updateWidget(_counter);
     final result = await _counterLogic.updateGoalProgress(_goals, _selectedZikr?.id);
     
     final updatedGoals = result['goals'] as List<Goal>;
@@ -372,7 +353,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       _showConfetti = false;
     });
     _counterLogic.resetCounter();
-    WidgetService.updateWidget(0);
     if (_isVibrationOn) _feedbackManager.vibrateMedium();
   }
 
@@ -974,7 +954,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           const SizedBox(width: 6),
           _buildControlButton(
             icon: Icons.notifications_rounded,
-            isActive: true,
+            isActive: _isReminderEnabled,
             onTap: () {
               showDialog(
                 context: context,

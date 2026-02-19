@@ -41,6 +41,8 @@ class AboutScreen extends StatelessWidget {
                       _buildContactSection(),
                       const SizedBox(height: 24),
                       _buildFeaturesSection(),
+                      const SizedBox(height: 24),
+                      _buildHelpSection(),
                     ],
                   ),
                 ),
@@ -255,6 +257,95 @@ class AboutScreen extends StatelessWidget {
                       fontSize: 14,
                       color: Colors.white,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHelpSection() {
+    final helpItems = [
+      {
+        'icon': Icons.local_fire_department_rounded,
+        'title': localizations.translate('help_streak_title') ?? 'Seri (Streak) Nedir?',
+        'text': localizations.translate('help_streak_text') ?? 'Hedeflerinizi düzenli olarak tamamladığınızda bir "seri" kazanırsınız. Serinizi ne kadar uzun süre devam ettirirseniz, motivasyonunuz o kadar artar. Her gün en az bir hedefi tamamlayarak seriyi canlı tutun!'
+      },
+      {
+        'icon': Icons.flag_rounded,
+        'title': localizations.translate('help_goal_title') ?? 'Hedef (Goal) Nasıl Çalışır?',
+        'text': localizations.translate('help_goal_text') ?? 'Günlük, haftalık veya aylık hedefler belirleyebilirsiniz. Örneğin, "günde 1000 zikir" gibi. Hedeflerinize ulaştığınızda özel bildirimler ve animasyonlarla ödüllendirilirsiniz. Hedefler, zikirlerinizi daha planlı bir şekilde çekmenize yardımcı olur.'
+      },
+      {
+        'icon': Icons.add_circle_outline_rounded,
+        'title': localizations.translate('help_addzikr_title') ?? 'Nasıl Zikir Eklenir?',
+        'text': localizations.translate('help_addzikr_text') ?? 'Ana ekrandaki zikir adına dokunarak zikir seçme ekranını açabilirsiniz. Bu ekranda, mevcut zikirler arasından seçim yapabilir veya "Yeni Zikir Ekle" butonuyla kendi özel zikirlerinizi oluşturabilirsiniz.'
+      },
+      {
+        'icon': Icons.toggle_on_rounded,
+        'title': localizations.translate('help_toggles_title') ?? 'Açma/Kapama Butonları',
+        'text': localizations.translate('help_toggles_text') ?? 'Ana ekranın altındaki kontrol butonları ile Titreşim, Ses ve Konfeti animasyonu gibi özellikleri anında açıp kapatabilirsiniz. Deneyiminizi kişiselleştirmek için bu ayarları kullanın.'
+      },
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: themeConfig.accentColor.withOpacity(0.3),
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            localizations.translate('help_title') ?? 'Uygulama Özellikleri',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: themeConfig.accentColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...helpItems.map((item) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      item['icon'] as IconData,
+                      color: themeConfig.accentColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        item['title'] as String,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item['text'] as String,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.8),
+                    height: 1.5,
                   ),
                 ),
               ],
