@@ -43,6 +43,8 @@ class AboutScreen extends StatelessWidget {
                       _buildFeaturesSection(),
                       const SizedBox(height: 24),
                       _buildHelpSection(),
+                      const SizedBox(height: 24),
+                      _buildLegalSection(),
                     ],
                   ),
                 ),
@@ -351,6 +353,92 @@ class AboutScreen extends StatelessWidget {
               ],
             ),
           )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: themeConfig.accentColor.withOpacity(0.3),
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.policy_rounded, color: themeConfig.accentColor, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                'Legal',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: themeConfig.accentColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/dev/PRIVACY_POLICY.md'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.privacy_tip_rounded, color: Colors.white70, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Privacy Policy',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/dev/LICENSE'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.description_rounded, color: Colors.white70, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'License',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '© ${DateTime.now().year} Tasbih Counter. All rights reserved.',
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
