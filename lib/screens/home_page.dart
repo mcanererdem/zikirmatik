@@ -62,6 +62,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   late AppLocalizations _localizations;
   List<Goal> _goals = [];
   Map<String, dynamic>? _lastStreakInfo;
+  bool _isTtsOn = false;
+  final TtsService _ttsService = TtsService();
 
   @override
   void initState() {
@@ -69,6 +71,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     WidgetsBinding.instance.addObserver(this);
     _localizations = AppLocalizations('en');
     _loadSettings();
+    _initializeTts();
     _audioManager.initialize();
     MobileAds.instance.initialize().then((_) {
       _loadBannerAd();
@@ -122,6 +125,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final vibration = await _settingsService.getVibration();
     final sound = await _settingsService.getSound();
     final confetti = await _settingsService.getConfetti();
+    final ttsEnabled = await _settingsService.getTtsEnabled();
     final customZikrs = await _settingsService.getCustomZikrs();
     final selectedZikrId = await _settingsService.getSelectedZikr();
     final savedCount = await _settingsService.getCurrentCount();
@@ -136,6 +140,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       _isVibrationOn = vibration;
       _isSoundOn = sound;
       _isConfettiOn = confetti;
+      _isTtsOn = ttsEnabled;
       _isReminderEnabled = reminderEnabled;
       _customZikrs = customZikrs;
       _counter = savedCount;
@@ -155,6 +160,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       
       _target = _selectedZikr!.defaultCount;
     });
+  }
+
+  Future<void> _initializeTts() async {
+    final languageCode = await _settingsService.getLanguage();
+    await _ttsService.initialize(languageCode);
+    final rate = await _settingsService.getTtsRate();
+    final pitch = await _settingsService.getTtsPitch();
+    final voice = await _settingsService.getTtsVoice();
+    await _ttsService.setRate(rate);
+    await _ttsService.setPitch(pitch);
+    if (voice != null && voice.isNotEmpty) {
+      await _ttsService.setVoiceByName(voice);
+    }
   }
 
   @override
@@ -183,6 +201,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   void _incrementCounter() async {
     setState(() => _counter++);
     await _counterLogic.incrementCounter(_counter, _selectedZikr?.id);
+    if (_isTtsOn) {
+      await _ttsService.speakZikr(_selectedZikr);
+    }
     final result = await _counterLogic.updateGoalProgress(_goals, _selectedZikr?.id);
     
     final updatedGoals = result['goals'] as List<Goal>;
@@ -537,6 +558,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   void _toggleConfetti() {
     setState(() => _isConfettiOn = !_isConfettiOn);
     _settingsService.saveConfetti(_isConfettiOn);
+  }
+
+  void _toggleTts() async {
+    final next = !_isTtsOn;
+    setState(() => _isTtsOn = next);
+    await _ttsService.setEnabled(next);
+    final languageCode = await _settingsService.getLanguage();
+    await _ttsService.setLanguage(languageCode);
   }
 
   String _getZikrName(ZikrModel zikr) {

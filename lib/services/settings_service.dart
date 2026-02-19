@@ -13,6 +13,10 @@ class SettingsService {
   static const String _dailyCountKey = 'daily_count_';
   static const String _totalCountKey = 'total_count';
   static const String _confettiKey = 'confetti_enabled';
+  static const String _ttsEnabledKey = 'tts_enabled';
+  static const String _ttsRateKey = 'tts_rate';
+  static const String _ttsPitchKey = 'tts_pitch';
+  static const String _ttsVoiceKey = 'tts_voice';
   static const String _reminderHourKey = 'reminder_hour';
   static const String _reminderMinuteKey = 'reminder_minute';
   static const String _reminderEnabledKey = 'reminder_enabled';
@@ -124,6 +128,46 @@ class SettingsService {
   Future<bool> getConfetti() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_confettiKey) ?? false;
+  }
+
+  Future<void> saveTtsEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_ttsEnabledKey, enabled);
+  }
+
+  Future<bool> getTtsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_ttsEnabledKey) ?? false;
+  }
+
+  Future<void> saveTtsRate(double rate) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_ttsRateKey, rate);
+  }
+
+  Future<double> getTtsRate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_ttsRateKey) ?? 0.4;
+  }
+
+  Future<void> saveTtsPitch(double pitch) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_ttsPitchKey, pitch);
+  }
+
+  Future<double> getTtsPitch() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_ttsPitchKey) ?? 1.0;
+  }
+
+  Future<void> saveTtsVoice(String voiceName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_ttsVoiceKey, voiceName);
+  }
+
+  Future<String?> getTtsVoice() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_ttsVoiceKey);
   }
 
   // Reminder Time

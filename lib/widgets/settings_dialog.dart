@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../services/tts_service.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
 import '../services/export_service.dart';
@@ -38,6 +39,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
   final AdService _adService = AdService();
   bool _isLoadingAd = false;
   bool _showConfetti = false;
+  bool _ttsEnabled = false;
+  double _ttsRate = 0.4;
+  double _ttsPitch = 1.0;
+  String _ttsVoiceName = '';
+  final TtsService _ttsService = TtsService();
 
   @override
   void initState() {
@@ -46,6 +52,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     _selectedLanguage = widget.currentLanguage.isEmpty ? 'en' : widget.currentLanguage;
     _localizations = widget.localizations;
     _loadThemeMode();
+    _loadTts();
   }
 
   void _showRewardedAd() {
@@ -146,6 +153,81 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _ttsEnabled ? (_localizations.translate('ttsOn') ?? 'Text-to-Speech On')
+                              : (_localizations.translate('ttsOff') ?? 'Text-to-Speech Off'),
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                Switch(
+                  value: _ttsEnabled,
+                  onChanged: _toggleTts,
+                  activeColor: _selectedTheme.accentColor,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'TTS Rate',
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                SizedBox(
+                  width: 180,
+                  child: Slider(
+                    value: _ttsRate,
+                    min: 0.2,
+                    max: 1.0,
+                    divisions: 8,
+                    onChanged: (v) => _changeTtsRate(v),
+                    activeColor: _selectedTheme.accentColor,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'TTS Pitch',
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                SizedBox(
+                  width: 180,
+                  child: Slider(
+                    value: _ttsPitch,
+                    min: 0.8,
+                    max: 1.4,
+                    divisions: 6,
+                    onChanged: (v) => _changeTtsPitch(v),
+                    activeColor: _selectedTheme.accentColor,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _ttsVoiceName.isEmpty ? 'Default TTS Voice' : _ttsVoiceName,
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _selectTtsVoice,
+                  child: Text(
+                    'Change Voice',
+                    style: TextStyle(color: _selectedTheme.accentColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
                   Text(
                     _localizations.translate('support_description') ?? 'Your support keeps this app free.',
                     style: TextStyle(
@@ -258,6 +340,97 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ctx,
                 lang['code']!,
                 lang['name']!,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadTts() async {
+    final settings = SettingsService();
+    final enabled = await settings.getTtsEnabled();
+    final rate = await settings.getTtsRate();
+    final pitch = await settings.getTtsPitch();
+    final voice = await settings.getTtsVoice() ?? '';
+    await _ttsService.initialize(_selectedLanguage);
+    if (mounted) {
+      setState(() {
+        _ttsEnabled = enabled;
+        _ttsRate = rate;
+        _ttsPitch = pitch;
+        _ttsVoiceName = voice;
+      });
+    }
+  }
+
+  Future<void> _toggleTts(bool value) async {
+    final settings = SettingsService();
+    await settings.saveTtsEnabled(value);
+    await _ttsService.setEnabled(value);
+    if (mounted) {
+      setState(() => _ttsEnabled = value);
+    }
+  }
+
+  Future<void> _changeTtsRate(double value) async {
+    final settings = SettingsService();
+    await settings.saveTtsRate(value);
+    await _ttsService.setRate(value);
+    if (mounted) setState(() => _ttsRate = value);
+  }
+
+  Future<void> _changeTtsPitch(double value) async {
+    final settings = SettingsService();
+    await settings.saveTtsPitch(value);
+    await _ttsService.setPitch(value);
+    if (mounted) setState(() => _ttsPitch = value);
+  }
+
+  Future<void> _selectTtsVoice() async {
+    final voices = await _ttsService.getVoices();
+    final filtered = voices.where((v) {
+      final locale = v['locale']?.toString() ?? '';
+      return locale.startsWith(_selectedLanguage);
+    }).toList();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _selectedTheme.primaryColor,
+        title: Text(
+          'TTS Voice',
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: filtered.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, i) {
+              final v = filtered[i];
+              final name = v['name']?.toString() ?? '';
+              return GestureDetector(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await _ttsService.setVoiceByName(name);
+                  final settings = SettingsService();
+                  await settings.saveTtsVoice(name);
+                  if (mounted) setState(() => _ttsVoiceName = name);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                  ),
+                  child: Text(
+                    name,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                ),
               );
             },
           ),
