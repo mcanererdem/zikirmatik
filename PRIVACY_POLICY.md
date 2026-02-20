@@ -1,10 +1,10 @@
-# Zikirmatik - Privacy Policy
+# Tasbih Counter - Privacy Policy
 
 **Last Updated:** February 13, 2026
 
 ## Overview
 
-Zikirmatik ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information when you use our mobile application.
+Tasbih Counter ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your personal information when you use our mobile application.
 
 ## Information We Collect
 
@@ -15,7 +15,7 @@ Zikirmatik ("we", "our", or "us") is committed to protecting your privacy. This 
 - **No cloud sync:** All data remains on your device; we do not transmit it to our servers
 
 ### 2. **AdMob (Google Mobile Ads)**
-When you use Zikirmatik, Google may collect:
+When you use Tasbih Counter, Google may collect:
 - **Non-personal identifiers:** Advertising ID, device information
 - **Usage data:** App interactions for serving targeted ads
 - **Location:** Approximate location (if enabled on your device)
@@ -52,17 +52,17 @@ You have the right to:
 
 ## Children's Privacy
 
-Zikirmatik is intended for all ages. We do not knowingly collect personal information from children under 13. If we become aware of such information, we will delete it immediately.
+Tasbih Counter is intended for all ages. We do not knowingly collect personal information from children under 13. If we become aware of such information, we will delete it immediately.
 
 ## Changes to This Policy
 
-We may update this Privacy Policy periodically. Changes will be posted here with an updated date. Your continued use of Zikirmatik implies acceptance of the updated policy.
+We may update this Privacy Policy periodically. Changes will be posted here with an updated date. Your continued use of Tasbih Counter implies acceptance of the updated policy.
 
 ## Contact Us
 
 For privacy concerns or questions, please contact:
 
-**Email:** mcanererdem@example.com  
+**Email:** mcanererdem@gmail.com  
 **GitHub:** https://github.com/mcanererdem/zikirmatik
 
 ---

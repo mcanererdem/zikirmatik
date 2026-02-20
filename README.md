@@ -1,4 +1,4 @@
-# Zikirmatik 📿
+# Tasbih Counter 📿
 
 A simple, user-friendly, and accessible digital tasbih (dhikr counter) app.
 

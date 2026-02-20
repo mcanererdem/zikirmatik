@@ -389,7 +389,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           GestureDetector(
-            onTap: () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/dev/PRIVACY_POLICY.md'),
+            onTap: () => _launchUrl('https://mcanererdem.github.io/zikirmatik/privacy_policy.html'),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(

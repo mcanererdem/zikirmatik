@@ -54,7 +54,7 @@ Bu rehber, uygulamanızı Google Play Store'da yayınlamak için gereken tüm ad
    
    - **Full description (4000 characters):**
    ```
-   Zikirmatik is a simple, accessible digital tasbih (dhikr counter) app designed to help Muslims track their daily prayers and personal dhikr.
+   Tasbih Counter is a simple, accessible digital tasbih (dhikr counter) app designed to help Muslims track their daily prayers and personal dhikr.
 
    🔢 MAIN FEATURES
    • Tap counter with haptic feedback
@@ -106,7 +106,7 @@ Bu rehber, uygulamanızı Google Play Store'da yayınlamak için gereken tüm ad
 
 5. **Privacy Policy**
    - **URL:** `https://mcanererdem.github.io/zikirmatik/privacy_policy.html`
-   - (GitHub Pages'de zaten yayında)
+   - (GitHub Pages'de yayında, app adı Tasbih Counter olarak güncel)
 
 ## 🔒 Adım 3: App Content
 

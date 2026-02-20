@@ -4,7 +4,7 @@
 
 ### App Title (30 karakter max)
 ```
-Zikirmatik - Digital Tasbih
+Tasbih Counter - Digital Tasbih
 ```
 
 ### Short Description (80 karakter max)
@@ -170,7 +170,7 @@ Beklenen Rating: **Everyone (3+)**
 ## 🚀 Release Notes (v1.0.0)
 
 ```
-Initial release of Zikirmatik - Digital Tasbih Counter
+Initial release of Tasbih Counter - Digital Tasbih Counter
 
 Features:
 • Simple and elegant counter interface

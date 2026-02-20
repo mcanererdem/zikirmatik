@@ -2,7 +2,7 @@
 
 ## App Information
 
-**App Name:** Zikirmatik - Digital Tasbih  
+**App Name:** Tasbih Counter - Digital Tasbih  
 **Package Name:** com.example.zikirmatik  
 **Category:** Lifestyle  
 **Content Rating:** Everyone  
@@ -17,7 +17,7 @@ Digital tasbih app - Counter, goals, widget, 15 languages
 
 ### Full Description (4000 characters max)
 
-Zikirmatik is a simple, accessible digital tasbih (dhikr counter) app designed to help Muslims track their daily prayers and personal dhikr.
+Tasbih Counter is a simple, accessible digital tasbih (dhikr counter) app designed to help Muslims track their daily prayers and personal dhikr.
 
 🔢 MAIN FEATURES
 • Tap counter with haptic feedback
