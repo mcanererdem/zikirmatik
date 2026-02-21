@@ -88,7 +88,11 @@ class TtsService {
       }
     }
     if (selected != null) {
-      await _tts.setVoice(selected);
+      final voiceMap = <String, String>{
+        'name': selected['name']?.toString() ?? '',
+        'locale': selected['locale']?.toString() ?? locale,
+      };
+      await _tts.setVoice(voiceMap);
     }
   }
 
@@ -98,30 +102,6 @@ class TtsService {
         return zikr.nameAr;
       case 'en':
         return zikr.nameEn;
-      case 'id':
-        return zikr.nameId;
-      case 'ur':
-        return zikr.nameUr;
-      case 'bn':
-        return zikr.nameBn;
-      case 'ms':
-        return zikr.nameMs;
-      case 'fa':
-        return zikr.nameFa;
-      case 'fr':
-        return zikr.nameFr;
-      case 'zh':
-        return zikr.nameZh;
-      case 'ja':
-        return zikr.nameJa;
-      case 'ru':
-        return zikr.nameRu;
-      case 'de':
-        return zikr.nameDe;
-      case 'sw':
-        return zikr.nameSw;
-      case 'ha':
-        return zikr.nameHa;
       default:
         return zikr.nameTr;
     }

@@ -26,6 +26,17 @@ class SuccessDialog extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: themeConfig.backgroundGradient,
+          image: (() {
+            final isLightTheme = themeConfig.textColor.computeLuminance() < 0.5;
+            final asset = isLightTheme ? themeConfig.lightBackgroundAsset : themeConfig.darkBackgroundAsset;
+            return asset != null
+                ? DecorationImage(
+                    image: AssetImage(asset),
+                    fit: BoxFit.cover,
+                    opacity: 0.12,
+                  )
+                : null;
+          })(),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(

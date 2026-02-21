@@ -101,10 +101,10 @@ class _TargetDialogState extends State<TargetDialog> {
                 Flexible(
                   child: Text(
                     widget.localizations.setTarget,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: widget.themeConfig.textColor,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -150,7 +150,7 @@ class _TargetDialogState extends State<TargetDialog> {
             
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: widget.themeConfig.textColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: widget.themeConfig.accentColor.withOpacity(0.3),
@@ -160,8 +160,8 @@ class _TargetDialogState extends State<TargetDialog> {
               child: TextField(
                 controller: _controller,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: widget.themeConfig.textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -170,8 +170,8 @@ class _TargetDialogState extends State<TargetDialog> {
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   hintText: widget.localizations.enterTarget,
-                  hintStyle: const TextStyle(
-                    color: Colors.white54,
+                  hintStyle: TextStyle(
+                    color: widget.themeConfig.textColor.withOpacity(0.6),
                     fontSize: 16,
                   ),
                 ),
@@ -225,19 +225,19 @@ class _TargetDialogState extends State<TargetDialog> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           gradient: isSelected ? widget.themeConfig.goldGradient : null,
-          color: isSelected ? null : Colors.white.withOpacity(0.1),
+          color: isSelected ? null : widget.themeConfig.textColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? widget.themeConfig.accentColor
-                : Colors.white.withOpacity(0.3),
+                : widget.themeConfig.textColor.withOpacity(0.3),
             width: 1.5,
           ),
         ),
         child: Text(
           target.toString(),
           style: TextStyle(
-            color: Colors.white,
+            color: widget.themeConfig.textColor,
             fontSize: 16,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
           ),
@@ -278,7 +278,7 @@ class _TargetDialogState extends State<TargetDialog> {
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: widget.themeConfig.textColor,
                 fontSize: 16,
                 fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
               ),

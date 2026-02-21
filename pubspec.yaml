@@ -25,6 +25,8 @@ dependencies:
   path_provider: ^2.1.4
   share_plus: ^10.1.2
   file_picker: ^8.1.6
+  flutter_tts: ^3.8.3
+  google_fonts: ^6.2.0
 
 dev_dependencies:
   flutter_test:
@@ -38,6 +40,7 @@ flutter:
   assets:
     - assets/sounds/click.mp3
     - assets/icons/white_misbah.png
+    - assets/backgrounds/
 
 flutter_launcher_icons:
   android: true

@@ -8,6 +8,7 @@ import '../services/ad_service.dart';
 import '../services/export_service.dart';
 import '../widgets/confetti_animation.dart';
 import '../screens/about_screen.dart';
+import '../screens/support_screen.dart';
 
 class SettingsDialog extends StatefulWidget {
   final ThemeConfig currentTheme;
@@ -127,9 +128,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   width: 2,
                 ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -153,86 +155,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _ttsEnabled ? (_localizations.translate('ttsOn') ?? 'Text-to-Speech On')
-                              : (_localizations.translate('ttsOff') ?? 'Text-to-Speech Off'),
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                Switch(
-                  value: _ttsEnabled,
-                  onChanged: _toggleTts,
-                  activeColor: _selectedTheme.accentColor,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'TTS Rate',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                SizedBox(
-                  width: 180,
-                  child: Slider(
-                    value: _ttsRate,
-                    min: 0.2,
-                    max: 1.0,
-                    divisions: 8,
-                    onChanged: (v) => _changeTtsRate(v),
-                    activeColor: _selectedTheme.accentColor,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'TTS Pitch',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                SizedBox(
-                  width: 180,
-                  child: Slider(
-                    value: _ttsPitch,
-                    min: 0.8,
-                    max: 1.4,
-                    divisions: 6,
-                    onChanged: (v) => _changeTtsPitch(v),
-                    activeColor: _selectedTheme.accentColor,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    _ttsVoiceName.isEmpty ? 'Default TTS Voice' : _ttsVoiceName,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-                TextButton(
-                  onPressed: _selectTtsVoice,
-                  child: Text(
-                    'Change Voice',
-                    style: TextStyle(color: _selectedTheme.accentColor),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
                   Text(
                     _localizations.translate('support_description') ?? 'Your support keeps this app free.',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
+                      color: _selectedTheme.textColor.withOpacity(0.8),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -267,7 +194,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       ),
                     ),
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -326,7 +254,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
         backgroundColor: _selectedTheme.primaryColor,
         title: Text(
           _localizations.language,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: _selectedTheme.textColor),
         ),
         content: SizedBox(
           width: double.maxFinite,
@@ -422,13 +350,13 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: _selectedTheme.textColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                    border: Border.all(color: _selectedTheme.textColor.withOpacity(0.3), width: 1.5),
                   ),
                   child: Text(
                     name,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: _selectedTheme.textColor, fontSize: 14),
                   ),
                 ),
               );
@@ -453,18 +381,18 @@ class _SettingsDialogState extends State<SettingsDialog> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: _selectedTheme.textColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withOpacity(0.3),
+            color: _selectedTheme.textColor.withOpacity(0.3),
             width: 1.5,
           ),
         ),
         child: Text(
           name,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: _selectedTheme.textColor,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -482,6 +410,17 @@ class _SettingsDialogState extends State<SettingsDialog> {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: _selectedTheme.backgroundGradient,
+          image: (() {
+            final isLightTheme = _selectedTheme.textColor.computeLuminance() < 0.5;
+            final asset = isLightTheme ? _selectedTheme.lightBackgroundAsset : _selectedTheme.darkBackgroundAsset;
+            return asset != null
+                ? DecorationImage(
+                    image: AssetImage(asset),
+                    fit: BoxFit.cover,
+                    opacity: 0.12,
+                  )
+                : null;
+          })(),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
@@ -519,10 +458,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   Flexible(
                     child: Text(
                       _localizations.settings,
-                      style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      color: _selectedTheme.textColor,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -552,6 +491,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
               ),
 
               const SizedBox(height: 24),
+              // Görselden tema özelliği kaldırıldı
+              const SizedBox(height: 24),
 
               Text(
                 _localizations.language,
@@ -576,25 +517,25 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: _selectedTheme.textColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
+                            color: _selectedTheme.textColor.withOpacity(0.3),
                             width: 1.5,
                           ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.translate, color: Colors.white, size: 16),
+                            Icon(Icons.translate, color: _selectedTheme.textColor, size: 16),
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
                                 _getSecondaryLanguageName(),
                                 textAlign: TextAlign.center,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: _selectedTheme.textColor,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -634,8 +575,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       child: Text(
                         _localizations.ok,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: _selectedTheme.textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -689,12 +630,22 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       _localizations.translate('support_description') ?? 'Help us by watching a short ad',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.7),
+                        color: _selectedTheme.textColor.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
-                      onTap: _isLoadingAd ? null : _showRewardedAd,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SupportScreen(
+                              themeConfig: _selectedTheme,
+                              localizations: _localizations,
+                            ),
+                          ),
+                        );
+                      },
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -711,22 +662,22 @@ class _SettingsDialogState extends State<SettingsDialog> {
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(_selectedTheme.textColor),
                                 ),
                               )
                             else
-                              const Icon(
+                            Icon(
                                 Icons.play_circle_filled_rounded,
-                                color: Colors.white,
+                              color: _selectedTheme.textColor,
                                 size: 18,
                               ),
                             const SizedBox(width: 8),
                             Text(
                               _localizations.translate('watch_ad') ?? 'Watch Ad',
-                              style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                              color: _selectedTheme.textColor,
                               ),
                             ),
                           ],
@@ -828,12 +779,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.file_download_outlined, color: Colors.white, size: 20),
+                      Icon(Icons.file_download_outlined, color: _selectedTheme.textColor, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         _localizations.translate('export') ?? 'Export',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: _selectedTheme.textColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -883,12 +834,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.file_upload_outlined, color: Colors.white, size: 20),
+                      Icon(Icons.file_upload_outlined, color: _selectedTheme.textColor, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         _localizations.translate('import') ?? 'Import',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: _selectedTheme.textColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -917,22 +868,22 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: _selectedTheme.textColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: _selectedTheme.textColor.withOpacity(0.3),
                       width: 1.5,
                     ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                      Icon(Icons.info_outline_rounded, color: _selectedTheme.textColor, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         _localizations.about,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: _selectedTheme.textColor,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -990,12 +941,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           gradient: isSelected ? _selectedTheme.goldGradient : null,
-          color: isSelected ? null : Colors.white.withOpacity(0.1),
+          color: isSelected ? null : _selectedTheme.textColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? _selectedTheme.accentColor
-                : Colors.white.withOpacity(0.3),
+                : _selectedTheme.textColor.withOpacity(0.3),
             width: 1.5,
           ),
         ),
@@ -1008,14 +959,14 @@ class _SettingsDialogState extends State<SettingsDialog> {
               decoration: BoxDecoration(
                 gradient: theme.buttonGradient,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(color: _selectedTheme.textColor, width: 2),
               ),
             ),
             const SizedBox(width: 8),
             Text(
               themeName,
               style: TextStyle(
-                color: Colors.white,
+                color: _selectedTheme.textColor,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
@@ -1035,12 +986,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           gradient: isSelected ? _selectedTheme.goldGradient : null,
-          color: isSelected ? null : Colors.white.withOpacity(0.1),
+          color: isSelected ? null : _selectedTheme.textColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? _selectedTheme.accentColor
-                : Colors.white.withOpacity(0.3),
+                : _selectedTheme.textColor.withOpacity(0.3),
             width: 1.5,
           ),
         ),
@@ -1048,14 +999,14 @@ class _SettingsDialogState extends State<SettingsDialog> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, color: Colors.white, size: 16),
+              Icon(icon, color: _selectedTheme.textColor, size: 16),
               const SizedBox(width: 4),
             ],
             Text(
               languageName,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: _selectedTheme.textColor,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
@@ -1065,4 +1016,5 @@ class _SettingsDialogState extends State<SettingsDialog> {
       ),
     );
   }
+
 }

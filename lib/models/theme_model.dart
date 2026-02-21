@@ -19,6 +19,9 @@ class ThemeConfig {
   final LinearGradient goldGradient;
   final Color accentColor;
   final Color primaryColor;
+  final Color textColor;
+  final String? lightBackgroundAsset;
+  final String? darkBackgroundAsset;
 
   ThemeConfig({
     required this.id,
@@ -32,28 +35,31 @@ class ThemeConfig {
     required this.goldGradient,
     required this.accentColor,
     required this.primaryColor,
+    required this.textColor,
+    this.lightBackgroundAsset,
+    this.darkBackgroundAsset,
   });
 }
 
 class AppThemes {
   static final List<ThemeConfig> themes = [
-    // Mavi-Altın (Varsayılan)
+    // Safir Altın (Varsayılan)
     ThemeConfig(
       id: 'blue_gold',
-      nameTr: 'Mavi & Altın',
-      nameEn: 'Blue & Gold',
-      nameAr: 'أزرق و ذهبي',
-      nameId: 'Biru & Emas',
+      nameTr: 'Safir Altın',
+      nameEn: 'Sapphire Gold',
+      nameAr: 'ياقوت ذهبي',
+      nameId: 'Safir Emas',
       mode: AppThemeMode.blueGold,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF0A2239), Color(0xFF1A5490), Color(0xFF2E6CB5)],
+        colors: [Color(0xFF0A2239), Color(0xFF173F6E), Color(0xFF2A64A3)],
       ),
       buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF1A5490), Color(0xFF2E6CB5)],
+        colors: [Color(0xFF1A4E84), Color(0xFF2E6CB5)],
       ),
       goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
@@ -62,20 +68,22 @@ class AppThemes {
       ),
       accentColor: const Color(0xFFFFD700),
       primaryColor: const Color(0xFF1A5490),
+      textColor: const Color(0xFFFFFFFF),
+      darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
     
-    // Yeşil-Altın
+    // Zümrüt Parıltı
     ThemeConfig(
       id: 'green_gold',
-      nameTr: 'Yeşil & Altın',
-      nameEn: 'Green & Gold',
-      nameAr: 'أخضر و ذهبي',
-      nameId: 'Hijau & Emas',
+      nameTr: 'Zümrüt Parıltı',
+      nameEn: 'Emerald Shine',
+      nameAr: 'تألّق الزمرد',
+      nameId: 'Zamrud Bersinar',
       mode: AppThemeMode.greenGold,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF0D3B2E), Color(0xFF1B5E3F), Color(0xFF2D8659)],
+        colors: [Color(0xFF0D3B2E), Color(0xFF1F5F42), Color(0xFF2F7A57)],
       ),
       buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
@@ -89,42 +97,46 @@ class AppThemes {
       ),
       accentColor: const Color(0xFFFFD700),
       primaryColor: const Color(0xFF1B5E3F),
+      textColor: const Color(0xFFFFFFFF),
+      darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
     
-    // Mor-Altın
+    // Kraliyet Gül (White + Rose)
     ThemeConfig(
       id: 'purple_gold',
-      nameTr: 'Mor & Altın',
-      nameEn: 'Purple & Gold',
-      nameAr: 'بنفسجي و ذهبي',
-      nameId: 'Ungu & Emas',
+      nameTr: 'Kraliyet Gül',
+      nameEn: 'Royal Rose',
+      nameAr: 'وردة ملكية',
+      nameId: 'Mawar Kerajaan',
       mode: AppThemeMode.purpleGold,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF2C1A4D), Color(0xFF4A2C6B), Color(0xFF6A4C8C)],
+        colors: [Color(0xFFFFFFFF), Color(0xFFF6F7FA), Color(0xFFEFF2F7)],
       ),
       buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF4A2C6B), Color(0xFF6A4C8C)],
+        colors: [Color(0xFFE091A9), Color(0xFFD76D8A)],
       ),
       goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+        colors: [Color(0xFFEFB9C8), Color(0xFFE091A9)],
       ),
-      accentColor: const Color(0xFFFFD700),
-      primaryColor: const Color(0xFF4A2C6B),
+      accentColor: const Color(0xFFD76D8A),
+      primaryColor: const Color(0xFFE5E8EF),
+      textColor: const Color(0xFF1A1F3A),
+      lightBackgroundAsset: 'assets/backgrounds/light_bg.png',
     ),
     
-    // Koyu Mavi
+    // Yıldızlı Gece
     ThemeConfig(
       id: 'dark_blue',
-      nameTr: 'Koyu Mavi',
-      nameEn: 'Dark Blue',
-      nameAr: 'أزرق داكن',
-      nameId: 'Biru Gelap',
+      nameTr: 'Yıldızlı Gece',
+      nameEn: 'Starry Night',
+      nameAr: 'ليل نجمي',
+      nameId: 'Malam Berbintang',
       mode: AppThemeMode.darkBlue,
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
@@ -143,6 +155,8 @@ class AppThemes {
       ),
       accentColor: const Color(0xFF64B5F6),
       primaryColor: const Color(0xFF1A1F3A),
+      textColor: const Color(0xFFFFFFFF),
+      darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
   ];
 

@@ -100,6 +100,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: widget.themeConfig.backgroundGradient,
+          image: (() {
+            final isLightTheme = widget.themeConfig.textColor.computeLuminance() < 0.5;
+            final asset = isLightTheme ? widget.themeConfig.lightBackgroundAsset : widget.themeConfig.darkBackgroundAsset;
+            return asset != null
+                ? DecorationImage(
+                    image: AssetImage(asset),
+                    fit: BoxFit.cover,
+                    opacity: 0.12,
+                  )
+                : null;
+          })(),
         ),
         child: SafeArea(
           child: Column(
@@ -141,16 +152,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: widget.themeConfig.textColor),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 12),
           Text(
             widget.localizations.statistics,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: widget.themeConfig.textColor,
             ),
           ),
         ],
@@ -162,10 +173,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.accentColor.withOpacity(0.3),
+          color: widget.themeConfig.accentColor.withOpacity(0.25),
           width: 2,
         ),
       ),
@@ -188,7 +199,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   title,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
+                    color: widget.themeConfig.textColor.withOpacity(0.8),
                   ),
                 ),
                 Text(
@@ -196,7 +207,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: color,
+                    color: widget.themeConfig.accentColor,
                   ),
                 ),
               ],
@@ -287,7 +298,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             label,
             style: TextStyle(
               fontSize: 9,
-              color: Colors.white.withOpacity(0.7),
+              color: widget.themeConfig.textColor.withOpacity(0.7),
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -391,7 +402,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             label,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.white.withOpacity(0.7),
+              color: widget.themeConfig.textColor.withOpacity(0.7),
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -423,17 +434,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           gradient: isSelected ? widget.themeConfig.goldGradient : null,
-          color: isSelected ? null : Colors.white.withOpacity(0.1),
+          color: isSelected ? null : widget.themeConfig.textColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? widget.themeConfig.accentColor : Colors.white.withOpacity(0.3),
+            color: isSelected ? widget.themeConfig.accentColor : widget.themeConfig.textColor.withOpacity(0.3),
             width: 2,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: Colors.white,
+            color: widget.themeConfig.textColor,
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -461,7 +472,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: widget.themeConfig.accentColor.withOpacity(0.3),
@@ -502,7 +513,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: widget.themeConfig.accentColor.withOpacity(0.3),
@@ -546,9 +557,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: [
         Text(
           count.toString(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.white70,
+            color: widget.themeConfig.textColor.withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 4),
@@ -563,9 +574,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
-            color: Colors.white60,
+            color: widget.themeConfig.textColor.withOpacity(0.6),
           ),
         ),
       ],
@@ -580,7 +591,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: widget.themeConfig.accentColor.withOpacity(0.3),
@@ -628,9 +639,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: [
         Text(
           count.toString(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.white70,
+            color: widget.themeConfig.textColor.withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 4),
@@ -645,9 +656,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(height: 8),
         Text(
           dayName,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
-            color: Colors.white60,
+            color: widget.themeConfig.textColor.withOpacity(0.6),
           ),
         ),
       ],

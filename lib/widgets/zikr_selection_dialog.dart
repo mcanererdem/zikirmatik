@@ -84,10 +84,10 @@ class ZikrSelectionDialog extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   localizations.selectZikr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: themeConfig.textColor,
                   ),
                 ),
               ],
@@ -146,12 +146,12 @@ class ZikrSelectionDialog extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: isSelected ? themeConfig.goldGradient : null,
-                color: isSelected ? null : Colors.white.withOpacity(0.1),
+                color: isSelected ? null : themeConfig.textColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
                       ? themeConfig.accentColor
-                      : Colors.white.withOpacity(0.2),
+                      : themeConfig.textColor.withOpacity(0.2),
                   width: 1.5,
                 ),
               ),
@@ -164,10 +164,10 @@ class ZikrSelectionDialog extends StatelessWidget {
                         // Ana dil - büyük gösterim
                         Text(
                           displayName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: themeConfig.textColor,
                           ),
                           textDirection: currentLanguage == 'ar' 
                             ? TextDirection.rtl 
@@ -181,7 +181,7 @@ class ZikrSelectionDialog extends StatelessWidget {
                             zikr.nameAr,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.7),
+                              color: themeConfig.textColor.withOpacity(0.7),
                             ),
                             textDirection: TextDirection.rtl,
                           ),
@@ -190,21 +190,21 @@ class ZikrSelectionDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${zikr.defaultCount}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: themeConfig.textColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${zikr.defaultCount}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: themeConfig.textColor,
+                        ),
                       ),
                     ),
-                  ),
                   // Silme butonu için boşluk bırak
                   if (canDelete) const SizedBox(width: 40),
                 ],
@@ -277,8 +277,8 @@ class ZikrSelectionDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   localizations.addZikr,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: themeConfig.textColor,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),

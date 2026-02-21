@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_page.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
@@ -115,10 +116,12 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.blue,
+        textTheme: GoogleFonts.notoSansTextTheme(),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.blue,
+        textTheme: GoogleFonts.notoSansTextTheme(),
       ),
       themeMode: _themeMode,
       home: HomePage(onThemeModeChanged: (mode) {

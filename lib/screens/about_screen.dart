@@ -26,6 +26,17 @@ class AboutScreen extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           gradient: themeConfig.backgroundGradient,
+          image: (() {
+            final isLightTheme = themeConfig.textColor.computeLuminance() < 0.5;
+            final asset = isLightTheme ? themeConfig.lightBackgroundAsset : themeConfig.darkBackgroundAsset;
+            return asset != null
+                ? DecorationImage(
+                    image: AssetImage(asset),
+                    fit: BoxFit.cover,
+                    opacity: 0.12,
+                  )
+                : null;
+          })(),
         ),
         child: SafeArea(
           child: Column(
@@ -62,16 +73,16 @@ class AboutScreen extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: themeConfig.textColor),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 12),
           Text(
             localizations.about,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: themeConfig.textColor,
             ),
           ),
         ],
@@ -99,19 +110,15 @@ class AboutScreen extends StatelessWidget {
               gradient: themeConfig.goldGradient,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(
-              Icons.auto_awesome_rounded,
-              color: Colors.white,
-              size: 48,
-            ),
+            child: Image.asset('assets/icons/white_misbah.png', width: 64, height: 64),
           ),
           const SizedBox(height: 16),
           Text(
             localizations.appName,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: themeConfig.textColor,
             ),
           ),
           const SizedBox(height: 8),
@@ -119,7 +126,7 @@ class AboutScreen extends StatelessWidget {
             localizations.translate('version') ?? 'Version 1.0.0',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.white.withOpacity(0.7),
+              color: themeConfig.textColor.withOpacity(0.7),
             ),
           ),
         ],
@@ -255,9 +262,9 @@ class AboutScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     feature['text'] as String,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white,
+                      color: themeConfig.textColor,
                     ),
                   ),
                 ),
@@ -332,10 +339,10 @@ class AboutScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         item['title'] as String,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: themeConfig.textColor,
                         ),
                       ),
                     ),
@@ -346,7 +353,7 @@ class AboutScreen extends StatelessWidget {
                   item['text'] as String,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
+                    color: themeConfig.textColor.withOpacity(0.8),
                     height: 1.5,
                   ),
                 ),
@@ -393,17 +400,17 @@ class AboutScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: themeConfig.textColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                children: const [
-                  Icon(Icons.privacy_tip_rounded, color: Colors.white70, size: 20),
-                  SizedBox(width: 10),
+                children: [
+                  Icon(Icons.privacy_tip_rounded, color: themeConfig.textColor.withOpacity(0.7), size: 20),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Privacy Policy',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(color: themeConfig.textColor, fontSize: 14),
                     ),
                   ),
                 ],
@@ -416,17 +423,17 @@ class AboutScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: themeConfig.textColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                children: const [
-                  Icon(Icons.description_rounded, color: Colors.white70, size: 20),
-                  SizedBox(width: 10),
+                children: [
+                  Icon(Icons.description_rounded, color: themeConfig.textColor.withOpacity(0.7), size: 20),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'License',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(color: themeConfig.textColor, fontSize: 14),
                     ),
                   ),
                 ],
@@ -436,7 +443,7 @@ class AboutScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             '© ${DateTime.now().year} Tasbih Counter. All rights reserved.',
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: themeConfig.textColor.withOpacity(0.54), fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],

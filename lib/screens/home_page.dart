@@ -20,6 +20,8 @@ import '../widgets/settings_dialog.dart';
 import '../widgets/goal_dialog.dart';
 import '../widgets/reminder_dialog.dart';
 import 'statistics_screen.dart';
+import '../services/tts_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomePage extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
@@ -57,13 +59,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   List<ZikrModel> _customZikrs = [];
   ZikrModel? _selectedZikr;
   
-  ThemeConfig _currentTheme = AppThemes.themes[0];
+  ThemeConfig _currentTheme = AppThemes.getTheme('dark_blue');
   String _currentLanguage = 'en';
   late AppLocalizations _localizations;
   List<Goal> _goals = [];
   Map<String, dynamic>? _lastStreakInfo;
   bool _isTtsOn = false;
   final TtsService _ttsService = TtsService();
+
+  BoxDecoration _buildBackgroundDecoration() {
+    final isLightTheme = _currentTheme.textColor.computeLuminance() < 0.5;
+    final asset = isLightTheme ? _currentTheme.lightBackgroundAsset : _currentTheme.darkBackgroundAsset;
+    return BoxDecoration(
+      gradient: _currentTheme.backgroundGradient,
+      image: asset != null
+          ? DecorationImage(
+              image: AssetImage(asset),
+              fit: BoxFit.cover,
+              opacity: 0.18,
+            )
+          : null,
+    );
+  }
 
   @override
   void initState() {
@@ -590,9 +607,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: _currentTheme.backgroundGradient,
-        ),
+        decoration: _buildBackgroundDecoration(),
         child: Stack(
           children: [
             Column(
@@ -668,10 +683,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           Expanded(
             child: Text(
               _localizations.appName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: _currentTheme.textColor,
                 letterSpacing: 0.5,
               ),
               overflow: TextOverflow.ellipsis,
@@ -694,16 +709,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: _currentTheme.textColor.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: _currentTheme.textColor.withOpacity(0.25),
                       width: 1.5,
                     ),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.bar_chart_rounded,
-                    color: Colors.white,
+                    color: _currentTheme.textColor,
                     size: 20,
                   ),
                 ),
@@ -714,16 +729,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: _currentTheme.textColor.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: _currentTheme.textColor.withOpacity(0.25),
                       width: 1.5,
                     ),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.settings_rounded,
-                    color: Colors.white,
+                    color: _currentTheme.textColor,
                     size: 20,
                   ),
                 ),
@@ -741,7 +756,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: _currentTheme.textColor.withOpacity(0.06),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: _currentTheme.accentColor.withOpacity(0.3),
@@ -776,7 +791,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         child: Container(
           height: 12,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: _currentTheme.textColor.withOpacity(0.15),
             borderRadius: BorderRadius.circular(10),
           ),
           child: FractionallySizedBox(
@@ -807,7 +822,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: _currentTheme.textColor.withOpacity(0.08),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _currentTheme.accentColor.withOpacity(0.3),
@@ -828,10 +843,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
               children: [
                 Text(
                   _selectedZikr != null ? _getZikrName(_selectedZikr!) : 'Sübhanallah',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: _currentTheme.textColor,
                   ),
                   textDirection: _currentLanguage == 'ar' ? TextDirection.rtl : TextDirection.ltr,
                 ),
@@ -839,7 +854,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                   '${_localizations.target}: $_target',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
+                    color: _currentTheme.textColor.withOpacity(0.75),
                   ),
                 ),
               ],
@@ -889,17 +904,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 child: Center(
                   child: Text(
                     zikrText,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
+                    style: (_currentLanguage == 'ar'
+                        ? GoogleFonts.notoNaskhArabic(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          )
+                        : GoogleFonts.notoSans(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          )),
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
                   ),
