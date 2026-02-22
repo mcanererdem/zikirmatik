@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
+  fl_chart: ^0.66.2
   vibration: ^3.1.6
   shared_preferences: ^2.2.2
   audioplayers: ^5.2.1
@@ -46,5 +47,5 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icons/white_misbah.png"
-  adaptive_icon_background: "#1A1F3A "
+  adaptive_icon_background: "#0A0E27"
   adaptive_icon_foreground: "assets/icons/white_misbah.png"

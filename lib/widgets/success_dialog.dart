@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 
@@ -22,10 +23,14 @@ class SuccessDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: themeConfig.backgroundGradient,
+          color: themeConfig.textColor.withValues(alpha: 0.08),
           image: (() {
             final isLightTheme = themeConfig.textColor.computeLuminance() < 0.5;
             final asset = isLightTheme ? themeConfig.lightBackgroundAsset : themeConfig.darkBackgroundAsset;
@@ -40,14 +45,14 @@ class SuccessDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: themeConfig.accentColor.withOpacity(0.3),
+              color: themeConfig.accentColor.withValues(alpha: 0.3),
               blurRadius: 20,
               spreadRadius: 2,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: themeConfig.accentColor.withOpacity(0.3),
+            color: themeConfig.accentColor.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -63,17 +68,17 @@ class SuccessDialog extends StatelessWidget {
                 gradient: themeConfig.goldGradient,
                 boxShadow: [
                   BoxShadow(
-                    color: themeConfig.accentColor.withOpacity(0.3),
+                    color: themeConfig.accentColor.withValues(alpha: 0.3),
                     blurRadius: 20,
                     spreadRadius: 2,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.check_rounded,
                 size: 48,
-                color: Colors.white,
+                color: themeConfig.textColor,
               ),
             ),
             
@@ -96,7 +101,7 @@ class SuccessDialog extends StatelessWidget {
               localizations.successMessage,
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.white.withOpacity(0.9),
+                color: themeConfig.textColor.withValues(alpha: 0.9),
               ),
             ),
             
@@ -106,7 +111,7 @@ class SuccessDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: themeConfig.textColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -114,7 +119,7 @@ class SuccessDialog extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: themeConfig.accentColor.withOpacity(0.9),
+                  color: themeConfig.accentColor.withValues(alpha: 0.9),
                 ),
               ),
             ),
@@ -157,6 +162,8 @@ class SuccessDialog extends StatelessWidget {
             ),
           ],
         ),
+          ),
+        ),
       ),
     );
   }
@@ -168,13 +175,16 @@ class SuccessDialog extends StatelessWidget {
     required VoidCallback onPressed,
     required bool isPrimary,
   }) {
-    return Container(
+    return Semantics(
+      button: true,
+      label: label,
+      child: Container(
       decoration: BoxDecoration(
         gradient: isPrimary ? themeConfig.goldGradient : themeConfig.buttonGradient,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: (isPrimary ? themeConfig.accentColor : themeConfig.primaryColor).withOpacity(0.4),
+            color: (isPrimary ? themeConfig.accentColor : themeConfig.primaryColor).withValues(alpha: 0.4),
             blurRadius: 15,
             spreadRadius: 1,
             offset: const Offset(0, 4),
@@ -191,12 +201,12 @@ class SuccessDialog extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, color: Colors.white, size: 20),
+                Icon(icon, color: themeConfig.textColor, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: themeConfig.textColor,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -205,6 +215,7 @@ class SuccessDialog extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

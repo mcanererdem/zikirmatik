@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
@@ -58,12 +59,27 @@ class _TargetDialogState extends State<TargetDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isLightTheme = widget.themeConfig.textColor.computeLuminance() < 0.5;
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: widget.themeConfig.backgroundGradient,
+          color: widget.themeConfig.textColor.withOpacity(0.08),
+          image: (() {
+            final asset = isLightTheme ? widget.themeConfig.lightBackgroundAsset : widget.themeConfig.darkBackgroundAsset;
+            return asset != null
+                ? DecorationImage(
+                    image: AssetImage(asset),
+                    fit: BoxFit.cover,
+                    opacity: 0.12,
+                  )
+                : null;
+          })(),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
@@ -91,9 +107,9 @@ class _TargetDialogState extends State<TargetDialog> {
                     gradient: widget.themeConfig.goldGradient,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.flag_rounded,
-                    color: Colors.white,
+                    color: widget.themeConfig.textColor,
                     size: 24,
                   ),
                 ),
@@ -210,6 +226,8 @@ class _TargetDialogState extends State<TargetDialog> {
               ],
             ),
           ],
+        ),
+          ),
         ),
       ),
     );

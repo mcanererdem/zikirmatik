@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../services/notification_service.dart';
@@ -46,6 +47,68 @@ class _ReminderDialogState extends State<ReminderDialog> {
     setState(() => _isReminderEnabled = isEnabled);
 
     if (isEnabled) {
+      final hasExact = await NotificationService.hasExactAlarmsPermission();
+      if (!hasExact) {
+        if (!mounted) return;
+        await showDialog(
+          context: context,
+          builder: (ctx) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      widget.themeConfig.accentColor.withValues(alpha: 0.2),
+                      widget.themeConfig.primaryColor.withValues(alpha: 0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: widget.themeConfig.textColor.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.localizations.translate('permissions_required') ?? 'Permissions required',
+                      style: TextStyle(color: widget.themeConfig.accentColor, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.localizations.translate('please_enable_notifications') ?? 'Please enable notifications and exact alarms in system settings.',
+                      style: TextStyle(color: widget.themeConfig.textColor),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: widget.themeConfig.goldGradient,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(ctx),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Text(
+                              widget.localizations.ok,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: widget.themeConfig.textColor, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }
       final success = await NotificationService.scheduleReminder(
         _selectedTime.hour,
         _selectedTime.minute,
@@ -53,7 +116,18 @@ class _ReminderDialogState extends State<ReminderDialog> {
       if (success) {
         await _settingsService.saveReminderTime(_selectedTime.hour, _selectedTime.minute);
         await _settingsService.saveReminderEnabled(true);
-        _showSnackBar(widget.localizations.translate('reminder_set_success') ?? 'Reminder set!', Colors.green);
+        final now = DateTime.now();
+        var scheduled = DateTime(now.year, now.month, now.day, _selectedTime.hour, _selectedTime.minute);
+        if (scheduled.isBefore(now)) {
+          scheduled = scheduled.add(const Duration(days: 1));
+        }
+        final diff = scheduled.difference(now);
+        final hours = diff.inHours;
+        final minutes = diff.inMinutes % 60;
+        final msg = '${widget.localizations.translate('reminder_set_success') ?? 'Reminder set!'}  •  ${hours}h ${minutes}m kaldı';
+        _showSnackBar(msg, Colors.green);
+        await Future.delayed(const Duration(milliseconds: 250));
+        if (mounted) Navigator.pop(context);
       } else {
         await _settingsService.saveReminderEnabled(false);
         setState(() => _isReminderEnabled = false);
@@ -79,15 +153,30 @@ class _ReminderDialogState extends State<ReminderDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isLightTheme = widget.themeConfig.textColor.computeLuminance() < 0.5;
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: widget.themeConfig.backgroundGradient,
+          color: widget.themeConfig.textColor.withValues(alpha: 0.08),
+          image: (() {
+            final asset = isLightTheme ? widget.themeConfig.lightBackgroundAsset : widget.themeConfig.darkBackgroundAsset;
+            return asset != null
+                ? DecorationImage(
+                    image: AssetImage(asset),
+                    fit: BoxFit.cover,
+                    opacity: 0.12,
+                  )
+                : null;
+          })(),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -110,7 +199,7 @@ class _ReminderDialogState extends State<ReminderDialog> {
                   _isReminderEnabled 
                     ? widget.localizations.reminderEnabled
                     : widget.localizations.reminderDisabled,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: widget.themeConfig.textColor, fontSize: 16),
                 ),
                 Switch(
                   value: _isReminderEnabled,
@@ -142,14 +231,14 @@ class _ReminderDialogState extends State<ReminderDialog> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
                         style: TextStyle(
                           fontSize: 32,
-                          color: _isReminderEnabled ? Colors.white : Colors.white54,
+                          color: _isReminderEnabled ? widget.themeConfig.textColor : widget.themeConfig.textColor.withValues(alpha: 0.54),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -173,7 +262,7 @@ class _ReminderDialogState extends State<ReminderDialog> {
                         onPressed: () => Navigator.pop(context),
                         child: Text(
                           widget.localizations.translate('close') ?? 'Close',
-                          style: const TextStyle(color: Colors.white70),
+                          style: TextStyle(color: widget.themeConfig.textColor.withValues(alpha: 0.7)),
                         ),
                       ),
                     ],
@@ -182,6 +271,8 @@ class _ReminderDialogState extends State<ReminderDialog> {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
     );

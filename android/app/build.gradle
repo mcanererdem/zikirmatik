@@ -30,6 +30,14 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { stream ->
+        keystoreProperties.load(stream)
+    }
+}
+
 android {
     namespace = "com.example.zikirmatik"
     compileSdk = 36
@@ -54,12 +62,10 @@ android {
 
     signingConfigs {
         release {
-            // Keystore configuration for app signing
-            // Uses environment variables if set, falls back to home directory
-            keyAlias = 'upload'
-            keyPassword = System.getenv("KEY_PASSWORD") ?: 'Tahsincaner1'
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: System.getProperty("user.home") + '/upload-keystore.jks')
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: 'Tahsincaner1'
+            keyAlias = keystoreProperties['keyAlias']
+            keyPassword = keystoreProperties['keyPassword']
+            storeFile = file(keystoreProperties['storeFile'])
+            storePassword = keystoreProperties['storePassword']
         }
     }
 

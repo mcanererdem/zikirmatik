@@ -121,8 +121,6 @@ zikirmatik/
 
 ## AdMob Setup 🎯
 
-**Production Ad Unit ID (Android):** `ca-app-pub-8195806446886861/1390869911`
-
 - Debug mode: Test ads automatically used
 - Release mode: Production ID active (subject to app approval)
 

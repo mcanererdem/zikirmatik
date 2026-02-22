@@ -999,14 +999,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           _buildControlButton(
             icon: Icons.notifications_rounded,
             isActive: _isReminderEnabled,
-            onTap: () {
-              showDialog(
+            onTap: () async {
+              await showDialog(
                 context: context,
                 builder: (context) => ReminderDialog(
                   themeConfig: _currentTheme,
                   localizations: _localizations,
                 ),
               );
+              final enabled = await _settingsService.getReminderEnabled();
+              if (mounted) {
+                setState(() => _isReminderEnabled = enabled);
+              }
             },
             size: 48,
           ),

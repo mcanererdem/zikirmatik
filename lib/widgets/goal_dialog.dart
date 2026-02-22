@@ -86,7 +86,7 @@ class _GoalDialogState extends State<GoalDialog> {
             })(),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: widget.themeConfig.accentColor.withOpacity(0.3),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
               width: 2,
             ),
           ),
@@ -139,7 +139,7 @@ class _GoalDialogState extends State<GoalDialog> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: widget.themeConfig.accentColor.withOpacity(0.2),
+        color: widget.themeConfig.accentColor.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -159,7 +159,7 @@ class _GoalDialogState extends State<GoalDialog> {
                 Text(
                   zikrName,
                   style: TextStyle(
-                    color: widget.themeConfig.textColor.withOpacity(0.8),
+                    color: widget.themeConfig.textColor.withValues(alpha: 0.8),
                     fontSize: 11,
                   ),
                 ),
@@ -189,18 +189,18 @@ class _GoalDialogState extends State<GoalDialog> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: widget.themeConfig.accentColor.withOpacity(0.2),
+        color: widget.themeConfig.accentColor.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Text(
             '${widget.localizations.progress}: ${goal.currentProgress}/${goal.targetCount}',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(color: widget.themeConfig.textColor, fontWeight: FontWeight.bold),
           ),
           Text(
             zikrName,
-            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+            style: TextStyle(color: widget.themeConfig.textColor.withValues(alpha: 0.8), fontSize: 12),
           ),
         ],
       ),
@@ -233,12 +233,12 @@ class _GoalDialogState extends State<GoalDialog> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             gradient: isSelected ? widget.themeConfig.goldGradient : null,
-            color: isSelected ? null : Colors.white.withOpacity(0.1),
+            color: isSelected ? null : widget.themeConfig.textColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
                   ? widget.themeConfig.accentColor
-                  : Colors.white.withOpacity(0.3),
+                  : widget.themeConfig.textColor.withValues(alpha: 0.3),
               width: 2,
             ),
           ),
@@ -246,7 +246,7 @@ class _GoalDialogState extends State<GoalDialog> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white,
+              color: widget.themeConfig.textColor,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 14,
             ),
@@ -262,11 +262,11 @@ class _GoalDialogState extends State<GoalDialog> {
       dropdownColor: widget.themeConfig.primaryColor,
       decoration: InputDecoration(
         filled: true,
-        fillColor: widget.themeConfig.textColor.withOpacity(0.1),
+        fillColor: widget.themeConfig.textColor.withValues(alpha: 0.1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
           ),
         ),
       ),

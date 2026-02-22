@@ -118,6 +118,11 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_totalCountKey) ?? 0;
   }
+  
+  Future<void> setTotalCount(int total) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_totalCountKey, total);
+  }
 
   // Confetti
   Future<void> saveConfetti(bool enabled) async {

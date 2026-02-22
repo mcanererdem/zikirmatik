@@ -6,6 +6,8 @@ import '../services/tts_service.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
 import '../services/export_service.dart';
+import '../models/zikr_model.dart';
+import '../models/goal_model.dart';
 import '../widgets/confetti_animation.dart';
 import '../screens/about_screen.dart';
 import '../screens/support_screen.dart';
@@ -657,7 +659,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             if (_isLoadingAd)
-                              const SizedBox(
+                              SizedBox(
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
@@ -802,7 +804,20 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   final data = await exportService.importFromFile();
                   if (data != null && mounted) {
                     Navigator.pop(context); // Ayarlar sayfasını kapat
-                    // TODO: Veriyi kaydet
+                    final settings = SettingsService();
+                    final counter = (data['counter'] as int?) ?? 0;
+                    final total = (data['total_counter'] as int?) ?? 0;
+                    final zikrs = ((data['zikrs'] as List?)?.cast<ZikrModel>()) ?? <ZikrModel>[];
+                    final goals = ((data['goals'] as List?)?.cast<Goal>()) ?? <Goal>[];
+                    
+                    await settings.saveCurrentCount(counter);
+                    await settings.setTotalCount(total);
+                    if (zikrs.isNotEmpty) {
+                      await settings.saveCustomZikrs(zikrs);
+                    }
+                    if (goals.isNotEmpty) {
+                      await settings.saveGoals(goals);
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(_localizations.translate('import_success') ?? 'Import successful!'),

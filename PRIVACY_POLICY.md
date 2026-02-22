@@ -37,10 +37,18 @@ We use collected information to:
 - **No backup:** Uninstalling the app will remove all stored data
 - **Security:** Device-level encryption (as provided by your OS)
 
+## Export/Import Feature
+
+- Users can export their data as a JSON file to their device
+- Users can import previously exported data from their device
+- This feature allows users to backup and restore their own data locally
+- No data is shared with third parties through this feature
+
 ## Third-Party Services
 
 ### Google Mobile Ads (AdMob)
-- AdMob may track ad impressions and interactions
+- AdMob may collect advertising identifiers and device information
+- This data is collected by Google, not by our app
 - Google's data practices: https://policies.google.com/privacy
 
 ## Your Rights

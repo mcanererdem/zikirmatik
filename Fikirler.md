@@ -12,37 +12,34 @@ Bu dosya, geliştirmeyi düşündüğümüz mobil uygulama fikirlerini, özellik
 *   **Teknoloji:** Flutter
 *   **Repository:** https://github.com/mcanererdem/zikirmatik.git
 
-### Tamamlanan MVP Özellikleri ✅
-- [x] Tıklanınca sayıyı artıran ana sayaç butonu
-- [x] Sayıyı sıfırlama butonu
-- [x] Uygulama kapansa bile son sayıyı hafızada tutma (SharedPreferences)
-- [x] Her tıklamada isteğe bağlı titreşim geri bildirimi
-- [x] Basit ve dikkat dağıtmayan bir arayüz (Material Design 3)
-- [x] Çoklu dil desteği altyapısı (İngilizce, Türkçe, Arapça, Endonezce)
-- [x] Belirlenen sayıya ulaşıldığında titreşim geri bildirimi
-- [x] Hızlı hedef seçenekleri (33, 99, 100, 500, 1000)
-- [x] Özel hedef girişi (max 999999)
-- [x] Geri bildirim ayarları (titreşim, ses, konfeti toggle)
-- [x] Ayarlar menüsü (tema, dil seçimi)
-- [x] Uygulama rotasyonunda veri korunması
-- [x] Tema değiştikçe veri korunması
-- [x] Özel zikir ekleme (custom zikir - sadece Arapça alan)
-- [x] Zikir seçimi ve yönetimi
-- [x] Çoklu tema desteği (Blue/Gold, Dark, Mint vb)
-- [x] App launcher ikonu (flutter_launcher_icons)
-- [x] Splash screen (native platform-specific)
-- [x] AdMob entegrasyonu (test ads aktif, banner reklam)
-- [x] Input validasyonları (rakamlar, max 6 hane)
-- [x] Ses efekti (click sound, audioplayers)
-- [x] Lokasyon bazlı otomatik dil seçimi (ilk açılış İngilizce, sonra lokasyona göre)
-- [x] Accessibility iyileştirmeleri (Semantics labels)
-- [x] İstatistik paneli (günlük, toplam, son 7 gün grafiği)
-- [x] Hatırlatıcılar (zamanlanmış bildirimler)
-- [x] İlk açılışta tüm özellikler kapalı (vibration, sound, confetti OFF)
-- [x] Dark mode desteği (sistem teması uyumu)
-- [x] Home screen widget (Android)
-- [x] Günlük/Haftalık/Aylık hedef sistemi (zikr bazlı)
+### Tamamlanan Özellikler ✅
+**Çekirdek**
+- [x] Sayaç artırma/sıfırlama, veri koruma (rotation/tema)
+- [x] Hedef: hızlı seçenekler + özel giriş (max 999999)
+- [x] Geri bildirim: titreşim, ses, konfeti
+- [x] İstatistik: bugün/toplam/son 7 gün grafiği, trophy
+- [x] İstatistik: Son 4 hafta ve Son 12 ay grafikleri eklendi
+- [x] İstatistik: Bar/Çizgi grafik türü seçici eklendi (tüm dönemler)
+- [x] İstatistik: Ay etiketleri yerelleştirildi (TR/EN/AR)
 - [x] Streak (ardışık gün) takibi
+- [x] Hatırlatıcılar (günlük bildirim)
+
+**Arayüz ve Tema**
+- [x] Material 3 sade arayüz, çoklu tema
+- [x] Açık/koyu mod uyumu
+- [x] Gradient ve arka plan görsel desteği (ekranlar/diyaloglar)
+- [x] Launcher ikon + Splash screen
+
+**Dil ve Erişilebilirlik**
+- [x] Çoklu dil (15 dil), cihaz diline göre varsayılan
+- [x] Semantics etiketleri, büyük metin uyumu (devamını artıracağız)
+
+**Widget ve Reklam**
+- [x] Android widget + app senkronu
+- [x] AdMob entegrasyonu (test ads)
+ 
+**Bağımlılıklar**
+- [x] fl_chart sürümü ^0.66.2’ye güncellendi
 
 ### Store Submission Aşaması (v1.0.0) 🚀
 - [x] Release build signing config (gradle) hazırlanması
@@ -62,72 +59,20 @@ Bu dosya, geliştirmeyi düşündüğümüz mobil uygulama fikirlerini, özellik
 - [ ] **Content rating (IARC) formunun doldurulması**
 - [ ] **App store'a gönderilmesi ve review beklenmesi**
 
-### v1.0.0 Tamamlanan Özellikler ✅
-
-#### Temel Özellikler
-- [x] Tıklanınca sayıyı artıran ana sayaç butonu
-- [x] Sayıyı sıfırlama butonu
-- [x] Uygulama kapansa bile son sayıyı hafızada tutma (SharedPreferences)
-- [x] Her tıklamada isteğe bağlı titreşim geri bildirimi
-- [x] Basit ve dikkat dağıtmayan bir arayüz (Material Design 3)
-- [x] Belirlenen sayıya ulaşıldığında titreşim geri bildirimi
-- [x] Hızlı hedef seçenekleri (33, 99, 100, 500, 1000)
-- [x] Özel hedef girişi (max 999999)
-- [x] Geri bildirim ayarları (titreşim, ses, konfeti toggle)
-- [x] Ayarlar menüsü (tema, dil seçimi)
-- [x] Uygulama rotasyonunda veri korunması
-- [x] Tema değiştikçe veri korunması
-- [x] Input validasyonları (rakamlar, max 6 hane)
-- [x] Ses efekti (click sound, audioplayers)
-- [x] İlk açılışta tüm özellikler kapalı (vibration, sound, confetti OFF)
-
-#### Çoklu Dil ve Tema
-- [x] Çoklu dil desteği altyapısı (İngilizce, Türkçe, Arapça, Endonezce)
-- [x] Lokasyon bazlı otomatik dil seçimi (ilk açılış İngilizce, sonra lokasyona göre)
-- [x] Çok Dilli Destek: 15 dil eklendi (Urduca, Bengalce, Malayca, Farsça, Fransızca, Çince, Japonca, Rusça, Almanca, Svahili, Hausa)
-- [x] Çoklu tema desteği (Blue/Gold, Dark, Mint vb)
-- [x] Dark mode desteği (sistem teması uyumu)
-- [x] Responsive AppBar (Arapça gibi uzun başlıklarda taşma sorunu çözüldü)
-
-#### Zikir Yönetimi
-- [x] Özel zikir ekleme (custom zikir - sadece Arapça alan)
-- [x] Zikir seçimi ve yönetimi
-- [x] Zikir Ekleme İyileştirmesi: Çok dilli isim alanları, 0 validasyonu
-
-#### Hedef ve İstatistikler
-- [x] Günlük/Haftalık/Aylık hedef sistemi (zikr bazlı)
-- [x] Streak (ardışık gün) takibi
-- [x] Goal Sistemi Düzeltmesi: Her goal 0'dan başlıyor
-- [x] Goal-Based Streak İyileştirmesi: Aynı gün birden fazla hedef tamamlama, streak mesajları, new best bildirimleri
-- [x] İstatistik paneli (günlük, toplam, son 7 gün grafiği)
-- [x] İstatistik Sayfası Yenilendi: Trophy sistemi, renkli kartlar
-
-#### Widget ve Bildirimler
-- [x] Home screen widget (Android)
-- [x] Widget↔App Senkronizasyonu: Widget tıklamaları app'e yansıyor
-- [x] İstatistik Widget'ı: Ana ekranda bugün/streak/toplam gösterimi
-- [x] Hatırlatıcılar (zamanlanmış bildirimler)
-
-#### Diğer
-- [x] App launcher ikonu (flutter_launcher_icons)
-- [x] Splash screen (native platform-specific)
-- [x] AdMob entegrasyonu (test ads aktif, banner reklam)
-- [x] Accessibility iyileştirmeleri (Semantics labels)
-- [x] Hakkında Sayfası/Dialog: Uygulama sürümü, gizlilik politikası ve kaynak kodu bağlantıları
-- [x] Code Refactoring: home_page 900→650 satır, 3 yeni servis (counter_logic, audio_manager, feedback_manager)
-- [x] Vibration paketi güncellendi (v3.1.6 - Android v1 embedding uyumlu)
+### v1.0.0 Notları
+- [x] Responsive başlıklar (uzun metinlerde taşma çözüldü)
+- [x] Code refactoring (home_page sadeleştirme, servislere ayrışma)
 
 ### Ertelenen Özellikler ⏸️
 - [ ] **Sesli Zikir (TTS):** Text-to-speech ile zikir metinlerinin sesli okunması
   - **Neden Ertelendi:** flutter_tts paketi Kotlin 2.1.0+ gerektiriyor, proje Kotlin 1.9.10 kullanıyor
   - **Çözüm:** Kotlin versiyonu güncellendiğinde tekrar denenecek
-
 ---
 
 ## Gelecek Özellik Önerileri (v1.1.0+)
 
 ### v1.1.0 Devam Eden Özellikler 🚧
-- [ ] **Yedekleme/Dışa Aktarma:** CSV/JSON export özelliği (eklendi, test edilecek)
+- [x] **Yedekleme/Dışa Aktarma:** JSON export/import entegre edildi (Settings → Export/Import)
 
 ### Yüksek Öncelik (v1.1.0)
 1. **Sayaç Geçmişi:** Önceki oturumların kaydı ve görüntüleme
@@ -144,3 +89,23 @@ Bu dosya, geliştirmeyi düşündüğümüz mobil uygulama fikirlerini, özellik
 3. **Özel Animasyonlar:** Daha zengin görsel efektler
 4. **iOS Desteği:** App Store yayını
 5. **Sesli Zikir (TTS):** Kotlin güncellemesi sonrası
+
+---
+
+## Sonraki Adımlar (v1.1.0 Odak)
+- [ ] Blur efektlerini yaygınlaştırma: Maşallah/Teşekkür diyalogları ve İstatistik kartları
+- [ ] Hatırlatıcı güvenilirliği: Exact izin kontrolü, inexact fallback, cihaz özel yönergeler
+- [ ] Erişilebilirlik iyileştirmeleri: Kontrast, Semantics, büyük dokunma hedefleri, metin ölçeklenmesi
+- [ ] İstatistik UI rafinmanı: Kart hiyerarşisi, tipografi, renk uyumu
+
+## Erişilebilirlik Kontrol Listesi
+- [ ] Minimum dokunma hedefi 48x48
+- [ ] Semantics label’lar: butonlar, ikonlar, grafikte çubuk değerleri
+- [ ] Dinamik metin ölçekleme (MediaQuery.textScaleFactor) uyumu
+- [ ] Kontrast oranı: açık temalarda metin rengi uyumu
+- [ ] Odak sırası: klavye/okuma sırası mantıklı
+
+## Temizlik ve Birleştirme Notları
+- MVP ve v1.0.0 listelerindeki tekrar eden maddeler tek bir “Tamamlanan” listesinde tutulacaktır
+- Yinelenen girdiler (Accessibility, AdMob, Splash, Launcher ikon) bir kez geçilecek
+- Gelişmiş istatistik ve trophy başlıkları tek bir “İstatistikler” başlığı altında toplanacaktır
