@@ -2,5 +2,5 @@
 <resources>
     <!-- Match the app's deep background color to avoid white splash -->
     <color name="launch_bg">#1A1F3A</color>
-	<color name="ic_launcher_background">#2C5F2D</color>
+	<color name="ic_launcher_background">#0B3A8C</color>
 </resources>
