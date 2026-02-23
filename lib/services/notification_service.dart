@@ -45,10 +45,7 @@ class NotificationService {
     );
     
     final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    
-    // Uygulama başlarken izinleri iste
     await androidImpl?.requestNotificationsPermission();
-    await androidImpl?.requestExactAlarmsPermission();
     _isInitialized = true;
   }
 
@@ -64,7 +61,6 @@ class NotificationService {
       }
       final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       await androidImpl?.requestNotificationsPermission();
-      await androidImpl?.requestExactAlarmsPermission();
       final canSchedule = await androidImpl?.canScheduleExactNotifications() ?? false;
 
       await cancelAll();

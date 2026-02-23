@@ -1,4 +1,4 @@
-package com.example.zikirmatik
+package com.mcanererdem.zikirmatik
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -8,7 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
-import com.example.zikirmatik.R
+import com.mcanererdem.zikirmatik.R
 
 class ZikrWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(

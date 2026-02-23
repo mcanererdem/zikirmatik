@@ -3,7 +3,7 @@
 ## App Information
 
 **App Name:** Tasbih Counter - Digital Tasbih  
-**Package Name:** com.example.zikirmatik  
+**Package Name:** com.mcanererdem.zikirmatik  
 **Category:** Lifestyle  
 **Content Rating:** Everyone  
 **Price:** Free (with ads)
@@ -57,7 +57,7 @@ Perfect for daily dhikr, Tasbih, Tahmid, Takbir, and other Islamic remembrances.
 ## Turkish Listing
 
 ### Kısa Açıklama (80 karakter max)
-Dijital tesbih - Sayaç, hedefler, widget, 15 dil desteği
+Dijital tesbih sayacı - Hedef takibi, istatistikler, widget, 15 dil desteği
 
 ### Tam Açıklama
 
@@ -98,6 +98,94 @@ Günlük zikir, Tesbih, Tahmid, Tekbir ve diğer İslami zikirler için mükemme
 
 ---
 
+## Arabic Listing (العربية)
+
+### الوصف المختصر (80 حرف كحد أقصى)
+تطبيق تسبيح رقمي - عداد، أهداف، إحصائيات، ويدجت، دعم 15 لغة مختلفة
+
+### الوصف الكامل (4000 حرف كحد أقصى)
+
+Tasbih Counter هو تطبيق تسبيح رقمي بسيط وسهل الاستخدام مصمم لمساعدة المسلمين على تتبع صلواتهم اليومية وأذكارهم الشخصية.
+
+🔢 الميزات الرئيسية
+• عداد باللمس مع اهتزاز
+• حفظ البيانات - يتم حفظ عداداتك
+• دعم 15 لغة (العربية، التركية، الإنجليزية، الإندونيسية، الأردية، البنغالية، الملايو، الفارسية، الفرنسية، الصينية، اليابانية، الروسية، الألمانية، السواحيلية، الهوسا)
+• خيارات متعددة للسمات مع الوضع الداكن
+• إعدادات قابلة للتخصيص (الاهتزاز، الصوت، المؤثرات)
+
+🎯 الأهداف والإحصائيات
+• نظام أهداف متعدد (يومي/أسبوعي/شهري)
+• نظام الكؤوس للإهداف المكتملة
+• تتبع السلسلة (أيام/أسابيع/شهور متتالية)
+• إحصائيات مفصلة مع رسوم بيانية
+• دعم إكمال أهداف متعددة في نفس اليوم
+
+📱 ميزات إضافية
+• ويدجت الشاشة الرئيسية (مزامنة حية)
+• أسماء أذكار مخصصة (15 لغة)
+• دعم تدوير الشاشة
+• دعم إمكانية الوصول (TalkBack/VoiceOver)
+• استيراد/تصدير البيانات (CSV/JSON)
+• مدعوم بالإعلانات (إعلانات بانر + مكافأة)
+
+♿ إمكانية الوصول
+دعم كامل لقارئ الشاشة للمستخدمين ضعيفي البصر.
+
+🌍 اللغات المدعومة
+العربية، التركية، الإنجليزية، الإندونيسية، الأردية، البنغالية، الملايو، الفارسية، الفرنسية، الصينية، اليابانية، الروسية، الألمانية، السواحيلية، الهوسا
+
+📊 الخصوصية
+يتم تخزين جميع البيانات محليًا على جهازك. لا نقوم بجمع أو إرسال معلومات شخصية.
+
+مثالي للذكر اليومي، التسبيح، التحميد، التكبير، وكل الأذكار الإسلامية الأخرى.
+
+---
+
+## Indonesian Listing (Bahasa Indonesia)
+
+### Deskripsi Singkat (maks 80 karakter)
+Aplikasi tasbih digital - Penghitung, tujuan, grafik, widget, 15 bahasa
+
+### Deskripsi Lengkap (maks 4000 karakter)
+
+Tasbih Counter adalah aplikasi tasbih digital yang sederhana dan mudah diakses, dirancang untuk membantu umat Muslim melacak doa harian dan dzikir pribadi mereka.
+
+🔢 FITUR UTAMA
+• Penghitung sentuh dengan getaran
+• Penyimpanan data - hitungan Anda disimpan
+• Dukungan 15 bahasa (Turki, Inggris, Arab, Indonesia, Urdu, Bengali, Melayu, Persia, Prancis, Cina, Jepang, Rusia, Jerman, Swahili, Hausa)
+• Beberapa pilihan tema dengan mode gelap
+• Pengaturan yang dapat disesuaikan (getaran, suara, konfeti)
+
+🎯 TUJUAN & STATISTIK
+• Sistem tujuan ganda (harian/mingguan/bulanan)
+• Sistem piala untuk tujuan yang selesai
+• Pelacakan streak (hari/minggu/bulan berturut-turut)
+• Statistik terperinci dengan grafik
+• Dukungan penyelesaian tujuan ganda dalam sehari
+
+📱 FITUR TAMBAHAN
+• Widget layar utama (sinkronisasi langsung)
+• Nama dzikir kustom (15 bahasa)
+• Dukungan rotasi layar
+• Dukungan aksesibilitas (TalkBack/VoiceOver)
+• Ekspor/Impor data (CSV/JSON)
+• Didukung iklan (banner + iklan berhadiah)
+
+♿ AKSESIBILITAS
+Dukungan pembaca layar penuh untuk pengguna tunanetra.
+
+🌍 BAHASA YANG DIDUKUNG
+Turki, Inggris, Arab, Indonesia, Urdu, Bengali, Melayu, Persia, Prancis, Cina, Jepang, Rusia, Jerman, Swahili, Hausa
+
+📊 PRIVASI
+Semua data disimpan secara lokal di perangkat Anda. Kami tidak mengumpulkan atau mengirimkan informasi pribadi.
+
+Sempurna untuk dzikir harian, Tasbih, Tahmid, Takbir, dan dzikir Islam lainnya.
+
+---
+
 ## Keywords (Separated by comma)
 
 tasbih, dhikr, zikir, counter, islamic, muslim, prayer, tesbih, tasbeeh, digital tasbih, zikr counter, islamic app, prayer counter, dhikr app, muslim app
@@ -109,7 +197,7 @@ tasbih, dhikr, zikir, counter, islamic, muslim, prayer, tesbih, tasbeeh, digital
 **Developer Name:** Caner Erdem  
 **Email:** mcanererdem@gmail.com  
 **Website:** https://github.com/mcanererdem/zikirmatik  
-**Privacy Policy URL:** [YOUR_HOSTED_URL]/privacy_policy.html
+**Privacy Policy URL:** https://mcanererdem.github.io/zikirmatik/privacy_policy.html
 
 ---
 
@@ -124,7 +212,7 @@ tasbih, dhikr, zikir, counter, islamic, muslim, prayer, tesbih, tasbeeh, digital
 - User-generated content: No
 - User communication: No
 - Personal information collection: No (only local storage)
-- Location sharing: Yes (for language detection only, not stored)
+- Location sharing: No
 
 **Target Age:** 13+
 
