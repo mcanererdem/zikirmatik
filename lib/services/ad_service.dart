@@ -22,7 +22,7 @@ class AdService {
     }
 
     if (Platform.isAndroid) {
-      return 'ca-app-pub-8195806446886861/1390869911';
+      return 'ca-app-pub-3168432816497910/5020294598';
     } else if (Platform.isIOS) {
       return 'ca-app-pub-3940256099942544/2934735716';
     }
@@ -39,7 +39,7 @@ class AdService {
     }
 
     if (Platform.isAndroid) {
-      return 'ca-app-pub-8195806446886861/1390869911'; // TODO: Replace with rewarded ad unit
+      return 'ca-app-pub-3168432816497910/1001158538';
     } else if (Platform.isIOS) {
       return 'ca-app-pub-3940256099942544/1712485313';
     }
