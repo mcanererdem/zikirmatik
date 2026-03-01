@@ -553,6 +553,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       builder: (context) => SettingsDialog(
         theme: _currentTheme,
         localizations: _localizations,
+        onThemeChanged: (theme) {
+          setState(() {
+            _currentTheme = theme;
+          });
+          _settingsService.saveTheme(theme.id);
+        },
       ),
     );
   }
@@ -895,82 +901,79 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         ),
         
         // Ana buton
-        ScaleTransition(
-          scale: _buttonScaleAnimation,
-          child: Semantics(
-            label: _localizations.incrementCounter,
-            child: GestureDetector(
-              onTap: _incrementCounter,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: _currentTheme.buttonGradient,
-                  boxShadow: [
-                    // Ana gölge
-                    BoxShadow(
-                      color: _currentTheme.primaryColor.withOpacity(0.5),
-                      blurRadius: 30,
-                      spreadRadius: 5,
-                    ),
-                    // Neon efekt 1 - Dış halka (animasyonlu)
-                    BoxShadow(
-                      color: _currentTheme.accentColor.withOpacity(0.6),
-                      blurRadius: 50,
-                      spreadRadius: 3,
-                    ),
-                    // Neon efekt 2 - İç parıltı (animasyonlu)
-                    BoxShadow(
-                      color: _currentTheme.accentColor.withOpacity(0.4),
-                      blurRadius: 25,
-                      spreadRadius: 2,
-                    ),
-                    // Neon efekt 3 - Merkez ışıltı (animasyonlu)
-                    BoxShadow(
-                      color: _currentTheme.accentColor.withOpacity(0.8),
-                      blurRadius: 15,
-                      spreadRadius: 1,
-                    ),
-                    // Ekstra neon halka (animasyonlu)
-                    BoxShadow(
-                      color: _currentTheme.accentColor.withOpacity(0.3),
-                      blurRadius: 60,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    zikrText,
-                    style: (_currentLanguage == 'ar'
-                        ? GoogleFonts.notoNaskhArabic(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: _currentTheme.accentColor.withOpacity(0.8),
-                                blurRadius: 10,
-                                offset: const Offset(0, 0),
-                              ),
-                            ],
-                          )
-                        : GoogleFonts.notoSans(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: _currentTheme.accentColor.withOpacity(0.8),
-                                blurRadius: 10,
-                                offset: const Offset(0, 0),
-                              ),
-                            ],
-                          )),
-                    textAlign: TextAlign.center,
-                    textDirection: TextDirection.rtl,
+        Semantics(
+          label: _localizations.incrementCounter,
+          child: GestureDetector(
+            onTap: _incrementCounter,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: _currentTheme.buttonGradient,
+                boxShadow: [
+                  // Ana gölge
+                  BoxShadow(
+                    color: _currentTheme.primaryColor.withOpacity(0.5),
+                    blurRadius: 30,
+                    spreadRadius: 5,
                   ),
+                  // Neon efekt 1 - Dış halka (animasyonlu)
+                  BoxShadow(
+                    color: _currentTheme.accentColor.withOpacity(0.6),
+                    blurRadius: 50,
+                    spreadRadius: 3,
+                  ),
+                  // Neon efekt 2 - İç parıltı (animasyonlu)
+                  BoxShadow(
+                    color: _currentTheme.accentColor.withOpacity(0.4),
+                    blurRadius: 25,
+                    spreadRadius: 2,
+                  ),
+                  // Neon efekt 3 - Merkez ışıltı (animasyonlu)
+                  BoxShadow(
+                    color: _currentTheme.accentColor.withOpacity(0.8),
+                    blurRadius: 15,
+                    spreadRadius: 1,
+                  ),
+                  // Ekstra neon halka (animasyonlu)
+                  BoxShadow(
+                    color: _currentTheme.accentColor.withOpacity(0.3),
+                    blurRadius: 60,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  zikrText,
+                  style: (_currentLanguage == 'ar'
+                      ? GoogleFonts.notoNaskhArabic(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: _currentTheme.accentColor.withOpacity(0.8),
+                              blurRadius: 10,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                        )
+                      : GoogleFonts.notoSans(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: _currentTheme.accentColor.withOpacity(0.8),
+                              blurRadius: 10,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                        )),
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
                 ),
               ),
             ),
@@ -1059,6 +1062,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 builder: (context) => SettingsDialog(
                   theme: _currentTheme,
                   localizations: _localizations,
+                  onThemeChanged: (theme) {
+                    setState(() {
+                      _currentTheme = theme;
+                    });
+                    _settingsService.saveTheme(theme.id);
+                  },
                 ),
               );
               final enabled = await _settingsService.getReminderEnabled();

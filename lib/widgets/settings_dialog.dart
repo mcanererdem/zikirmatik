@@ -6,11 +6,13 @@ import '../services/settings_service.dart';
 class SettingsDialog extends StatefulWidget {
   final ThemeConfig theme;
   final AppLocalizations localizations;
+  final Function(ThemeConfig)? onThemeChanged;
 
   const SettingsDialog({
     super.key,
     required this.theme,
     required this.localizations,
+    this.onThemeChanged,
   });
 
   @override
@@ -59,6 +61,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
         setState(() {
           _selectedTheme = theme;
         });
+        // Tema değişim callback'ini çağır
+        if (widget.onThemeChanged != null) {
+          widget.onThemeChanged!(theme);
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(12),
