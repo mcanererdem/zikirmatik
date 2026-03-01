@@ -42,8 +42,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
   late AnimationController _buttonAnimationController;
   late AnimationController _counterAnimationController;
+  late AnimationController _neonAnimationController;
   late Animation<double> _buttonScaleAnimation;
   late Animation<double> _counterScaleAnimation;
+  late Animation<double> _neonPulseAnimation;
 
   final SettingsService _settingsService = SettingsService();
   final AdService _adService = AdService();
@@ -116,6 +118,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         curve: Curves.easeInOut,
       ),
     );
+
+    // Neon efekt animasyonu
+    _neonAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    
+    _neonPulseAnimation = Tween<double>(begin: 0.3, end: 0.8).animate(
+      CurvedAnimation(
+        parent: _neonAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    
+    _neonAnimationController.repeat(reverse: true);
   }
 
   Future<void> _loadBannerAd() async {
@@ -196,6 +213,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     WidgetsBinding.instance.removeObserver(this);
     _buttonAnimationController.dispose();
     _counterAnimationController.dispose();
+    _neonAnimationController.dispose();
     _audioManager.dispose();
     _bannerAd?.dispose();
     super.dispose();
@@ -855,6 +873,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
+        // Neon efekt katmanı
+        AnimatedBuilder(
+          animation: _neonPulseAnimation,
+          builder: (context, child) {
+            return Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    _currentTheme.accentColor.withOpacity(_neonPulseAnimation.value * 0.3),
+                    _currentTheme.accentColor.withOpacity(_neonPulseAnimation.value * 0.1),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        
+        // Ana buton
         ScaleTransition(
           scale: _buttonScaleAnimation,
           child: Semantics(
@@ -868,15 +908,35 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                   shape: BoxShape.circle,
                   gradient: _currentTheme.buttonGradient,
                   boxShadow: [
+                    // Ana gölge
                     BoxShadow(
                       color: _currentTheme.primaryColor.withOpacity(0.5),
                       blurRadius: 30,
                       spreadRadius: 5,
                     ),
+                    // Neon efekt 1 - Dış halka (animasyonlu)
+                    BoxShadow(
+                      color: _currentTheme.accentColor.withOpacity(0.6),
+                      blurRadius: 50,
+                      spreadRadius: 3,
+                    ),
+                    // Neon efekt 2 - İç parıltı (animasyonlu)
+                    BoxShadow(
+                      color: _currentTheme.accentColor.withOpacity(0.4),
+                      blurRadius: 25,
+                      spreadRadius: 2,
+                    ),
+                    // Neon efekt 3 - Merkez ışıltı (animasyonlu)
+                    BoxShadow(
+                      color: _currentTheme.accentColor.withOpacity(0.8),
+                      blurRadius: 15,
+                      spreadRadius: 1,
+                    ),
+                    // Ekstra neon halka (animasyonlu)
                     BoxShadow(
                       color: _currentTheme.accentColor.withOpacity(0.3),
-                      blurRadius: 40,
-                      spreadRadius: 2,
+                      blurRadius: 60,
+                      spreadRadius: 4,
                     ),
                   ],
                 ),
@@ -888,11 +948,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: _currentTheme.accentColor.withOpacity(0.8),
+                                blurRadius: 10,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           )
                         : GoogleFonts.notoSans(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                color: _currentTheme.accentColor.withOpacity(0.8),
+                                blurRadius: 10,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           )),
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
