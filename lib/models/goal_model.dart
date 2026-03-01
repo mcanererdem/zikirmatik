@@ -19,6 +19,8 @@ class Goal {
     this.zikrId,
   });
 
+  bool isTargetReached() => currentProgress >= targetCount;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'type': type,

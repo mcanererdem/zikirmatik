@@ -18,7 +18,6 @@ import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/goal_dialog.dart';
-import 'statistics_screen.dart';
 import '../services/tts_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -64,7 +63,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   String _currentLanguage = 'en';
   late AppLocalizations _localizations;
   List<Goal> _goals = [];
-  Map<String, dynamic>? _lastStreakInfo;
   bool _isTtsOn = false;
   final TtsService _ttsService = TtsService();
 
@@ -241,33 +239,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final result = await _counterLogic.updateGoalProgress(_goals, _selectedZikr?.id);
     
     final updatedGoals = result['goals'] as List<Goal>;
-    final streakInfo = result['streakInfo'] as Map<String, dynamic>?;
     final goalType = result['goalType'] as String?;
     
     bool goalCompleted = false;
     int completedCount = 0;
     
     for (var goal in updatedGoals) {
-      final oldGoal = _goals.firstWhere((g) => g.id == goal.id, orElse: () => goal);
-      if (!oldGoal.isCompleted && goal.isCompleted) {
+      if (!goal.isCompleted && goal.isTargetReached()) {
         goalCompleted = true;
         completedCount++;
-        
-        // Her trophy için ayrı bildirim (gecikme ile)
-        final delay = Duration(milliseconds: 500 + (completedCount - 1) * 4500);
-        Future.delayed(delay, () {
-          if (mounted) {
-            _showGoalCompletedNotification(goal, streakInfo, goal.type);
-          }
-        });
       }
+    }
+    
+    if (goalCompleted && completedCount > 0) {
+      final delay = Duration(milliseconds: 500 + (completedCount - 1) * 4500);
+      Future.delayed(delay, () {
+        if (mounted) {
+          _showGoalCompletedNotification(updatedGoals.firstWhere((g) => !g.isCompleted && g.isTargetReached()), null, goalType);
+        }
+      });
     }
     
     setState(() {
       _goals = updatedGoals;
-      if (streakInfo != null) {
-        _lastStreakInfo = streakInfo;
-      }
     });
 
     _buttonAnimationController.forward().then((_) {
@@ -330,34 +324,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                     ),
                   ],
                 ),
-                if (streakInfo != null && streakInfo['streak'] > 0) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('🔥', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${streakInfo['streak']} ${_localizations.translate('streak_continues') ?? 'streak'}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        if (streakInfo['isNewBest'] == true) ...[
-                          const SizedBox(width: 8),
-                          const Text('⭐', style: TextStyle(fontSize: 18)),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -695,58 +661,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => StatisticsScreen(
-                        themeConfig: _currentTheme,
-                        localizations: _localizations,
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: _currentTheme.textColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _currentTheme.textColor.withOpacity(0.25),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.bar_chart_rounded,
-                    color: _currentTheme.textColor,
-                    size: 20,
-                  ),
+          GestureDetector(
+            onTap: _openSettings,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _currentTheme.textColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _currentTheme.textColor.withOpacity(0.25),
+                  width: 1.5,
                 ),
               ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _openSettings,
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: _currentTheme.textColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _currentTheme.textColor.withOpacity(0.25),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.settings_rounded,
-                    color: _currentTheme.textColor,
-                    size: 20,
-                  ),
-                ),
+              child: Icon(
+                Icons.settings_rounded,
+                color: _currentTheme.textColor,
+                size: 20,
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -1026,29 +958,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             icon: Icons.flag_rounded,
             isActive: true,
             onTap: _changeTarget,
-            size: 48,
-          ),
-          const SizedBox(width: 6),
-          _buildControlButton(
-            icon: Icons.emoji_events_rounded,
-            isActive: _goals.any((g) => !g.isCompleted && !g.isExpired()),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => GoalDialog(
-                  themeConfig: _currentTheme,
-                  localizations: _localizations,
-                  currentGoals: _goals,
-                  availableZikrs: [..._defaultZikrs, ..._customZikrs],
-                  currentLanguage: _currentLanguage,
-                  onGoalSet: (goal) async {
-                    final updatedGoals = [..._goals, goal];
-                    await _settingsService.saveGoals(updatedGoals);
-                    setState(() => _goals = updatedGoals);
-                  },
-                ),
-              );
-            },
             size: 48,
           ),
           const SizedBox(width: 6),
