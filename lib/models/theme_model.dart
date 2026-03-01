@@ -126,7 +126,7 @@ class AppThemes {
       ),
       accentColor: const Color(0xFFD76D8A),
       primaryColor: const Color(0xFFE5E8EF),
-      textColor: const Color(0xFF1A1F3A),
+      textColor: const Color(0xFF1A1A1A),
       lightBackgroundAsset: 'assets/backgrounds/light_bg.png',
     ),
     

@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/zikr_model.dart';
 import '../models/goal_model.dart';
+import 'package:flutter/material.dart';
 
 class SettingsService {
   static const String _themeKey = 'theme_id';
@@ -199,6 +200,60 @@ class SettingsService {
   Future<bool> getReminderEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_reminderEnabledKey) ?? false;
+  }
+
+  Future<void> saveNotificationDays(List<String> days) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('notification_days', days);
+  }
+
+  Future<List<String>> getNotificationDays() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('notification_days') ?? ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  }
+
+  Future<void> saveMorningNotificationTime(TimeOfDay time) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('morning_notification_time', '${time.hour}:${time.minute}');
+  }
+
+  Future<TimeOfDay> getMorningNotificationTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    final timeString = prefs.getString('morning_notification_time') ?? '6:00';
+    final parts = timeString.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  Future<void> saveEveningNotificationTime(TimeOfDay time) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('evening_notification_time', '${time.hour}:${time.minute}');
+  }
+
+  Future<TimeOfDay> getEveningNotificationTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    final timeString = prefs.getString('evening_notification_time') ?? '18:00';
+    final parts = timeString.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  Future<void> saveMorningNotificationEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('morning_notification_enabled', enabled);
+  }
+
+  Future<bool> getMorningNotificationEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('morning_notification_enabled') ?? true;
+  }
+
+  Future<void> saveEveningNotificationEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('evening_notification_enabled', enabled);
+  }
+
+  Future<bool> getEveningNotificationEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('evening_notification_enabled') ?? true;
   }
 
   Future<void> clearReminder() async {

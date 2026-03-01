@@ -3,10 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/home_page.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
 import 'services/widget_service.dart';
+import 'services/supabase_service.dart';
+import 'screens/home_page.dart';
+import 'screens/splash_screen.dart';
+import 'models/theme_model.dart';
+import 'utils/localizations.dart';
 
 @pragma('vm:entry-point')
 void backgroundCallback(Uri? uri) async {
@@ -86,12 +94,19 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
+  late Future<void> _initialization;
 
   @override
   void initState() {
     super.initState();
+    _initialization = _initializeApp();
     _loadThemeMode();
     _syncWidgetCounter();
+  }
+
+  Future<void> _initializeApp() async {
+    // Gerekli başlangıç işlemleri
+    await Future.delayed(const Duration(milliseconds: 100));
   }
 
   Future<void> _loadThemeMode() async {
@@ -125,9 +140,34 @@ class _MyAppState extends State<MyApp> {
         textTheme: GoogleFonts.notoSansTextTheme(),
       ),
       themeMode: _themeMode,
-      home: HomePage(onThemeModeChanged: (mode) {
-        setState(() => _themeMode = mode);
-      }),
+      home: FutureBuilder<void>(
+        future: _initialization,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            // Splash screen göster
+            final settingsService = SettingsService();
+            return FutureBuilder<String>(
+              future: settingsService.getLanguage(),
+              builder: (context, langSnapshot) {
+                final languageCode = langSnapshot.data ?? 'tr';
+                final localizations = AppLocalizations(languageCode);
+                final themeId = 'blue_gold'; // Varsayılan tema
+                final themeConfig = AppThemes.getTheme(themeId);
+                
+                return SplashScreen(
+                  themeConfig: themeConfig,
+                  localizations: localizations,
+                );
+              },
+            );
+          }
+          
+          // Ana sayfaya geç
+          return HomePage(onThemeModeChanged: (mode) {
+            setState(() => _themeMode = mode);
+          });
+        },
+      ),
     );
   }
 }

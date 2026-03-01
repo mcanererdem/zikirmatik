@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
@@ -24,6 +26,9 @@ class NotificationService {
 
   Future<void> initialize() async {
     if (_isInitialized) return;
+
+    // Timezone setup
+    tz.initializeTimeZones();
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -79,6 +84,49 @@ class NotificationService {
       await prefs.setInt('daily_reminder_minute', _dailyReminderTime.minute);
     } catch (e) {
       print('Bildirim ayarları kaydetme hatası: $e');
+    }
+  }
+
+  // Kupa kazanma bildirimi
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+  }) async {
+    try {
+      print('Scheduling notification: $title at $scheduledDate');
+      
+      final tz.TZDateTime scheduledDateTZ = tz.TZDateTime.from(scheduledDate, tz.local);
+      print('Timezone converted date: $scheduledDateTZ');
+      
+      await _notifications.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDateTZ,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'zikirmatik_channel',
+            'Zikirmatik Bildirimleri',
+            channelDescription: 'Zikir hatırlatıcı bildirimleri',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      );
+      
+      print('Notification scheduled successfully');
+    } catch (e) {
+      print('Error scheduling notification: $e');
     }
   }
 
@@ -159,6 +207,59 @@ class NotificationService {
       await _notifications.cancelAll();
     } catch (e) {
       print('Bildirimleri iptal etme hatası: $e');
+    }
+  }
+
+  // Günlük hatırlatıcı bildirimi
+  Future<void> scheduleDailyReminder({
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+  }) async {
+    if (!_zikirRemindersEnabled) return;
+
+    try {
+      final now = tz.TZDateTime.now(tz.local);
+      var scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+
+      // Eğer belirtilen zaman geçmişse, ertesi gün için planla
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+
+      await _notifications.zonedSchedule(
+        3, // Benzersiz ID
+        title,
+        body,
+        scheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'daily_reminders',
+            'Günlük Hatırlatıcılar',
+            channelDescription: 'Günlük zikir hatırlatıcıları',
+            icon: '@mipmap/ic_launcher',
+            color: Color.fromARGB(255, 33, 150, 243),
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            autoCancel: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time, // Her gün tekrarla
+      );
+
+      print('Günlük hatırlatıcı planlandı: $title saat $hour:$minute');
+    } catch (e) {
+      print('Günlük hatırlatıcı planlama hatası: $e');
     }
   }
 }

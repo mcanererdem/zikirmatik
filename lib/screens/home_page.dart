@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/zikr_model.dart';
 import '../models/theme_model.dart';
 import '../models/goal_model.dart';
+import '../utils/localizations.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
 import '../services/counter_logic.dart';
@@ -10,16 +16,20 @@ import '../services/audio_manager.dart';
 import '../services/feedback_manager.dart';
 import '../services/widget_service.dart';
 import '../services/notification_service.dart';
-import '../utils/localizations.dart';
 import '../widgets/confetti_animation.dart';
 import '../widgets/success_dialog.dart';
 import '../widgets/target_dialog.dart';
 import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
-import '../widgets/settings_dialog.dart';
 import '../widgets/goal_dialog.dart';
 import '../services/tts_service.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../services/supabase_service.dart';
+import 'kupa_screen_new.dart';
+import 'statistics_screen_new.dart';
+import 'profile_screen.dart';
+import 'leaderboard_screen.dart';
+import 'settings_screen.dart';
+import 'splash_screen.dart';
 
 class HomePage extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
@@ -51,6 +61,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   final CounterLogic _counterLogic = CounterLogic();
   final AudioManager _audioManager = AudioManager();
   final FeedbackManager _feedbackManager = FeedbackManager();
+  final SupabaseService _supabaseService = SupabaseService();
   
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
@@ -61,8 +72,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   
   ThemeConfig _currentTheme = AppThemes.getTheme('dark_blue');
   String _currentLanguage = 'en';
+  String _currentUserId = 'user_${DateTime.now().millisecondsSinceEpoch}';
   late AppLocalizations _localizations;
   List<Goal> _goals = [];
+  Map<String, dynamic>? _lastStreakInfo;
   bool _isTtsOn = false;
   final TtsService _ttsService = TtsService();
 
@@ -86,6 +99,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _localizations = AppLocalizations('en');
+    
+    // Supabase'i başlat
+    _supabaseService.initialize();
+    
     _loadSettings();
     _initializeTts();
     _audioManager.initialize();
@@ -163,6 +180,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final goals = await _settingsService.getGoals();
     final reminderEnabled = await _settingsService.getReminderEnabled();
     await _settingsService.cleanExpiredGoals();
+    
+    // Animasyon hızını yükle
+    final prefs = await SharedPreferences.getInstance();
+    final animationSpeed = prefs.getInt('animation_speed') ?? 0;
 
     setState(() {
       _currentTheme = AppThemes.getTheme(themeId);
@@ -176,6 +197,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       _customZikrs = customZikrs;
       _counter = savedCount;
       _goals = goals;
+      
+      // Animasyon hızına göre controller ayarları
+      _updateAnimationSpeed(animationSpeed);
       
       if (selectedZikrId != null) {
         _selectedZikr = _defaultZikrs.firstWhere(
@@ -230,39 +254,81 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     }
   }
 
+  void _updateAnimationSpeed(int speed) {
+    // Animasyon hızını güncelle
+    switch (speed) {
+      case 0: // Kapalı
+        _buttonAnimationController.duration = const Duration(milliseconds: 0);
+        _counterAnimationController.duration = const Duration(milliseconds: 0);
+        _neonAnimationController.duration = const Duration(milliseconds: 0);
+        break;
+      case 1: // Yavaş
+        _buttonAnimationController.duration = const Duration(milliseconds: 300);
+        _counterAnimationController.duration = const Duration(milliseconds: 200);
+        _neonAnimationController.duration = const Duration(milliseconds: 3000);
+        break;
+      case 2: // Normal
+        _buttonAnimationController.duration = const Duration(milliseconds: 150);
+        _counterAnimationController.duration = const Duration(milliseconds: 100);
+        _neonAnimationController.duration = const Duration(milliseconds: 2000);
+        break;
+      case 3: // Hızlı
+        _buttonAnimationController.duration = const Duration(milliseconds: 75);
+        _counterAnimationController.duration = const Duration(milliseconds: 50);
+        _neonAnimationController.duration = const Duration(milliseconds: 1000);
+        break;
+    }
+  }
+
   void _incrementCounter() async {
     setState(() => _counter++);
     await _counterLogic.incrementCounter(_counter, _selectedZikr?.id);
+    
+    // Local storage'a kaydet
+    final prefs = await SharedPreferences.getInstance();
+    final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
+    await prefs.setInt('total_zikrs_$_currentUserId', totalZikrs + 1);
+    await prefs.setString('last_zikr_date_$_currentUserId', DateTime.now().toIso8601String());
+    
+    print('Zikir count saved locally: ${totalZikrs + 1}');
+    
     if (_isTtsOn) {
       await _ttsService.speakZikr(_selectedZikr);
     }
     final result = await _counterLogic.updateGoalProgress(_goals, _selectedZikr?.id);
     
     final updatedGoals = result['goals'] as List<Goal>;
+    final streakInfo = result['streakInfo'] as Map<String, dynamic>?;
     final goalType = result['goalType'] as String?;
     
     bool goalCompleted = false;
     int completedCount = 0;
     
     for (var goal in updatedGoals) {
-      if (!goal.isCompleted && goal.isTargetReached()) {
+      final oldGoal = _goals.firstWhere((g) => g.id == goal.id, orElse: () => goal);
+      if (!oldGoal.isCompleted && goal.isCompleted) {
         goalCompleted = true;
         completedCount++;
+        
+        // Her trophy için ayrı bildirim (gecikme ile)
+        final delay = Duration(milliseconds: 500 + (completedCount - 1) * 4500);
+        Future.delayed(delay, () {
+          if (mounted) {
+            _showGoalCompletedNotification(goal, streakInfo, goal.type);
+          }
+        });
       }
-    }
-    
-    if (goalCompleted && completedCount > 0) {
-      final delay = Duration(milliseconds: 500 + (completedCount - 1) * 4500);
-      Future.delayed(delay, () {
-        if (mounted) {
-          _showGoalCompletedNotification(updatedGoals.firstWhere((g) => !g.isCompleted && g.isTargetReached()), null, goalType);
-        }
-      });
     }
     
     setState(() {
       _goals = updatedGoals;
+      if (streakInfo != null) {
+        _lastStreakInfo = streakInfo;
+      }
     });
+
+    // Kupa kontrolü
+    await _checkAndUnlockAchievements();
 
     _buttonAnimationController.forward().then((_) {
       _buttonAnimationController.reverse();
@@ -324,6 +390,34 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                     ),
                   ],
                 ),
+                if (streakInfo != null && streakInfo['streak'] > 0) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('🔥', style: TextStyle(fontSize: 20)),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${streakInfo['streak']} ${_localizations.translate('streak_continues') ?? 'streak'}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        if (streakInfo['isNewBest'] == true) ...[
+                          const SizedBox(width: 8),
+                          const Text('⭐', style: TextStyle(fontSize: 18)),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -368,13 +462,142 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     }
   }
 
-  void _resetCounter() {
+  void _resetCounter() async {
     setState(() {
       _counter = 0;
       _showConfetti = false;
     });
-    _counterLogic.resetCounter();
+    await _counterLogic.resetCounter();
     if (_isVibrationOn) _feedbackManager.vibrateMedium();
+  }
+
+  // Kupa kontrolü
+  Future<void> _checkAndUnlockAchievements() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
+      
+      print('Checking achievements for $totalZikrs zikrs');
+      
+      // Bronz Kupa - 100 zikir
+      if (totalZikrs >= 100) {
+        final bronzeUnlocked = prefs.getBool('bronze_kupa_unlocked_$_currentUserId') ?? false;
+        if (!bronzeUnlocked) {
+          print('🥉 Bronze Kupa unlocked!');
+          _showAchievementNotification('🥉 Bronz Kupa Kazandınız!', '100 zikir hedefine ulaştınız!');
+          await prefs.setBool('bronze_kupa_unlocked_$_currentUserId', true);
+        }
+      }
+      
+      // Gümüş Kupa - 500 zikir
+      if (totalZikrs >= 500) {
+        final silverUnlocked = prefs.getBool('silver_kupa_unlocked_$_currentUserId') ?? false;
+        if (!silverUnlocked) {
+          print('🥈 Silver Kupa unlocked!');
+          _showAchievementNotification('🥈 Gümüş Kupa Kazandınız!', '500 zikir hedefine ulaştınız!');
+          await prefs.setBool('silver_kupa_unlocked_$_currentUserId', true);
+        }
+      }
+      
+      // Altın Kupa - 1000 zikir
+      if (totalZikrs >= 1000) {
+        final goldUnlocked = prefs.getBool('gold_kupa_unlocked_$_currentUserId') ?? false;
+        if (!goldUnlocked) {
+          print('🥇 Gold Kupa unlocked!');
+          _showAchievementNotification('🥇 Altın Kupa Kazandınız!', '1000 zikir hedefine ulaştınız!');
+          await prefs.setBool('gold_kupa_unlocked_$_currentUserId', true);
+        }
+      }
+      
+      // Elmas Kupa - 5000 zikir
+      if (totalZikrs >= 5000) {
+        final diamondUnlocked = prefs.getBool('diamond_kupa_unlocked_$_currentUserId') ?? false;
+        if (!diamondUnlocked) {
+          print('💎 Diamond Kupa unlocked!');
+          _showAchievementNotification('💎 Elmas Kupa Kazandınız!', '5000 zikir hedefine ulaştınız!');
+          await prefs.setBool('diamond_kupa_unlocked_$_currentUserId', true);
+        }
+      }
+      
+      // Platin Kupa - 10000 zikir
+      if (totalZikrs >= 10000) {
+        final platinumUnlocked = prefs.getBool('platinum_kupa_unlocked_$_currentUserId') ?? false;
+        if (!platinumUnlocked) {
+          print('🏆 Platinum Kupa unlocked!');
+          _showAchievementNotification('🏆 Platin Kupa Kazandınız!', '10000 zikir hedefine ulaştınız!');
+          await prefs.setBool('platinum_kupa_unlocked_$_currentUserId', true);
+        }
+      }
+    } catch (e) {
+      print('Error checking achievements: $e');
+    }
+  }
+
+  void _showAchievementNotification(String title, String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green.shade700,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+  }
+
+  // Kazanılmış kupaları getir
+  Future<Map<String, bool>> _getUnlockedCups() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return {
+        'bronze_kupa': prefs.getBool('bronze_kupa_unlocked_$_currentUserId') ?? false,
+        'silver_kupa': prefs.getBool('silver_kupa_unlocked_$_currentUserId') ?? false,
+        'gold_kupa': prefs.getBool('gold_kupa_unlocked_$_currentUserId') ?? false,
+        'diamond_kupa': prefs.getBool('diamond_kupa_unlocked_$_currentUserId') ?? false,
+        'platinum_kupa': prefs.getBool('platinum_kupa_unlocked_$_currentUserId') ?? false,
+      };
+    } catch (e) {
+      print('Error getting unlocked cups: $e');
+      return {};
+    }
+  }
+
+  // Kullanıcı seviyesini hesapla
+  Future<int> _calculateUserLevel() async {
+    final prefs = await SharedPreferences.getInstance();
+    final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
+    
+    if (totalZikrs >= 10000) return 5;
+    if (totalZikrs >= 5000) return 4;
+    if (totalZikrs >= 1000) return 3;
+    if (totalZikrs >= 500) return 2;
+    if (totalZikrs >= 100) return 1;
+    return 0;
   }
 
   void _changeTarget() {
@@ -514,17 +737,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   void _openSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => SettingsDialog(
-        theme: _currentTheme,
-        localizations: _localizations,
-        onThemeChanged: (theme) {
-          setState(() {
-            _currentTheme = theme;
-          });
-          _settingsService.saveTheme(theme.id);
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsScreen(
+          themeConfig: _currentTheme,
+          localizations: _localizations,
+          currentUserId: _currentUserId,
+        ),
       ),
     );
   }
@@ -649,36 +869,152 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Sol taraf - Avatar, profil ismi ve kupalar
           Expanded(
-            child: Text(
-              _localizations.appName,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: _currentTheme.textColor,
-                letterSpacing: 0.5,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileScreen(
+                      themeConfig: _currentTheme,
+                      localizations: _localizations,
+                      currentUserId: _currentUserId,
+                    ),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  // Avatar
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _currentTheme.accentColor.withOpacity(0.3),
+                          _currentTheme.accentColor.withOpacity(0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _currentTheme.accentColor.withOpacity(0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      color: _currentTheme.accentColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  // Profil ismi ve kupalar
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Zikir Çalışanı',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _currentTheme.textColor,
+                            letterSpacing: 0.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Kazanılmış kupaları göster
+                            FutureBuilder<Map<String, bool>>(
+                              future: _getUnlockedCups(),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  final unlockedCups = snapshot.data!;
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (unlockedCups['bronze_kupa'] == true)
+                                        Text('🥉', style: TextStyle(fontSize: 14)),
+                                      if (unlockedCups['silver_kupa'] == true)
+                                        Text('🥈', style: TextStyle(fontSize: 14)),
+                                      if (unlockedCups['gold_kupa'] == true)
+                                        Text('🥇', style: TextStyle(fontSize: 14)),
+                                      if (unlockedCups['diamond_kupa'] == true)
+                                        Text('💎', style: TextStyle(fontSize: 14)),
+                                      if (unlockedCups['platinum_kupa'] == true)
+                                        Text('🏆', style: TextStyle(fontSize: 14)),
+                                    ],
+                                  );
+                                }
+                                return Text('🎯', style: TextStyle(fontSize: 14));
+                              },
+                            ),
+                            const SizedBox(width: 4),
+                            FutureBuilder<int>(
+                              future: _calculateUserLevel(),
+                              builder: (context, snapshot) {
+                                return Text(
+                                  'Level ${snapshot.data ?? 0}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _currentTheme.textColor.withOpacity(0.7),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              overflow: TextOverflow.ellipsis,
             ),
           ),
-          GestureDetector(
-            onTap: _openSettings,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: _currentTheme.textColor.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _currentTheme.textColor.withOpacity(0.25),
-                  width: 1.5,
+          
+          // Sağ taraf - İstatistikler, leaderboard ve ayarlar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsScreen(
+                        themeConfig: _currentTheme,
+                        localizations: _localizations,
+                        currentUserId: _currentUserId,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _currentTheme.textColor.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _currentTheme.textColor.withOpacity(0.25),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.settings_rounded,
+                    color: _currentTheme.textColor,
+                    size: 20,
+                  ),
                 ),
               ),
-              child: Icon(
-                Icons.settings_rounded,
-                color: _currentTheme.textColor,
-                size: 20,
-              ),
-            ),
+            ],
           ),
         ],
       ),
@@ -955,56 +1291,56 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildControlButton(
-            icon: Icons.flag_rounded,
+            icon: Icons.bar_chart_rounded,
             isActive: true,
-            onTap: _changeTarget,
-            size: 48,
-          ),
-          const SizedBox(width: 6),
-          _buildControlButton(
-            icon: Icons.notifications_rounded,
-            isActive: _isReminderEnabled,
-            onTap: () async {
-              // Bildirim ayarları için settings dialog göster
-              await showDialog(
-                context: context,
-                builder: (context) => SettingsDialog(
-                  theme: _currentTheme,
-                  localizations: _localizations,
-                  onThemeChanged: (theme) {
-                    setState(() {
-                      _currentTheme = theme;
-                    });
-                    _settingsService.saveTheme(theme.id);
-                  },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StatisticsScreenNew(
+                    themeConfig: _currentTheme,
+                    localizations: _localizations,
+                    currentUserId: _currentUserId,
+                  ),
                 ),
               );
-              final enabled = await _settingsService.getReminderEnabled();
-              if (mounted) {
-                setState(() => _isReminderEnabled = enabled);
-              }
             },
             size: 48,
           ),
           const SizedBox(width: 6),
           _buildControlButton(
-            icon: _isVibrationOn ? Icons.vibration : Icons.phone_android,
-            isActive: _isVibrationOn,
-            onTap: _toggleVibration,
+            icon: Icons.leaderboard_rounded,
+            isActive: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LeaderboardScreen(
+                    themeConfig: _currentTheme,
+                    localizations: _localizations,
+                    currentUserId: _currentUserId,
+                  ),
+                ),
+              );
+            },
             size: 48,
           ),
           const SizedBox(width: 6),
           _buildControlButton(
-            icon: _isSoundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-            isActive: _isSoundOn,
-            onTap: _toggleSound,
-            size: 48,
-          ),
-          const SizedBox(width: 6),
-          _buildControlButton(
-            icon: Icons.celebration_rounded,
-            isActive: _isConfettiOn,
-            onTap: _toggleConfetti,
+            icon: Icons.emoji_events_rounded,
+            isActive: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => KupaScreenNew(
+                    themeConfig: _currentTheme,
+                    localizations: _localizations,
+                    currentUserId: _currentUserId,
+                  ),
+                ),
+              );
+            },
             size: 48,
           ),
         ],
