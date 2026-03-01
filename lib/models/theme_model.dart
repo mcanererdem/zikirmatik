@@ -130,6 +130,170 @@ class AppThemes {
       lightBackgroundAsset: 'assets/backgrounds/light_bg.png',
     ),
     
+    // Dark Night (Yeni Gece Modu)
+    ThemeConfig(
+      id: 'dark_night',
+      nameTr: 'Karan Gece',
+      nameEn: 'Dark Night',
+      nameAr: 'ليل مظلم',
+      nameId: 'Malam Gelap',
+      mode: AppThemeMode.darkBlue,
+      backgroundGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF000000),
+          Color(0xFF0A0A0A),
+          Color(0xFF141414),
+        ],
+      ),
+      buttonGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF141414),
+          Color(0xFF1E1E1E),
+          Color(0xFF282828),
+        ],
+      ),
+      goldGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFE0AAFF),
+          Color(0xFFC77DFF),
+          Color(0xFF9D4EDD),
+        ],
+      ),
+      accentColor: Color(0xFFE0AAFF),
+      primaryColor: Color(0xFF141414),
+      textColor: Colors.white,
+      darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
+    ),
+    
+    // Moonlight (Yeni Gece Modu)
+    ThemeConfig(
+      id: 'moonlight',
+      nameTr: 'Ay Işığı',
+      nameEn: 'Moonlight',
+      nameAr: 'ضوء القمر',
+      nameId: 'Cahaya Bulan',
+      mode: AppThemeMode.darkBlue,
+      backgroundGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF1A1A2E),
+          Color(0xFF2D3748),
+          Color(0xFF4A5568),
+        ],
+      ),
+      buttonGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF2D3748),
+          Color(0xFF4A5568),
+          Color(0xFF6774A4),
+        ],
+      ),
+      goldGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFE0AAFF),
+          Color(0xFFC77DFF),
+          Color(0xFF9D4EDD),
+        ],
+      ),
+      accentColor: Color(0xFFE0AAFF),
+      primaryColor: Color(0xFF2D3748),
+      textColor: Colors.white,
+      darkBackgroundAsset: 'assets/backgrounds/light_bg.png',
+    ),
+    
+    // Deep Space (Yeni Gece Modu)
+    ThemeConfig(
+      id: 'deep_space',
+      nameTr: 'Derin Uzay',
+      nameEn: 'Deep Space',
+      nameAr: 'الفضاء العميق',
+      nameId: 'Ruang Dalam',
+      mode: AppThemeMode.darkBlue,
+      backgroundGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF000000),
+          Color(0xFF0F0F0F),
+          Color(0xFF1A1A1A),
+        ],
+      ),
+      buttonGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF0F0F0F),
+          Color(0xFF1A1A1A),
+          Color(0xFF2A2A2A),
+        ],
+      ),
+      goldGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFE0AAFF),
+          Color(0xFFC77DFF),
+          Color(0xFF9D4EDD),
+        ],
+      ),
+      accentColor: Color(0xFFE0AAFF),
+      primaryColor: Color(0xFF0F0F0F),
+      textColor: Colors.white,
+      darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
+    ),
+    
+    // Northern Lights (Yeni Gece Modu)
+    ThemeConfig(
+      id: 'northern_lights',
+      nameTr: 'Kuzey Işıkları',
+      nameEn: 'Northern Lights',
+      nameAr: 'الأضواء الشمال',
+      nameId: 'Cahaya Işıkları',
+      mode: AppThemeMode.darkBlue,
+      backgroundGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF0F172A),
+          Color(0xFF1E3A3A),
+          Color(0xFF2E5E5E),
+        ],
+      ),
+      buttonGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF1E3A3A),
+          Color(0xFF2E5E5E),
+          Color(0xFF3F7F7F),
+        ],
+      ),
+      goldGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFFE0AAFF),
+          Color(0xFFC77DFF),
+          Color(0xFF9D4EDD),
+        ],
+      ),
+      accentColor: Color(0xFFE0AAFF),
+      primaryColor: Color(0xFF1E3A3A),
+      textColor: Colors.white,
+      darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
+    ),
+    
     // Yıldızlı Gece
     ThemeConfig(
       id: 'dark_blue',

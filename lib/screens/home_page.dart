@@ -18,7 +18,6 @@ import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/goal_dialog.dart';
-import '../widgets/reminder_dialog.dart';
 import 'statistics_screen.dart';
 import '../services/tts_service.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -534,27 +533,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     showDialog(
       context: context,
       builder: (context) => SettingsDialog(
-        currentTheme: _currentTheme,
-        currentLanguage: _currentLanguage,
-        onThemeChanged: (theme) {
-          setState(() {
-            _currentTheme = theme;
-          });
-          _settingsService.saveTheme(theme.id);
-          Navigator.pop(context);
-        },
-        onLanguageChanged: (languageCode) {
-          setState(() {
-            _currentLanguage = languageCode;
-            _localizations = AppLocalizations(languageCode);
-          });
-          _settingsService.saveLanguage(languageCode);
-          Navigator.pop(context);
-        },
-        onThemeModeChanged: (mode) {
-          widget.onThemeModeChanged?.call(mode);
-          _settingsService.saveThemeMode(mode == ThemeMode.light ? 'light' : mode == ThemeMode.dark ? 'dark' : 'system');
-        },
+        theme: _currentTheme,
         localizations: _localizations,
       ),
     );
@@ -1000,10 +979,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             icon: Icons.notifications_rounded,
             isActive: _isReminderEnabled,
             onTap: () async {
+              // Bildirim ayarları için settings dialog göster
               await showDialog(
                 context: context,
-                builder: (context) => ReminderDialog(
-                  themeConfig: _currentTheme,
+                builder: (context) => SettingsDialog(
+                  theme: _currentTheme,
                   localizations: _localizations,
                 ),
               );

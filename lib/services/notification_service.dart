@@ -1,29 +1,29 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin _notifications =
-      FlutterLocalNotificationsPlugin();
-  static bool _isInitialized = false;
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  NotificationService._internal();
 
-  static Future<void> initialize() async {
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  bool _isInitialized = false;
+
+  // Bildirim ayarları
+  bool _notificationsEnabled = true;
+  bool _zikirRemindersEnabled = true;
+  bool _trophyNotificationsEnabled = true;
+  TimeOfDay _dailyReminderTime = const TimeOfDay(hour: 9, minute: 0);
+
+  // Getters
+  bool get notificationsEnabled => _notificationsEnabled;
+  bool get zikirRemindersEnabled => _zikirRemindersEnabled;
+  bool get trophyNotificationsEnabled => _trophyNotificationsEnabled;
+  TimeOfDay get dailyReminderTime => _dailyReminderTime;
+
+  Future<void> initialize() async {
     if (_isInitialized) return;
-    tz.initializeTimeZones();
-    String timezoneId = 'UTC';
-    try {
-      const channel = MethodChannel('com.example.zikirmatik/timezone');
-      final String? id = await channel.invokeMethod<String>('getLocalTimezoneId');
-      if (id != null && id.isNotEmpty) {
-        timezoneId = id;
-      }
-    } catch (_) {}
-    try {
-      tz.setLocalLocation(tz.getLocation(timezoneId));
-    } catch (_) {
-      tz.setLocalLocation(tz.getLocation('UTC'));
-    }
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -46,149 +46,119 @@ class NotificationService {
     
     final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await androidImpl?.requestNotificationsPermission();
+    
+    // Ayarları yükle
+    await _loadSettings();
+    
     _isInitialized = true;
+    print('Bildirim servisi başlatıldı');
   }
 
-  static Future<bool> hasExactAlarmsPermission() async {
-    final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    return await androidImpl?.canScheduleExactNotifications() ?? false;
-  }
-
-  static Future<bool> scheduleReminder(int hour, int minute) async {
+  Future<void> _loadSettings() async {
     try {
-      if (!_isInitialized) {
-        await initialize();
-      }
-      final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      await androidImpl?.requestNotificationsPermission();
-      final canSchedule = await androidImpl?.canScheduleExactNotifications() ?? false;
-
-      await cancelAll();
+      final prefs = await SharedPreferences.getInstance();
+      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      _zikirRemindersEnabled = prefs.getBool('zikir_reminders_enabled') ?? true;
+      _trophyNotificationsEnabled = prefs.getBool('trophy_notifications_enabled') ?? true;
       
-      final now = tz.TZDateTime.now(tz.local);
-      var scheduledTime = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-      
-      if (scheduledTime.isBefore(now)) {
-        scheduledTime = scheduledTime.add(const Duration(days: 1));
-      }
-      
-      print('[BILDIRICIM] Scheduling for: $scheduledTime');
-      final details = const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'zikir_reminder',
-          'Zikir Reminders',
-          channelDescription: 'Daily zikir reminders',
-          importance: Importance.max,
-          priority: Priority.high,
-          enableVibration: true,
-          playSound: true,
-          visibility: NotificationVisibility.public,
-          channelShowBadge: true,
-          enableLights: true,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      );
-      
-      if (canSchedule) {
-        await _notifications.zonedSchedule(
-          0,
-          'Zikir Reminder ⏰',
-          'Time for your daily dhikr! 📿',
-          scheduledTime,
-          details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          matchDateTimeComponents: DateTimeComponents.time,
-        );
-      } else {
-        print('[BILDIRICIM] Exact alarm permission not granted. Scheduling inexact daily reminder.');
-        await _notifications.zonedSchedule(
-          0,
-          'Zikir Reminder ⏰',
-          'Time for your daily dhikr! 📿',
-          scheduledTime,
-          details,
-          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-          matchDateTimeComponents: DateTimeComponents.time,
-        );
-      }
-      
-      print('[BILDIRICIM] Scheduled successfully!');
-      return true;
+      final hour = prefs.getInt('daily_reminder_hour') ?? 9;
+      final minute = prefs.getInt('daily_reminder_minute') ?? 0;
+      _dailyReminderTime = TimeOfDay(hour: hour, minute: minute);
     } catch (e) {
-      print('[BILDIRICIM] Error: $e');
-      return false;
+      print('Bildirim ayarları yükleme hatası: $e');
     }
   }
 
-  static Future<void> cancelAll() async {
-    await _notifications.cancelAll();
-    print('[BILDIRICIM] All notifications cancelled');
-  }
-  
-  static Future<void> cancel(int id) async {
-    await _notifications.cancel(id);
+  Future<void> _saveSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notifications_enabled', _notificationsEnabled);
+      await prefs.setBool('zikir_reminders_enabled', _zikirRemindersEnabled);
+      await prefs.setBool('trophy_notifications_enabled', _trophyNotificationsEnabled);
+      await prefs.setInt('daily_reminder_hour', _dailyReminderTime.hour);
+      await prefs.setInt('daily_reminder_minute', _dailyReminderTime.minute);
+    } catch (e) {
+      print('Bildirim ayarları kaydetme hatası: $e');
+    }
   }
 
-  static Future<List<PendingNotificationRequest>> getPendingNotifications() async {
-    return await _notifications.pendingNotificationRequests();
+  // Kupa kazanma bildirimi
+  Future<void> showTrophyNotification(String trophyName, String description) async {
+    if (!_notificationsEnabled || !_trophyNotificationsEnabled) return;
+
+    try {
+      await _notifications.show(
+        1,
+        '🏆 Kupa Kazanıldı!',
+        '$trophyName\n$description',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'trophy_notifications',
+            'Kupa Bildirimleri',
+            channelDescription: 'Kupa kazanıldığında bildirim gösterir',
+            icon: '@mipmap/ic_launcher',
+            color: Color.fromARGB(255, 255, 215, 0),
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            autoCancel: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Kupa bildirimi hatası: $e');
+    }
   }
 
-  static Future<void> showTestNotification() async {
-    await _notifications.show(
-      1,
-      'Test Notification ✅',
-      'Notifications are working! If permissions are granted, your reminder will appear at the scheduled time.',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'zikir_reminder',
-          'Zikir Reminders',
-          channelDescription: 'Daily zikir reminders',
-          importance: Importance.max,
-          priority: Priority.high,
-          enableVibration: true,
-          playSound: true,
-          visibility: NotificationVisibility.public,
-          channelShowBadge: true,
+  // Zikir tamamlama bildirimi
+  Future<void> showZikirCompletionNotification(String zikirName, int count, int target) async {
+    if (!_notificationsEnabled) return;
+
+    try {
+      await _notifications.show(
+        2,
+        '🎯 Zikir Tamamlandı!',
+        '$zikirName\n$count/$target zikir tamamlandı!',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'general_notifications',
+            'Genel Bildirimler',
+            channelDescription: 'Genel uygulama bildirimleri',
+            icon: '@mipmap/ic_launcher',
+            color: Color.fromARGB(255, 76, 175, 80),
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+            showWhen: true,
+            autoCancel: true,
+          ),
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-    );
+      );
+    } catch (e) {
+      print('Zikir tamamlama bildirimi hatası: $e');
+    }
   }
-  
-  static Future<void> showImmediateNotification({
-    required String title,
-    required String body,
-    int id = 0,
+
+  // Ayarları güncelle
+  Future<void> updateSettings({
+    bool? notificationsEnabled,
+    bool? zikirRemindersEnabled,
+    bool? trophyNotificationsEnabled,
+    TimeOfDay? dailyReminderTime,
   }) async {
-    await _notifications.show(
-      id,
-      title,
-      body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'zikir_reminder',
-          'Zikir Reminders',
-          channelDescription: 'Daily zikir reminders',
-          importance: Importance.max,
-          priority: Priority.high,
-          enableVibration: true,
-          playSound: true,
-          visibility: NotificationVisibility.public,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-    );
+    if (notificationsEnabled != null) _notificationsEnabled = notificationsEnabled!;
+    if (zikirRemindersEnabled != null) _zikirRemindersEnabled = zikirRemindersEnabled!;
+    if (trophyNotificationsEnabled != null) _trophyNotificationsEnabled = trophyNotificationsEnabled!;
+    if (dailyReminderTime != null) _dailyReminderTime = dailyReminderTime!;
+
+    await _saveSettings();
+  }
+
+  // Tüm bildirimleri iptal et
+  Future<void> cancelAllNotifications() async {
+    try {
+      await _notifications.cancelAll();
+    } catch (e) {
+      print('Bildirimleri iptal etme hatası: $e');
+    }
   }
 }

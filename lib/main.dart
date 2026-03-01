@@ -41,7 +41,8 @@ void main() async {
   HomeWidget.registerInteractivityCallback(backgroundCallback);
 
   // Bildirim servisi başlat
-  await NotificationService.initialize();
+  final notificationService = NotificationService();
+  await notificationService.initialize();
 
   // Status bar ayarları
   SystemChrome.setSystemUIOverlayStyle(
