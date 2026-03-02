@@ -184,7 +184,26 @@ class SupabaseService {
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       print('Error getting daily leaderboard: $e');
-      return [];
+      // Fallback: users tablosundan genel leaderboard
+      try {
+        final response = await _supabase
+            .from('users')
+            .select('username, display_name, avatar_url, total_zikrs')
+            .order('total_zikrs', ascending: false)
+            .limit(limit);
+        
+        final users = List<Map<String, dynamic>>.from(response);
+        // Formatı leaderboard formatına çevir
+        return users.map((user) => {
+          'daily_count': user['total_zikrs'],
+          'username': user['username'],
+          'display_name': user['display_name'],
+          'avatar_url': user['avatar_url'],
+        }).toList();
+      } catch (fallbackError) {
+        print('Fallback leaderboard also failed: $fallbackError');
+        return [];
+      }
     }
   }
 
@@ -247,7 +266,32 @@ class SupabaseService {
 
   // General leaderboard method for backward compatibility
   Future<List<Map<String, dynamic>>> getLeaderboard({int limit = 50}) async {
-    return getDailyLeaderboard(limit: limit);
+    try {
+      return await getDailyLeaderboard(limit: limit);
+    } catch (e) {
+      print('Error getting leaderboard: $e');
+      // Fallback: users tablosundan genel leaderboard
+      try {
+        final response = await _supabase
+            .from('users')
+            .select('username, display_name, avatar_url, total_zikrs')
+            .order('total_zikrs', ascending: false)
+            .limit(limit);
+        
+        final users = List<Map<String, dynamic>>.from(response);
+        // Formatı leaderboard formatına çevir
+        return users.map((user) => {
+          'user_id': user['id'],
+          'username': user['username'],
+          'display_name': user['display_name'],
+          'avatar_url': user['avatar_url'],
+          'total_zikrs': user['total_zikrs'],
+        }).toList();
+      } catch (fallbackError) {
+        print('Fallback leaderboard also failed: $fallbackError');
+        return [];
+      }
+    }
   }
 
   // Avatar upload işlemi

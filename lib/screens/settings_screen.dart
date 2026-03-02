@@ -259,18 +259,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: widget.themeConfig.accentColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.settings_rounded,
-              color: widget.themeConfig.textColor,
-              size: 20,
-            ),
-          ),
         ],
       ),
     );

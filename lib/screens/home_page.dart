@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     });
     
     _buttonAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 80),
       vsync: this,
     );
     
@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     );
 
     _counterAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 50),
       vsync: this,
     );
     
@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
     // Neon efekt animasyonu
     _neonAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
     
@@ -261,21 +261,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         _buttonAnimationController.duration = const Duration(milliseconds: 0);
         _counterAnimationController.duration = const Duration(milliseconds: 0);
         _neonAnimationController.duration = const Duration(milliseconds: 0);
+        _neonAnimationController.stop();
         break;
       case 1: // Yavaş
-        _buttonAnimationController.duration = const Duration(milliseconds: 300);
-        _counterAnimationController.duration = const Duration(milliseconds: 200);
-        _neonAnimationController.duration = const Duration(milliseconds: 3000);
+        _buttonAnimationController.duration = const Duration(milliseconds: 200);
+        _counterAnimationController.duration = const Duration(milliseconds: 150);
+        _neonAnimationController.duration = const Duration(milliseconds: 2500);
+        _neonAnimationController.repeat(reverse: true);
         break;
       case 2: // Normal
-        _buttonAnimationController.duration = const Duration(milliseconds: 150);
-        _counterAnimationController.duration = const Duration(milliseconds: 100);
-        _neonAnimationController.duration = const Duration(milliseconds: 2000);
+        _buttonAnimationController.duration = const Duration(milliseconds: 100);
+        _counterAnimationController.duration = const Duration(milliseconds: 80);
+        _neonAnimationController.duration = const Duration(milliseconds: 1500);
+        _neonAnimationController.repeat(reverse: true);
         break;
       case 3: // Hızlı
-        _buttonAnimationController.duration = const Duration(milliseconds: 75);
-        _counterAnimationController.duration = const Duration(milliseconds: 50);
-        _neonAnimationController.duration = const Duration(milliseconds: 1000);
+        _buttonAnimationController.duration = const Duration(milliseconds: 50);
+        _counterAnimationController.duration = const Duration(milliseconds: 30);
+        _neonAnimationController.duration = const Duration(milliseconds: 800);
+        _neonAnimationController.repeat(reverse: true);
         break;
     }
   }
@@ -291,6 +295,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     await prefs.setString('last_zikr_date_$_currentUserId', DateTime.now().toIso8601String());
     
     print('Zikir count saved locally: ${totalZikrs + 1}');
+    
+    // Supabase'e senkronize et
+    try {
+      await _supabaseService.updateUserZikrCount(_currentUserId, totalZikrs + 1);
+      print('Zikir count synced to Supabase: ${totalZikrs + 1}');
+    } catch (e) {
+      print('Error syncing to Supabase: $e');
+    }
     
     if (_isTtsOn) {
       await _ttsService.speakZikr(_selectedZikr);

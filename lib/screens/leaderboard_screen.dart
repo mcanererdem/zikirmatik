@@ -72,25 +72,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     try {
       print('Loading leaderboard from Supabase...');
       
-      final supabase = Supabase.instance.client;
-      
-      // Supabase'den liderlik tablosunu çek
-      final response = await supabase
-          .from('user_profiles')
-          .select('user_id, username, display_name, total_zikrs')
-          .order('total_zikrs', ascending: false)
-          .limit(50);
-      
-      List<Map<String, dynamic>> leaderboardData = [];
-      
-      if (response != null && response.isNotEmpty) {
-        leaderboardData = List<Map<String, dynamic>>.from(response);
-        
-        // Sıralamaları ekle
-        for (int i = 0; i < leaderboardData.length; i++) {
-          leaderboardData[i]['rank'] = i + 1;
-        }
-      }
+      // SupabaseService üzerinden leaderboard verilerini çek
+      List<Map<String, dynamic>> leaderboardData = await _supabaseService.getLeaderboard(limit: 50);
       
       // Local storage'dan mevcut kullanıcının zikir sayısını oku
       final prefs = await SharedPreferences.getInstance();
