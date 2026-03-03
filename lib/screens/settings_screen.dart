@@ -9,6 +9,7 @@ import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
+import '../services/ad_service.dart';
 import '../screens/support_screen_new.dart';
 import '../screens/about_screen_new.dart';
 import '../screens/import_export_screen.dart';
@@ -33,6 +34,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsService _settingsService = SettingsService();
   final NotificationService _notificationService = NotificationService();
+  final AdService _adService = AdService();
   ThemeConfig _currentTheme = AppThemes.getTheme('dark_blue');
   String _currentLanguage = 'tr';
   bool _isVibrationOn = true;
@@ -50,9 +52,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   TimeOfDay _reminderTime = const TimeOfDay(hour: 21, minute: 0);
   List<bool> _selectedDays = [true, true, true, true, true, true, true]; // Pzt-Pzr
   
-  // Reward reklam
-  RewardedAd? _rewardedAd;
-  bool _isAdLoaded = false;
+  // Reklam durumu
+  bool _isRewardedAdLoaded = false;
 
   @override
   void initState() {
@@ -63,72 +64,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    final themeId = await _settingsService.getTheme();
-    final languageCode = await _settingsService.getLanguage();
-    final vibration = await _settingsService.getVibration();
-    final sound = await _settingsService.getSound();
-    final confetti = await _settingsService.getConfetti();
-    final reminderEnabled = await _settingsService.getReminderEnabled();
-    final ttsEnabled = await _settingsService.getTtsEnabled();
-    
-    // Yeni özellikleri SharedPreferences'ten yükle
-    final prefs = await SharedPreferences.getInstance();
-    final autoBackup = prefs.getBool('auto_backup_enabled') ?? false;
-    final animationSpeed = prefs.getInt('animation_speed') ?? 0;
-    
-    // Bildirim zamanını yükle
-    final reminderHour = prefs.getInt('reminder_hour') ?? 21;
-    final reminderMinute = prefs.getInt('reminder_minute') ?? 0;
-    final selectedDays = prefs.getStringList('selected_days') ?? 
-        ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Pzr'];
-    
-    setState(() {
-      _currentTheme = AppThemes.getTheme(themeId);
-      _currentLanguage = languageCode;
-      _isVibrationOn = vibration;
-      _isSoundOn = sound;
-      _isConfettiOn = confetti;
-      _isReminderEnabled = reminderEnabled;
-      _isTtsOn = ttsEnabled;
-      _isAutoBackupEnabled = autoBackup;
-      _animationSpeed = animationSpeed;
-      _reminderTime = TimeOfDay(hour: reminderHour, minute: reminderMinute);
-      _selectedDays = selectedDays.map((day) => true).toList();
-    });
+    try {
+      final themeId = await _settingsService.getTheme();
+      final languageCode = await _settingsService.getLanguage();
+      final vibration = await _settingsService.getVibration();
+      final sound = await _settingsService.getSound();
+      final confetti = await _settingsService.getConfetti();
+      final reminderEnabled = await _settingsService.getReminderEnabled();
+      final ttsEnabled = await _settingsService.getTtsEnabled();
+      
+      // Yeni özellikleri SharedPreferences'ten yükle
+      final prefs = await SharedPreferences.getInstance();
+      final autoBackup = prefs.getBool('auto_backup_enabled') ?? false;
+      final animationSpeed = prefs.getInt('animation_speed') ?? 0;
+      
+      // Bildirim zamanını yükle
+      final reminderHour = prefs.getInt('reminder_hour') ?? 21;
+      final reminderMinute = prefs.getInt('reminder_minute') ?? 0;
+      final selectedDays = prefs.getStringList('selected_days') ?? 
+          ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Pzr'];
+      
+      // Tek bir setState ile tüm verileri güncelle
+      if (mounted) {
+        setState(() {
+          _currentTheme = AppThemes.getTheme(themeId);
+          _currentLanguage = languageCode;
+          _isVibrationOn = vibration;
+          _isSoundOn = sound;
+          _isConfettiOn = confetti;
+          _isReminderEnabled = reminderEnabled;
+          _isTtsOn = ttsEnabled;
+          _isAutoBackupEnabled = autoBackup;
+          _animationSpeed = animationSpeed;
+          _reminderTime = TimeOfDay(hour: reminderHour, minute: reminderMinute);
+          _selectedDays = selectedDays.map((day) => true).toList();
+        });
+      }
+    } catch (e) {
+      print('Settings load error: $e');
+    }
   }
 
   Future<void> _loadAppVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      setState(() {
-        _appVersion = packageInfo.version;
-      });
+      if (mounted) {
+        setState(() {
+          _appVersion = packageInfo.version;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _appVersion = '1.0.0';
-      });
+      if (mounted) {
+        setState(() {
+          _appVersion = '1.0.0';
+        });
+      }
     }
   }
 
   Future<void> _loadRewardedAd() async {
     try {
-      await RewardedAd.load(
-        adUnitId: 'ca-app-pub-3940256099942544/5224355221', // Test ID
-        request: const AdRequest(),
-        rewardedAdLoadCallback: RewardedAdLoadCallback(
-          onAdLoaded: (ad) {
+      await _adService.loadRewardedAd(
+        onAdLoaded: () {
+          if (mounted) {
             setState(() {
-              _rewardedAd = ad;
-              _isAdLoaded = true;
+              _isRewardedAdLoaded = true;
             });
-          },
-          onAdFailedToLoad: (error) {
-            print('Rewarded ad failed to load: $error');
+          }
+        },
+        onAdFailedToLoad: (error) {
+          print('Rewarded ad failed to load: $error');
+          if (mounted) {
             setState(() {
-              _isAdLoaded = false;
+              _isRewardedAdLoaded = false;
             });
-          },
-        ),
+          }
+        },
       );
     } catch (e) {
       print('Error loading rewarded ad: $e');
@@ -136,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _showRewardedAd() async {
-    if (_rewardedAd == null) {
+    if (!_isRewardedAdLoaded) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Reklam henüz yüklenmedi'),
@@ -146,25 +157,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
 
-    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _loadRewardedAd();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        ad.dispose();
-        _loadRewardedAd();
-      },
-    );
-
-    await _rewardedAd!.show(
-      onUserEarnedReward: (ad, reward) {
+    _adService.showRewardedAd(
+      onUserEarnedReward: () {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ödül kazandınız! +${reward.amount} ${reward.type}'),
+            content: Text('Ödül kazandınız! Bize destek olduğunuz için teşekkürler!'),
             backgroundColor: Colors.green,
           ),
         );
+      },
+      onAdDismissed: () {
+        // Reklam kapandığında yeni reklam yükle
+        _loadRewardedAd();
       },
     );
   }
@@ -265,130 +269,255 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildModernContent() {
-    return ListView(
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      children: [
-        // Tema & Dil
-        _buildModernSection(
-          title: 'Görünüm',
-          icon: Icons.palette,
+      itemCount: 1,
+      itemBuilder: (context, index) {
+        return Column(
           children: [
-            _buildThemeSelection(),
-            _buildLanguageSelection(),
-            _buildAnimationSpeedSetting(),
+            // Tema & Dil
+            _buildModernSection(
+              title: 'Tema & Dil',
+              icon: Icons.palette,
+              children: [
+                _buildModernNavigationSetting(
+                  title: 'Tema',
+                  subtitle: 'Uygulama temasını değiştir',
+                  icon: Icons.palette,
+                  onTap: _showThemeSelector,
+                ),
+                _buildModernNavigationSetting(
+                  title: 'Dil',
+                  subtitle: 'Uygulama dilini değiştir',
+                  icon: Icons.language,
+                  onTap: _showLanguageSelector,
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Temel Ayarlar
+            _buildModernSection(
+              title: 'Temel Ayarlar',
+              icon: Icons.tune,
+              children: [
+                _buildModernToggleSetting(
+                  title: widget.localizations.vibration ?? 'Titreşim',
+                  subtitle: 'Zikir sayımında titreşim',
+                  icon: Icons.vibration,
+                  value: _isVibrationOn,
+                  onTap: _toggleVibration,
+                ),
+                _buildModernToggleSetting(
+                  title: widget.localizations.sound ?? 'Ses',
+                  subtitle: 'Zikir sayımında ses',
+                  icon: Icons.volume_up,
+                  value: _isSoundOn,
+                  onTap: _toggleSound,
+                ),
+                _buildModernToggleSetting(
+                  title: 'Konfeti Animasyonu',
+                  subtitle: 'Hedef tamamlandığında',
+                  icon: Icons.celebration,
+                  value: _isConfettiOn,
+                  onTap: _toggleConfetti,
+                ),
+                _buildModernToggleSetting(
+                  title: 'TTS (Metin Okuma)',
+                  subtitle: 'Zikirleri sesli oku',
+                  icon: Icons.record_voice_over,
+                  value: _isTtsOn,
+                  onTap: _toggleTts,
+                ),
+                _buildAnimationSpeedSetting(),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Bildirimler
+            _buildModernSection(
+              title: 'Bildirimler',
+              icon: Icons.notifications,
+              children: [
+                _buildModernToggleSetting(
+                  title: 'Hatırlatıcı',
+                  subtitle: 'Günlük zikir hatırlatması',
+                  icon: Icons.alarm,
+                  value: _isReminderEnabled,
+                  onTap: _toggleReminder,
+                ),
+                if (_isReminderEnabled) _buildReminderSettings(),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Diğer
+            _buildModernSection(
+              title: 'Diğer',
+              icon: Icons.more_horiz,
+              children: [
+                _buildModernToggleSetting(
+                  title: 'Otomatik Yedekleme',
+                  subtitle: 'Verilerinizi otomatik yedekleyin',
+                  icon: Icons.backup,
+                  value: _isAutoBackupEnabled,
+                  onTap: _toggleAutoBackup,
+                ),
+                _buildModernNavigationSetting(
+                  title: 'İmport/Export',
+                  subtitle: 'Verilerinizi dışa aktarın veya içe aktarın',
+                  icon: Icons.import_export,
+                  onTap: _navigateToImportExport,
+                ),
+                _buildModernNavigationSetting(
+                  title: 'Bize Destek Ol',
+                  subtitle: 'Reklam izleyerek destek olun',
+                  icon: Icons.emoji_events,
+                  onTap: _showRewardedAd,
+                ),
+                _buildModernNavigationSetting(
+                  title: 'Destek',
+                  subtitle: 'Yardım ve geri bildirim',
+                  icon: Icons.support,
+                  onTap: _navigateToSupport,
+                ),
+                _buildModernNavigationSetting(
+                  title: 'Hakkımızda',
+                  subtitle: 'Uygulama bilgileri',
+                  icon: Icons.info,
+                  onTap: _navigateToAbout,
+                ),
+                _buildVersionInfo(),
+              ],
+            ),
+            
+            const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimationSpeedSetting() {
+    final speedOptions = [
+      {'value': 0, 'label': 'Kapalı', 'icon': Icons.stop},
+      {'value': 1, 'label': 'Yavaş', 'icon': Icons.slow_motion_video},
+      {'value': 2, 'label': 'Normal', 'icon': Icons.play_arrow},
+      {'value': 3, 'label': 'Hızlı', 'icon': Icons.fast_forward},
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: widget.themeConfig.accentColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.speed,
+                    color: widget.themeConfig.accentColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Animasyon Hızı',
+                        style: GoogleFonts.notoSans(
+                          color: widget.themeConfig.textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Arayüz animasyonlarının hızı',
+                        style: GoogleFonts.notoSans(
+                          color: widget.themeConfig.textColor.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: speedOptions.map((option) {
+                final isSelected = _animationSpeed == option['value'];
+                return GestureDetector(
+                  onTap: () => _changeAnimationSpeed(option['value'] as int),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected 
+                          ? widget.themeConfig.accentColor.withOpacity(0.3)
+                          : Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected 
+                            ? widget.themeConfig.accentColor
+                            : Colors.white.withOpacity(0.2),
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          option['icon'] as IconData,
+                          size: 16,
+                          color: isSelected 
+                              ? widget.themeConfig.accentColor
+                              : widget.themeConfig.textColor.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          option['label'] as String,
+                          style: GoogleFonts.notoSans(
+                            color: isSelected 
+                                ? widget.themeConfig.accentColor
+                                : widget.themeConfig.textColor.withOpacity(0.7),
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ],
         ),
-        
-        const SizedBox(height: 16),
-        
-        // Temel Ayarlar
-        _buildModernSection(
-          title: 'Temel Ayarlar',
-          icon: Icons.tune,
-          children: [
-            _buildModernToggleSetting(
-              title: widget.localizations.vibration ?? 'Titreşim',
-              subtitle: 'Zikir sayımında titreşim',
-              icon: Icons.vibration,
-              value: _isVibrationOn,
-              onTap: _toggleVibration,
-            ),
-            _buildModernToggleSetting(
-              title: widget.localizations.sound ?? 'Ses',
-              subtitle: 'Zikir sayımında ses',
-              icon: Icons.volume_up,
-              value: _isSoundOn,
-              onTap: _toggleSound,
-            ),
-            _buildModernToggleSetting(
-              title: 'Konfeti Animasyonu',
-              subtitle: 'Hedef tamamlandığında',
-              icon: Icons.celebration,
-              value: _isConfettiOn,
-              onTap: _toggleConfetti,
-            ),
-            _buildModernToggleSetting(
-              title: 'TTS (Metin Okuma)',
-              subtitle: 'Zikirleri sesli oku',
-              icon: Icons.record_voice_over,
-              value: _isTtsOn,
-              onTap: _toggleTts,
-            ),
-          ],
-        ),
-        
-        const SizedBox(height: 16),
-        
-        // Bildirimler
-        _buildModernSection(
-          title: 'Bildirimler',
-          icon: Icons.notifications,
-          children: [
-            _buildModernToggleSetting(
-              title: 'Hatırlatıcı',
-              subtitle: 'Günlük zikir hatırlatması',
-              icon: Icons.alarm,
-              value: _isReminderEnabled,
-              onTap: _toggleReminder,
-            ),
-            if (_isReminderEnabled) _buildReminderSettings(),
-          ],
-        ),
-        
-        const SizedBox(height: 16),
-        
-        // Veri & Yedekleme
-        _buildModernSection(
-          title: 'Veri Yönetimi',
-          icon: Icons.storage,
-          children: [
-            _buildModernToggleSetting(
-              title: 'Otomatik Yedekleme',
-              subtitle: 'Verileri otomatik yedekle',
-              icon: Icons.backup,
-              value: _isAutoBackupEnabled,
-              onTap: _toggleAutoBackup,
-            ),
-            _buildModernNavigationSetting(
-              title: 'İçe/Dışa Aktar',
-              subtitle: 'Verilerinizi yönetin',
-              icon: Icons.import_export,
-              onTap: _navigateToImportExport,
-            ),
-          ],
-        ),
-        
-        const SizedBox(height: 16),
-        
-        // Diğer
-        _buildModernSection(
-          title: 'Diğer',
-          icon: Icons.more_horiz,
-          children: [
-            _buildModernNavigationSetting(
-              title: 'Reklam İzle',
-              subtitle: 'Ödül kazanın',
-              icon: Icons.emoji_events,
-              onTap: _showRewardedAd,
-            ),
-            _buildModernNavigationSetting(
-              title: 'Destek',
-              subtitle: 'Yardım ve geri bildirim',
-              icon: Icons.support,
-              onTap: _navigateToSupport,
-            ),
-            _buildModernNavigationSetting(
-              title: 'Hakkımızda',
-              subtitle: 'Uygulama bilgileri',
-              icon: Icons.info,
-              onTap: _navigateToAbout,
-            ),
-            _buildVersionInfo(),
-          ],
-        ),
-        
-        const SizedBox(height: 20),
-      ],
+      ),
     );
   }
 
@@ -736,54 +865,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAnimationSpeedSetting() {
-    final speeds = ['Kapalı', 'Yavaş', 'Normal', 'Hızlı'];
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Animasyon Hızı',
-            style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(4, (index) {
-              final isSelected = _animationSpeed == index;
-              return Flexible(
-                child: GestureDetector(
-                  onTap: () => _changeAnimationSpeed(index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? widget.themeConfig.accentColor : Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      speeds[index],
-                      style: GoogleFonts.notoSans(
-                        color: isSelected ? Colors.white : widget.themeConfig.textColor,
-                        fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildReminderSettings() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -898,7 +979,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(
                 'Hatırlatıcıyı Kaydet',
                 style: GoogleFonts.notoSans(
-                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Test Bildirim Butonu
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                await _notificationService.showTestNotification();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Test bildirimi gönderildi!'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Test Bildirimi Gönder',
+                style: GoogleFonts.notoSans(
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -934,6 +1046,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // Method implementations
+  void _showThemeSelector() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Tema Seç', style: GoogleFonts.notoSans()),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              'blue_gold',
+              'green_gold', 
+              'purple_gold',
+              'dark_night',
+              'moonlight',
+              'deep_space',
+              'northern_lights',
+              'dark_blue',
+            ].map((themeId) {
+              final theme = AppThemes.getTheme(themeId);
+              return ListTile(
+                title: Text(
+                  theme.nameTr,
+                  style: GoogleFonts.notoSans(),
+                ),
+                trailing: _currentTheme.id == themeId 
+                    ? Icon(Icons.check, color: widget.themeConfig.accentColor)
+                    : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  _changeTheme(themeId);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageSelector() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Dil Seç', style: GoogleFonts.notoSans()),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              {'code': 'tr', 'name': 'Türkçe'},
+              {'code': 'en', 'name': 'English'},
+              {'code': 'ar', 'name': 'العربية'},
+              {'code': 'id', 'name': 'Bahasa Indonesia'},
+              {'code': 'ur', 'name': 'اردو'},
+              {'code': 'bn', 'name': 'বাংলা'},
+              {'code': 'ms', 'name': 'Bahasa Melayu'},
+              {'code': 'fa', 'name': 'فارسی'},
+              {'code': 'fr', 'name': 'Français'},
+              {'code': 'zh', 'name': '中文'},
+              {'code': 'ja', 'name': '日本語'},
+              {'code': 'ru', 'name': 'Русский'},
+              {'code': 'de', 'name': 'Deutsch'},
+              {'code': 'sw', 'name': 'Swahili'},
+              {'code': 'ha', 'name': 'Hausa'},
+            ].map((lang) {
+              return ListTile(
+                title: Text(
+                  lang['name']!,
+                  style: GoogleFonts.notoSans(),
+                ),
+                trailing: _currentLanguage == lang['code']
+                    ? Icon(Icons.check, color: widget.themeConfig.accentColor)
+                    : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  _changeLanguage(lang['code']!);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _changeTheme(String themeId) async {
     setState(() {
       _currentTheme = AppThemes.getTheme(themeId);
@@ -1015,6 +1213,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _animationSpeed = speed);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('animation_speed', speed);
+    
+    // Ana sayfadaki animasyon hızını güncelle
+    try {
+      // Ana sayfaya bildirim göndermek için farklı bir yaklaşım kullanabiliriz
+      // Şimdilik sadece kaydediyoruz, ana sayfa açıldığında yeni değeri okuyacak
+      print('Animation speed changed to: $speed');
+    } catch (e) {
+      print('Animation speed update error: $e');
+    }
   }
 
   Future<void> _selectReminderTime() async {
@@ -1063,11 +1270,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _scheduleReminder() async {
+    final days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Pzr'];
+    final selectedDays = days.where((day) {
+      final index = days.indexOf(day);
+      return _selectedDays[index];
+    }).toList();
+    
     await _notificationService.scheduleDailyReminder(
       hour: _reminderTime.hour,
       minute: _reminderTime.minute,
       title: 'Zikir Vakti',
       body: 'Günlük zikirlerinizi yapmayı unutmayın!',
+      selectedDays: selectedDays.isEmpty ? null : selectedDays,
     );
   }
 

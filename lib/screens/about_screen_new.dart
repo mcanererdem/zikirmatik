@@ -176,7 +176,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           
           _buildInfoItem(
             'Ad',
-            'M. Caner Erdem',
+            'Caner Erdem',
             Icons.person,
           ),
           

@@ -36,7 +36,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _weeklyZikrs = 0;
   int _monthlyZikrs = 0;
   List<String> _achievements = [];
-  int _currentLevel = 0;
 
   @override
   void initState() {
@@ -48,20 +47,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       print('Loading profile for userId: ${widget.currentUserId}');
       
-      // Local storage'dan verileri oku
+      // Önce SharedPreferences'ten verileri yükle
       final prefs = await SharedPreferences.getInstance();
       final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
-      final lastZikrDateStr = prefs.getString('last_zikr_date_${widget.currentUserId}');
-      final lastZikrDate = lastZikrDateStr != null ? DateTime.parse(lastZikrDateStr) : null;
-      
-      // Kupaları yükle
-      _unlockedCups = {
-        'bronze_kupa': prefs.getBool('bronze_kupa_${widget.currentUserId}') ?? false,
-        'silver_kupa': prefs.getBool('silver_kupa_${widget.currentUserId}') ?? false,
-        'gold_kupa': prefs.getBool('gold_kupa_${widget.currentUserId}') ?? false,
-        'platinum_kupa': prefs.getBool('platinum_kupa_${widget.currentUserId}') ?? false,
-        'diamond_kupa': prefs.getBool('diamond_kupa_${widget.currentUserId}') ?? false,
-      };
+      final lastZikrDate = prefs.getString('last_zikr_date_${widget.currentUserId}');
       
       // Streak hesapla
       _currentStreak = _calculateStreak(prefs);
@@ -73,169 +62,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Başarıları hesapla
       _achievements = _calculateAchievements(totalZikrs, _currentStreak);
       
-      // Seviyeyi hesapla
-      _currentLevel = _calculateUserLevel();
-      
       // Varsayılan profil oluştur
       final defaultProfile = UserProfile(
         userId: widget.currentUserId,
         username: 'User_${widget.currentUserId.substring(0, 8)}',
         displayName: 'Zikir Çalışanı',
         totalZikrs: totalZikrs,
-        lastZikrDate: lastZikrDate,
+        lastZikrDate: lastZikrDate != null ? DateTime.parse(lastZikrDate) : null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      
-      setState(() {
-        _userProfile = defaultProfile;
-        _isLoading = false;
-      });
-      
-      print('Profile loaded with zikrs: $totalZikrs, streak: $_currentStreak');
-      
-      // Arka planda Supabase'i dene (opsiyonel)
+
+      // Supabase'den profil verisini al
       try {
         final profile = await _supabaseService.getUserProfile(widget.currentUserId);
         if (profile != null) {
-          setState(() {
-            _userProfile = profile;
-          });
+          _userProfile = profile;
+        } else {
+          _userProfile = defaultProfile;
         }
       } catch (e) {
-        print('Supabase profile fetch failed: $e');
-        // Local verilerle devam et
+        print('Error loading profile from Supabase: $e');
+        _userProfile = defaultProfile;
       }
+
+      // Kupaları kontrol et
+      _checkUnlockedCups();
+
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
-      print('Error loading profile: $e');
+      print('Error loading user profile: $e');
       setState(() {
         _isLoading = false;
       });
     }
   }
 
+  void _checkUnlockedCups() {
+    final totalZikrs = _userProfile?.totalZikrs ?? 0;
+    
+    setState(() {
+      _unlockedCups = {
+        'bronze': totalZikrs >= 100,
+        'silver': totalZikrs >= 500,
+        'gold': totalZikrs >= 1000,
+        'diamond': totalZikrs >= 5000,
+        'platinum': totalZikrs >= 10000,
+      };
+    });
+  }
+
   int _calculateStreak(SharedPreferences prefs) {
-    final lastZikrDateStr = prefs.getString('last_zikr_date_${widget.currentUserId}');
-    if (lastZikrDateStr == null) return 0;
+    // Basit streak hesaplaması
+    final lastZikrDate = prefs.getString('last_zikr_date_${widget.currentUserId}');
+    if (lastZikrDate == null) return 0;
     
-    final lastZikrDate = DateTime.parse(lastZikrDateStr);
+    final lastDate = DateTime.parse(lastZikrDate);
     final now = DateTime.now();
-    final difference = now.difference(lastZikrDate).inDays;
+    final difference = now.difference(lastDate).inDays;
     
-    if (difference == 0) {
-      // Bugün zikir yapılmış
+    if (difference <= 1) {
       return (prefs.getInt('current_streak_${widget.currentUserId}') ?? 0) + 1;
-    } else if (difference == 1) {
-      // Dün yapılmış, streak devam ediyor
-      return prefs.getInt('current_streak_${widget.currentUserId}') ?? 0;
     } else {
-      // Streak kırılmış
-      return 0;
+      return 1;
     }
   }
 
   int _calculateWeeklyZikrs(SharedPreferences prefs) {
-    // Basit hesaplama - gerçek uygulamada daha detaylı olabilir
-    return (prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0) ~/ 7;
+    // Basit haftalık hesaplama
+    return prefs.getInt('weekly_zikrs_${widget.currentUserId}') ?? 0;
   }
 
   int _calculateMonthlyZikrs(SharedPreferences prefs) {
-    // Basit hesaplama - gerçek uygulamada daha detaylı olabilir
-    return (prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0) ~/ 30;
+    // Basit aylık hesaplama
+    return prefs.getInt('monthly_zikrs_${widget.currentUserId}') ?? 0;
   }
 
   List<String> _calculateAchievements(int totalZikrs, int streak) {
-    List<String> achievements = [];
+    final achievements = <String>[];
     
-    if (totalZikrs >= 100) achievements.add('🥉 Bronz Kupa');
-    if (totalZikrs >= 500) achievements.add('🥈 Gümüş Kupa');
-    if (totalZikrs >= 1000) achievements.add('🥇 Altın Kupa');
-    if (totalZikrs >= 5000) achievements.add('💎 Elmas Kupa');
-    if (totalZikrs >= 10000) achievements.add('🏆 Platin Kupa');
+    if (totalZikrs >= 1) achievements.add('İlk Zikir');
+    if (totalZikrs >= 100) achievements.add('100 Zikir');
+    if (totalZikrs >= 500) achievements.add('500 Zikir');
+    if (totalZikrs >= 1000) achievements.add('1000 Zikir');
+    if (totalZikrs >= 5000) achievements.add('5000 Zikir');
+    if (totalZikrs >= 10000) achievements.add('10000 Zikir');
     
-    if (streak >= 7) achievements.add('🔥 Haftalık Streak');
-    if (streak >= 30) achievements.add('🌟 Aylık Streak');
+    if (streak >= 7) achievements.add('Haftalık Devam');
+    if (streak >= 30) achievements.add('Aylık Devam');
     
     return achievements;
   }
 
-  Future<void> _updateAvatar() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 200,
-        maxHeight: 200,
-        imageQuality: 80,
-      );
-      
-      if (image != null) {
-        // Supabase'a yükle (opsiyonel)
-        // Local'a kaydet (geçici)
-        print('Avatar selected: ${image.path}');
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Avatar güncellendi (geçici)'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error updating avatar: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Avatar güncellenemedi'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.2),
-            color.withOpacity(0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: widget.themeConfig.textColor, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: GoogleFonts.notoSans(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: widget.themeConfig.textColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: GoogleFonts.notoSans(
-              fontSize: 12,
-              color: widget.themeConfig.textColor.withOpacity(0.8),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _calculateDaysSince(DateTime? date) {
-    if (date == null) return '0';
-    final difference = DateTime.now().difference(date).inDays;
-    return difference.toString();
+  String _calculateDaysSince(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    return difference.inDays.toString();
   }
 
   String _calculateDailyAverage() {
@@ -245,54 +169,108 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return (_userProfile!.totalZikrs! / days).floor().toString();
   }
 
-  int _calculateUserLevel() {
-    final totalZikrs = _userProfile?.totalZikrs ?? 0;
-    
-    if (totalZikrs >= 10000) return 5;
-    if (totalZikrs >= 5000) return 4;
-    if (totalZikrs >= 1000) return 3;
-    if (totalZikrs >= 500) return 2;
-    if (totalZikrs >= 100) return 1;
-    return 0;
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: GoogleFonts.notoSans(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: widget.themeConfig.textColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: GoogleFonts.notoSans(
+                fontSize: 12,
+                color: widget.themeConfig.textColor.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  double _calculateLevelProgress() {
-    final totalZikrs = _userProfile?.totalZikrs ?? 0;
-    final currentLevel = _calculateUserLevel();
-    final nextLevelRequirement = _getNextLevelRequirement();
-    final currentLevelRequirement = _getCurrentLevelRequirement();
-    
-    if (currentLevel == 5) return 1.0; // Max level
-    
-    final progress = (totalZikrs - currentLevelRequirement) / 
-                    (nextLevelRequirement - currentLevelRequirement);
-    return progress.clamp(0.0, 1.0);
-  }
+  Widget _buildCupGrid() {
+    final cups = [
+      {'name': 'Bronze', 'icon': Icons.emoji_events, 'color': Colors.brown, 'unlocked': _unlockedCups['bronze'] ?? false},
+      {'name': 'Silver', 'icon': Icons.emoji_events, 'color': Colors.grey, 'unlocked': _unlockedCups['silver'] ?? false},
+      {'name': 'Gold', 'icon': Icons.emoji_events, 'color': Colors.amber, 'unlocked': _unlockedCups['gold'] ?? false},
+      {'name': 'Diamond', 'icon': Icons.emoji_events, 'color': Colors.blue, 'unlocked': _unlockedCups['diamond'] ?? false},
+      {'name': 'Platinum', 'icon': Icons.emoji_events, 'color': Colors.purple, 'unlocked': _unlockedCups['platinum'] ?? false},
+    ];
 
-  int _getNextLevelRequirement() {
-    final currentLevel = _calculateUserLevel();
-    switch (currentLevel) {
-      case 0: return 100;
-      case 1: return 500;
-      case 2: return 1000;
-      case 3: return 5000;
-      case 4: return 10000;
-      case 5: return 10000; // Max level
-      default: return 100;
-    }
-  }
-
-  int _getCurrentLevelRequirement() {
-    final currentLevel = _calculateUserLevel();
-    switch (currentLevel) {
-      case 0: return 0;
-      case 1: return 100;
-      case 2: return 500;
-      case 3: return 1000;
-      case 4: return 5000;
-      case 5: return 10000;
-      default: return 0;
-    }
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 1,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: cups.length,
+      itemBuilder: (context, index) {
+        final cup = cups[index];
+        final isUnlocked = cup['unlocked'] as bool;
+        
+        return Container(
+          decoration: BoxDecoration(
+            color: isUnlocked 
+                ? (cup['color'] as Color).withOpacity(0.2)
+                : Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isUnlocked 
+                  ? (cup['color'] as Color).withOpacity(0.5)
+                  : Colors.grey.withOpacity(0.3),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                cup['icon'] as IconData,
+                color: isUnlocked 
+                    ? cup['color'] as Color
+                    : Colors.grey,
+                size: 32,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                cup['name'] as String,
+                style: GoogleFonts.notoSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isUnlocked 
+                      ? widget.themeConfig.textColor
+                      : Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -305,188 +283,147 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(
           'Profil',
           style: GoogleFonts.notoSans(
-            color: widget.themeConfig.textColor,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: IconThemeData(color: widget.themeConfig.textColor),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+        ),
       ),
       body: _isLoading
-          ? Center(
+          ? const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(widget.themeConfig.accentColor),
+                valueColor: AlwaysStoppedAnimation(Colors.white),
               ),
             )
-          : _userProfile == null
-              ? Center(
-                  child: Text(
-                    'Profil yüklenemedi',
-                    style: TextStyle(color: widget.themeConfig.textColor),
-                  ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Profile Header
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              widget.themeConfig.accentColor.withOpacity(0.8),
-                              widget.themeConfig.accentColor.withOpacity(0.6),
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Profile Header
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: widget.themeConfig.backgroundGradient,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: widget.themeConfig.accentColor,
+                          child: Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _userProfile?.displayName ?? 'Zikir Çalışanı',
+                                style: GoogleFonts.notoSans(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _userProfile?.username ?? 'user',
+                                style: GoogleFonts.notoSans(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.8),
+                                ),
+                              ),
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: _updateAvatar,
-                              child: Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: widget.themeConfig.textColor.withOpacity(0.2),
-                                  border: Border.all(
-                                    color: widget.themeConfig.textColor.withOpacity(0.5),
-                                    width: 2,
-                                  ),
-                                ),
-                                child: ClipOval(
-                                  child: _userProfile?.avatarUrl != null
-                                      ? Image.network(
-                                          _userProfile!.avatarUrl!,
-                                          width: 80,
-                                          height: 80,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Icon(
-                                              Icons.person,
-                                              size: 40,
-                                              color: widget.themeConfig.textColor.withOpacity(0.7),
-                                            );
-                                          },
-                                        )
-                                      : Icon(
-                                          Icons.person,
-                                          size: 40,
-                                          color: widget.themeConfig.textColor.withOpacity(0.7),
-                                        ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _userProfile?.displayName ?? 'Zikir Çalışanı',
-                                    style: GoogleFonts.notoSans(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: widget.themeConfig.textColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    '@${_userProfile?.username ?? 'user'}',
-                                    style: GoogleFonts.notoSans(
-                                      fontSize: 14,
-                                      color: widget.themeConfig.textColor.withOpacity(0.8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Stats Cards
+                  Row(
+                    children: [
+                      _buildStatCard(
+                        'Toplam Zikir',
+                        '${_userProfile?.totalZikrs ?? 0}',
+                        Icons.trending_up,
+                        Colors.green,
                       ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Stats Grid
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1.2,
-                        children: [
-                          _buildStatCard(
-                            'Toplam Zikir',
-                            '${_userProfile?.totalZikrs ?? 0}',
-                            Icons.toll,
-                            widget.themeConfig.accentColor,
-                          ),
-                          _buildStatCard(
-                            'Katılım Günü',
-                            _calculateDaysSince(_userProfile?.createdAt),
-                            Icons.calendar_today,
-                            Colors.green,
-                          ),
-                          _buildStatCard(
-                            'Günlük Ort',
-                            _calculateDailyAverage(),
-                            Icons.trending_up,
-                            Colors.blue,
-                          ),
-                          _buildStatCard(
-                            'Seviye',
-                            '${_calculateUserLevel()}',
-                            Icons.star,
-                            Colors.amber,
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Progress Section
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: widget.themeConfig.accentColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: widget.themeConfig.accentColor.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Level $_currentLevel',
-                              style: GoogleFonts.notoSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: widget.themeConfig.textColor,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(
-                              value: _calculateLevelProgress(),
-                              backgroundColor: widget.themeConfig.textColor.withOpacity(0.2),
-                              valueColor: AlwaysStoppedAnimation(widget.themeConfig.accentColor),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${(_userProfile?.totalZikrs ?? 0)} / ${_getNextLevelRequirement()} zikir',
-                              style: GoogleFonts.notoSans(
-                                fontSize: 12,
-                                color: widget.themeConfig.textColor.withOpacity(0.8),
-                              ),
-                            ),
-                          ],
-                        ),
+                      const SizedBox(width: 12),
+                      _buildStatCard(
+                        'Streak',
+                        '$_currentStreak',
+                        Icons.local_fire_department,
+                        Colors.orange,
                       ),
                     ],
                   ),
-                ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  Row(
+                    children: [
+                      _buildStatCard(
+                        'Haftalık',
+                        '$_weeklyZikrs',
+                        Icons.calendar_view_week,
+                        Colors.blue,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildStatCard(
+                        'Günlük Ort.',
+                        _calculateDailyAverage(),
+                        Icons.trending_up,
+                        Colors.blue,
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Kupalar Section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: widget.themeConfig.accentColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: widget.themeConfig.accentColor.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Kazanılan Kupalar',
+                          style: GoogleFonts.notoSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: widget.themeConfig.textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildCupGrid(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

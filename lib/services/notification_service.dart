@@ -46,11 +46,27 @@ class NotificationService {
       settings,
       onDidReceiveNotificationResponse: (response) {
         // Payload ileride gerektiğinde kullanılabilir
+        print('Bildirim tıklandı: ${response.payload}');
       },
     );
     
     final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await androidImpl?.requestNotificationsPermission();
+    
+    // İzinleri kontrol et
+    bool? granted = await androidImpl?.requestNotificationsPermission();
+    print('Bildirim izni verildi: $granted');
+    
+    // Bildirim kanalını oluştur
+    const androidChannel = AndroidNotificationChannel(
+      'daily_reminders',
+      'Günlük Hatırlatıcılar',
+      description: 'Günlük zikir hatırlatıcıları',
+      importance: Importance.high,
+      sound: RawResourceAndroidNotificationSound('notification'),
+    );
+    
+    await androidImpl?.createNotificationChannel(androidChannel);
+    print('Bildirim kanalı oluşturuldu: daily_reminders');
     
     // Ayarları yükle
     await _loadSettings();
@@ -201,6 +217,65 @@ class NotificationService {
     await _saveSettings();
   }
 
+  // Anlık bildirim test
+  Future<void> showTestNotification() async {
+    try {
+      // Basit bildirim testi
+      await _notifications.show(
+        999, // Test için benzersiz ID
+        'Test Bildirimi',
+        'Bildirimler çalışıyor! Saat: ${DateTime.now().toString().substring(11, 16)}',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'test_channel',
+            'Test Bildirimleri',
+            channelDescription: 'Test bildirimleri',
+            icon: '@mipmap/ic_launcher',
+            color: Color.fromARGB(255, 33, 150, 243),
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            autoCancel: true,
+          ),
+        ),
+      );
+      
+      print('Test bildirimi gösterildi');
+      
+      // 5 saniye sonra planlanmış bildirim test
+      await Future.delayed(const Duration(seconds: 1));
+      
+      final now = DateTime.now();
+      final scheduledTime = now.add(const Duration(seconds: 5));
+      
+      await _notifications.zonedSchedule(
+        1000, // Planlanmış test için ID
+        'Planlanmış Test',
+        'Bu bildirim 5 saniye sonra gösterilmeliydi! Saat: ${scheduledTime.toString().substring(11, 16)}',
+        tz.TZDateTime.from(scheduledTime, tz.local),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'test_channel',
+            'Test Bildirimleri',
+            channelDescription: 'Test bildirimleri',
+            icon: '@mipmap/ic_launcher',
+            color: Color.fromARGB(255, 255, 152, 0),
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            autoCancel: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+      
+      print('Planlanmış test bildirimi 5 saniye sonra gösterilecek');
+      
+    } catch (e) {
+      print('Test bildirimi hatası: $e');
+    }
+  }
+
   // Tüm bildirimleri iptal et
   Future<void> cancelAllNotifications() async {
     try {
@@ -216,50 +291,131 @@ class NotificationService {
     required int minute,
     required String title,
     required String body,
+    List<String>? selectedDays,
   }) async {
-    if (!_zikirRemindersEnabled) return;
+    if (!_zikirRemindersEnabled) {
+      print('Zikir hatırlatıcılar devre dışı');
+      return;
+    }
 
     try {
-      final now = tz.TZDateTime.now(tz.local);
-      var scheduledDate = tz.TZDateTime(
-        tz.local,
-        now.year,
-        now.month,
-        now.day,
-        hour,
-        minute,
-      );
+      // Önceki bildirimleri iptal et
+      await _notifications.cancel(3);
+      
+      final now = DateTime.now();
+      print('Current time (local): ${now.toString()}');
+      print('Scheduling reminder for $hour:$minute');
+      
+      if (selectedDays != null && selectedDays.isNotEmpty) {
+        print('Selected days: $selectedDays');
+        
+        // Her seçilen gün için bildirim planla
+        for (int i = 0; i < selectedDays.length; i++) {
+          final dayName = selectedDays[i];
+          final dayIndex = _getDayIndex(dayName);
+          
+          if (dayIndex >= 0) {
+            var scheduledDate = _getNextWeekday(now, dayIndex, hour, minute);
+            
+            await _notifications.zonedSchedule(
+              3 + i, // Benzersiz ID
+              title,
+              body,
+              tz.TZDateTime.from(scheduledDate, tz.local),
+              const NotificationDetails(
+                android: AndroidNotificationDetails(
+                  'daily_reminders',
+                  'Günlük Hatırlatıcılar',
+                  channelDescription: 'Günlük zikir hatırlatıcıları',
+                  icon: '@mipmap/ic_launcher',
+                  color: Color.fromARGB(255, 33, 150, 243),
+                  importance: Importance.high,
+                  priority: Priority.high,
+                  showWhen: true,
+                  autoCancel: true,
+                ),
+              ),
+              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+              matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime, // Haftanın günü ve saat
+            );
+            
+            print('Hatırlatıcı planlandı: $title ($dayName) saat $hour:$minute - ${scheduledDate.toString()}');
+          }
+        }
+      } else {
+        // Gün seçimi yoksa her gün planla
+        var scheduledDate = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
 
-      // Eğer belirtilen zaman geçmişse, ertesi gün için planla
-      if (scheduledDate.isBefore(now)) {
-        scheduledDate = scheduledDate.add(const Duration(days: 1));
-      }
+        // Eğer belirtilen zaman geçmişse, ertesi gün için planla
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
 
-      await _notifications.zonedSchedule(
-        3, // Benzersiz ID
-        title,
-        body,
-        scheduledDate,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'daily_reminders',
-            'Günlük Hatırlatıcılar',
-            channelDescription: 'Günlük zikir hatırlatıcıları',
-            icon: '@mipmap/ic_launcher',
-            color: Color.fromARGB(255, 33, 150, 243),
-            importance: Importance.high,
-            priority: Priority.high,
-            showWhen: true,
-            autoCancel: true,
+        await _notifications.zonedSchedule(
+          3, // Benzersiz ID
+          title,
+          body,
+          tz.TZDateTime.from(scheduledDate, tz.local),
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'daily_reminders',
+              'Günlük Hatırlatıcılar',
+              channelDescription: 'Günlük zikir hatırlatıcıları',
+              icon: '@mipmap/ic_launcher',
+              color: Color.fromARGB(255, 33, 150, 243),
+              importance: Importance.high,
+              priority: Priority.high,
+              showWhen: true,
+              autoCancel: true,
+            ),
           ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time, // Her gün tekrarla
-      );
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time, // Her gün tekrarla
+        );
 
-      print('Günlük hatırlatıcı planlandı: $title saat $hour:$minute');
+        print('Günlük hatırlatıcı planlandı: $title saat $hour:$minute - ${scheduledDate.toString()}');
+      }
+      
+      // Bekleyen bildirimleri kontrol et
+      final pendingNotifications = await _notifications.pendingNotificationRequests();
+      print('Bekleyen bildirim sayısı: ${pendingNotifications.length}');
+      for (final notification in pendingNotifications) {
+        print('ID: ${notification.id}, Title: ${notification.title}');
+      }
+      
     } catch (e) {
       print('Günlük hatırlatıcı planlama hatası: $e');
     }
+  }
+  
+  // Gün adını index'e çevir
+  int _getDayIndex(String dayName) {
+    final days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Pzr'];
+    return days.indexOf(dayName);
+  }
+  
+  // Bir sonraki belirtilen günü hesapla
+  DateTime _getNextWeekday(DateTime now, int targetDayIndex, int hour, int minute) {
+    int currentDayIndex = now.weekday % 7; // Pazartesi=1, Pazar=7 -> 0-6 formatına çevir
+    if (currentDayIndex == 0) currentDayIndex = 6; // Pazar'ı 6 yap
+    else currentDayIndex--; // Diğer günleri 0-5 arasına getir
+    
+    int daysUntilTarget = (targetDayIndex - currentDayIndex + 7) % 7;
+    if (daysUntilTarget == 0) daysUntilTarget = 7; // Bugün ise bir sonraki hafta
+    
+    var nextDate = now.add(Duration(days: daysUntilTarget));
+    return DateTime(
+      nextDate.year,
+      nextDate.month,
+      nextDate.day,
+      hour,
+      minute,
+    );
   }
 }

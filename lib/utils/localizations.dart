@@ -447,6 +447,11 @@ class AppLocalizations {
       'import_failed': 'فشل الاستيراد',
       'export_success': 'تم التصدير بنجاح!',
       'export_failed': 'فشل التصدير',
+      'developer_name': 'Caner Erdem',
+      'developer_title': 'المطور',
+      'developer_website': 'www.mcanererdem.com',
+      'developer_email': 'info@mcanererdem.com',
+      'developer_github': 'github.com/mcanererdem',
     },
     'id': {
       'app_name': 'Tasbih Digital',
@@ -2021,6 +2026,11 @@ class AppLocalizations {
       'import_failed': 'Shigarwa ta kasa',
       'export_success': 'Fitarwa ta yi nasara!',
       'export_failed': 'Fitarwa ta kasa',
+      'developer_name': 'Caner Erdem',
+      'developer_title': 'Geliştirici',
+      'developer_website': 'www.mcanererdem.com',
+      'developer_email': 'info@mcanererdem.com',
+      'developer_github': 'github.com/mcanererdem',
 },
   };
 

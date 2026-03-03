@@ -599,17 +599,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     }
   }
 
-  // Kullanıcı seviyesini hesapla
-  Future<int> _calculateUserLevel() async {
+  // Kazanılmış en yüksek kupayı hesapla
+  Future<String> _getHighestCup() async {
     final prefs = await SharedPreferences.getInstance();
     final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
     
-    if (totalZikrs >= 10000) return 5;
-    if (totalZikrs >= 5000) return 4;
-    if (totalZikrs >= 1000) return 3;
-    if (totalZikrs >= 500) return 2;
-    if (totalZikrs >= 100) return 1;
-    return 0;
+    if (totalZikrs >= 10000) return 'Platinum';
+    if (totalZikrs >= 5000) return 'Diamond';
+    if (totalZikrs >= 1000) return 'Gold';
+    if (totalZikrs >= 500) return 'Silver';
+    if (totalZikrs >= 100) return 'Bronze';
+    return 'Yeni';
   }
 
   void _changeTarget() {
@@ -969,11 +969,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                               },
                             ),
                             const SizedBox(width: 4),
-                            FutureBuilder<int>(
-                              future: _calculateUserLevel(),
+                            FutureBuilder<String>(
+                              future: _getHighestCup(),
                               builder: (context, snapshot) {
                                 return Text(
-                                  'Level ${snapshot.data ?? 0}',
+                                  snapshot.data ?? 'Yeni',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: _currentTheme.textColor.withOpacity(0.7),

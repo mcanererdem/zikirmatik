@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'dart:convert';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 
@@ -345,15 +348,22 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         },
       };
 
-      // Dosyayı kaydet (simülasyon)
+      // Downloads klasörünü al
+      final directory = await getDownloadsDirectory();
+      if (directory == null) {
+        throw Exception('Downloads klasörüne erişilemedi');
+      }
+
+      // Dosyayı oluştur
       final fileName = 'zikirmatik_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final file = File('${directory.path}/$fileName');
+      
+      // JSON verisini dosyaya yaz
+      await file.writeAsString(jsonEncode(exportData));
       
       setState(() {
-        _statusMessage = '✅ Veriler başarıyla dışa aktarıldı!\nDosya: $fileName';
+        _statusMessage = '✅ Veriler başarıyla dışa aktarıldı!\nDosya: ${directory.path}/$fileName\n\nNot: Dosyayı Dosyalarım/Downloads klasöründe bulabilirsiniz.';
       });
-
-      // Gerçek uygulamada FilePicker kullanılabilir
-      print('Export data: $exportData');
       
     } catch (e) {
       setState(() {
@@ -373,25 +383,60 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     });
 
     try {
-      // Dosya seç (simülasyon)
+      // Downloads klasöründen dosya seç
+      final directory = await getDownloadsDirectory();
+      if (directory == null) {
+        throw Exception('Downloads klasörüne erişilemedi');
+      }
+
+      // FilePicker ile dosya seç
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        initialDirectory: directory.path,
       );
 
-      if (result != null) {
+      if (result != null && result.files.first.path != null) {
+        final file = File(result.files.first.path!);
+        final content = await file.readAsString();
+        
+        // JSON verisini parse et
+        final importData = jsonDecode(content);
+        
+        // Verileri SharedPreferences'a kaydet
+        final prefs = await SharedPreferences.getInstance();
+        final data = importData['data'];
+        
+        // Zikir sayıları
+        final zikirCounts = data['zikirCounts'];
+        await prefs.setInt('total_zikrs_${widget.currentUserId}', zikirCounts['total_zikrs'] ?? 0);
+        await prefs.setInt('current_count', zikirCounts['current_count'] ?? 0);
+        if (zikirCounts['last_zikr_date'] != null) {
+          await prefs.setString('last_zikr_date_${widget.currentUserId}', zikirCounts['last_zikr_date']);
+        }
+        
+        // Başarılar
+        final achievements = data['achievements'];
+        await prefs.setBool('bronze_kupa_unlocked_${widget.currentUserId}', achievements['bronze_kupa_unlocked'] ?? false);
+        await prefs.setBool('silver_kupa_unlocked_${widget.currentUserId}', achievements['silver_kupa_unlocked'] ?? false);
+        await prefs.setBool('gold_kupa_unlocked_${widget.currentUserId}', achievements['gold_kupa_unlocked'] ?? false);
+        await prefs.setBool('diamond_kupa_unlocked_${widget.currentUserId}', achievements['diamond_kupa_unlocked'] ?? false);
+        await prefs.setBool('platinum_kupa_unlocked_${widget.currentUserId}', achievements['platinum_kupa_unlocked'] ?? false);
+        
+        // Ayarlar
+        final settings = data['settings'];
+        await prefs.setString('theme', settings['theme'] ?? 'dark_blue');
+        await prefs.setString('language', settings['language'] ?? 'tr');
+        await prefs.setBool('vibration_on', settings['vibration'] ?? true);
+        await prefs.setBool('sound_on', settings['sound'] ?? true);
+        await prefs.setBool('confetti_on', settings['confetti'] ?? true);
+        await prefs.setBool('reminder_enabled', settings['reminder'] ?? false);
+        await prefs.setBool('tts_enabled', settings['tts'] ?? false);
+        
         setState(() {
-          _statusMessage = '✅ Dosya seçildi: ${result.files.first.name}';
+          _statusMessage = '✅ Veriler başarıyla içe aktarıldı!\nDosya: ${result.files.first.name}';
         });
         
-        // Gerçek uygulamada burada JSON parse ve veri yükleme yapılır
-        print('Import file: ${result.files.first.path}');
-        
-        // Simülasyon: Başarılı mesajı
-        await Future.delayed(const Duration(seconds: 1));
-        setState(() {
-          _statusMessage = '✅ Veriler başarıyla içe aktarıldı!';
-        });
       } else {
         setState(() {
           _statusMessage = '❌ Dosya seçilmedi';
