@@ -43,7 +43,7 @@ class ThemeConfig {
 
 class AppThemes {
   static final List<ThemeConfig> themes = [
-    // Safir Altın (Varsayılan)
+    // Safir Altın (Varsayılan - Geliştirilmiş)
     ThemeConfig(
       id: 'blue_gold',
       nameTr: 'Safir Altın',
@@ -54,25 +54,25 @@ class AppThemes {
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF0A2239), Color(0xFF173F6E), Color(0xFF2A64A3)],
+        colors: [Color(0xFF0F2042), Color(0xFF203A6B), Color(0xFF2C5F8D)],
       ),
       buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF1A4E84), Color(0xFF2E6CB5)],
+        colors: [Color(0xFF2C5F8D), Color(0xFF4A7BA7)],
       ),
       goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+        colors: [Color(0xFFD4AF37), Color(0xFFFCF6BA)],
       ),
-      accentColor: const Color(0xFFFFD700),
-      primaryColor: const Color(0xFF1A5490),
-      textColor: const Color(0xFFFFFFFF),
+      accentColor: const Color(0xFFD4AF37),
+      primaryColor: const Color(0xFF2C5F8D),
+      textColor: const Color(0xFFF8F8FF),
       darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
     
-    // Zümrüt Parıltı
+    // Zümrüt Parıltı (Geliştirilmiş)
     ThemeConfig(
       id: 'green_gold',
       nameTr: 'Zümrüt Parıltı',
@@ -83,25 +83,25 @@ class AppThemes {
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF0D3B2E), Color(0xFF1F5F42), Color(0xFF2F7A57)],
+        colors: [Color(0xFF0B3B2E), Color(0xFF1F5F42), Color(0xFF2F7A57)],
       ),
       buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF1B5E3F), Color(0xFF2D8659)],
+        colors: [Color(0xFF2F7A57), Color(0xFF4A9B6F)],
       ),
       goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+        colors: [Color(0xFFC9B037), Color(0xFFE6D690)],
       ),
-      accentColor: const Color(0xFFFFD700),
-      primaryColor: const Color(0xFF1B5E3F),
-      textColor: const Color(0xFFFFFFFF),
+      accentColor: const Color(0xFFC9B037),
+      primaryColor: const Color(0xFF2F7A57),
+      textColor: const Color(0xFFF0FFF0),
       darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
     
-    // Kraliyet Gül (White + Rose)
+    // Kraliyet Gül (Geliştirilmiş)
     ThemeConfig(
       id: 'purple_gold',
       nameTr: 'Kraliyet Gül',
@@ -112,25 +112,25 @@ class AppThemes {
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFFFFFFFF), Color(0xFFF6F7FA), Color(0xFFEFF2F7)],
+        colors: [Color(0xFFFDFBFB), Color(0xFFEEDDD6), Color(0xFFF5E6E6)],
       ),
       buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFE091A9), Color(0xFFD76D8A)],
+        colors: [Color(0xFFD63384), Color(0xFFE91E63)],
       ),
       goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFEFB9C8), Color(0xFFE091A9)],
+        colors: [Color(0xFFE91E63), Color(0xFFF48FB1)],
       ),
-      accentColor: const Color(0xFFD76D8A),
-      primaryColor: const Color(0xFFE5E8EF),
-      textColor: const Color(0xFF1A1A1A),
+      accentColor: const Color(0xFFD63384),
+      primaryColor: const Color(0xFFEEDDD6),
+      textColor: const Color(0xFF2C1810),
       lightBackgroundAsset: 'assets/backgrounds/light_bg.png',
     ),
     
-    // Dark Night (Yeni Gece Modu)
+    // Karan Gece (Yeni Kimlik)
     ThemeConfig(
       id: 'dark_night',
       nameTr: 'Karan Gece',
@@ -138,40 +138,28 @@ class AppThemes {
       nameAr: 'ليل مظلم',
       nameId: 'Malam Gelap',
       mode: AppThemeMode.darkBlue,
-      backgroundGradient: LinearGradient(
+      backgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF000000),
-          Color(0xFF0A0A0A),
-          Color(0xFF141414),
-        ],
+        colors: [Color(0xFF0D0D0D), Color(0xFF1A1A1A), Color(0xFF2D2D2D)],
       ),
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF141414),
-          Color(0xFF1E1E1E),
-          Color(0xFF282828),
-        ],
+        colors: [Color(0xFF4A148C), Color(0xFF7B1FA2)],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFE0AAFF),
-          Color(0xFFC77DFF),
-          Color(0xFF9D4EDD),
-        ],
+        colors: [Color(0xFF7B1FA2), Color(0xFFBA68C8)],
       ),
-      accentColor: Color(0xFFE0AAFF),
-      primaryColor: Color(0xFF141414),
-      textColor: Colors.white,
+      accentColor: const Color(0xFF4A148C),
+      primaryColor: const Color(0xFF1A1A1A),
+      textColor: const Color(0xFFE8EAF6),
       darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
     
-    // Moonlight (Yeni Gece Modu)
+    // Ay Işığı (Yeni Kimlik)
     ThemeConfig(
       id: 'moonlight',
       nameTr: 'Ay Işığı',
@@ -179,40 +167,28 @@ class AppThemes {
       nameAr: 'ضوء القمر',
       nameId: 'Cahaya Bulan',
       mode: AppThemeMode.darkBlue,
-      backgroundGradient: LinearGradient(
+      backgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF1A1A2E),
-          Color(0xFF2D3748),
-          Color(0xFF4A5568),
-        ],
+        colors: [Color(0xFF1A237E), Color(0xFF283593), Color(0xFF3949AB)],
       ),
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF2D3748),
-          Color(0xFF4A5568),
-          Color(0xFF6774A4),
-        ],
+        colors: [Color(0xFF3949AB), Color(0xFF5C6BC0)],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFE0AAFF),
-          Color(0xFFC77DFF),
-          Color(0xFF9D4EDD),
-        ],
+        colors: [Color(0xFFFFD54F), Color(0xFFFFE082)],
       ),
-      accentColor: Color(0xFFE0AAFF),
-      primaryColor: Color(0xFF2D3748),
-      textColor: Colors.white,
+      accentColor: const Color(0xFFFFD54F),
+      primaryColor: const Color(0xFF283593),
+      textColor: const Color(0xFFE8EAF6),
       darkBackgroundAsset: 'assets/backgrounds/light_bg.png',
     ),
     
-    // Deep Space (Yeni Gece Modu)
+    // Derin Uzay (Yeni Kimlik)
     ThemeConfig(
       id: 'deep_space',
       nameTr: 'Derin Uzay',
@@ -220,40 +196,28 @@ class AppThemes {
       nameAr: 'الفضاء العميق',
       nameId: 'Ruang Dalam',
       mode: AppThemeMode.darkBlue,
-      backgroundGradient: LinearGradient(
+      backgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF000000),
-          Color(0xFF0F0F0F),
-          Color(0xFF1A1A1A),
-        ],
+        colors: [Color(0xFF000428), Color(0xFF004e92), Color(0xFF1A237E)],
       ),
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF0F0F0F),
-          Color(0xFF1A1A1A),
-          Color(0xFF2A2A2A),
-        ],
+        colors: [Color(0xFF004e92), Color(0xFF1A237E)],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFE0AAFF),
-          Color(0xFFC77DFF),
-          Color(0xFF9D4EDD),
-        ],
+        colors: [Color(0xFF00BCD4), Color(0xFF4DD0E1)],
       ),
-      accentColor: Color(0xFFE0AAFF),
-      primaryColor: Color(0xFF0F0F0F),
-      textColor: Colors.white,
+      accentColor: const Color(0xFF00BCD4),
+      primaryColor: const Color(0xFF004e92),
+      textColor: const Color(0xFFE1F5FE),
       darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
     
-    // Northern Lights (Yeni Gece Modu)
+    // Kuzey Işıkları (Yeni Kimlik)
     ThemeConfig(
       id: 'northern_lights',
       nameTr: 'Kuzey Işıkları',
@@ -261,40 +225,28 @@ class AppThemes {
       nameAr: 'الأضواء الشمال',
       nameId: 'Cahaya Işıkları',
       mode: AppThemeMode.darkBlue,
-      backgroundGradient: LinearGradient(
+      backgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF0F172A),
-          Color(0xFF1E3A3A),
-          Color(0xFF2E5E5E),
-        ],
+        colors: [Color(0xFF006064), Color(0xFF00838F), Color(0xFF0097A7)],
       ),
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF1E3A3A),
-          Color(0xFF2E5E5E),
-          Color(0xFF3F7F7F),
-        ],
+        colors: [Color(0xFF0097A7), Color(0xFF26C6DA)],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFE0AAFF),
-          Color(0xFFC77DFF),
-          Color(0xFF9D4EDD),
-        ],
+        colors: [Color(0xFF00E676), Color(0xFF69F0AE)],
       ),
-      accentColor: Color(0xFFE0AAFF),
-      primaryColor: Color(0xFF1E3A3A),
-      textColor: Colors.white,
+      accentColor: const Color(0xFF00E676),
+      primaryColor: const Color(0xFF00838F),
+      textColor: const Color(0xFFE0F2F1),
       darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
     
-    // Yıldızlı Gece
+    // Yıldızlı Gece (Yeni Kimlik)
     ThemeConfig(
       id: 'dark_blue',
       nameTr: 'Yıldızlı Gece',
@@ -305,21 +257,21 @@ class AppThemes {
       backgroundGradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF0A0E27), Color(0xFF1A1F3A), Color(0xFF2A3F5F)],
+        colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF334155)],
       ),
       buttonGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF1A1F3A), Color(0xFF2A3F5F)],
+        colors: [Color(0xFF1E293B), Color(0xFF334155)],
       ),
       goldGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF64B5F6), Color(0xFF42A5F5)],
+        colors: [Color(0xFFF59E0B), Color(0xFFFCD34D)],
       ),
-      accentColor: const Color(0xFF64B5F6),
-      primaryColor: const Color(0xFF1A1F3A),
-      textColor: const Color(0xFFFFFFFF),
+      accentColor: const Color(0xFFF59E0B),
+      primaryColor: const Color(0xFF1E293B),
+      textColor: const Color(0xFFF8FAFC),
       darkBackgroundAsset: 'assets/backgrounds/dark_bg.png',
     ),
   ];

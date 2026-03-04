@@ -299,6 +299,11 @@ class AppLocalizations {
       'help_addzikr_text': 'Tap the dhikr name on the home screen to open the selection screen. Choose from existing dhikrs or create your own with the "Add New Dhikr" button.',
       'help_toggles_title': 'Toggle Buttons',
       'help_toggles_text': 'Use the bottom controls (Vibration, Sound, Confetti) to instantly toggle features and personalize your experience.',
+      'developer_name': 'Caner Erdem',
+      'developer_title': 'Developer',
+      'developer_website': 'www.mcanererdem.com',
+      'developer_email': 'info@mcanererdem.com',
+      'developer_github': 'github.com/mcanererdem',
     },
     'ar': {
       'app_name': 'مسبحة إلكترونية',
