@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import 'dart:math';
+import 'dart:io';
 
 class StatisticsScreenNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -212,6 +216,92 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     return months[month - 1];
   }
 
+  Future<void> _exportStatistics() async {
+    try {
+      // İstatistik verilerini oluştur
+      final stats = {
+        'total_zikrs': _totalZikrs,
+        'current_streak': _currentStreak,
+        'longest_streak': _longestStreak,
+        'last_zikr_date': _lastZikrDate?.toIso8601String(),
+        'export_date': DateTime.now().toIso8601String(),
+        'weekly_zikrs': _weeklyZikrs,
+        'monthly_zikrs': _monthlyZikrs,
+        'yearly_zikrs': _yearlyZikrs,
+        'daily_average': _dailyAverage,
+        'weekly_data': _weeklyData,
+        'monthly_data': _monthlyData,
+        'hourly_distribution': _hourlyDistribution,
+        'most_productive_day': _mostProductiveDay,
+        'most_productive_hour': _mostProductiveHour,
+      };
+
+      // JSON formatında veriyi string'e çevir
+      String jsonStats = _formatStatsAsJson(stats);
+      
+      // Downloads klasörüne kaydet
+      final directory = await getDownloadsDirectory();
+      if (directory != null) {
+        final fileName = 'zikirmatik_istatistik_${DateTime.now().millisecondsSinceEpoch}.json';
+        final file = File('${directory.path}/$fileName');
+        await file.writeAsString(jsonStats);
+        
+        // Başarılı mesajı göster
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('İstatistikler cihaz Downloads klasörüne kaydedildi!'),
+              backgroundColor: Colors.green,
+              action: SnackBarAction(
+                label: 'Paylaş',
+                textColor: Colors.white,
+                onPressed: () => _shareStats(file.path),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error exporting statistics: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('İstatistikler kaydedilemedi.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatStatsAsJson(Map<String, dynamic> stats) {
+    String json = '{\n';
+    stats.forEach((key, value) {
+      json += '  "$key": ${value is String ? '"$value"' : value},\n';
+    });
+    if (stats.isNotEmpty) {
+      json = json.substring(0, json.length - 2); // Son virgülü kaldır
+    }
+    json += '\n}';
+    return json;
+  }
+
+  Future<void> _shareStats(String filePath) async {
+    try {
+      await Share.shareXFiles([XFile(filePath)], text: 'Zikirmatik İstatistikleri');
+    } catch (e) {
+      print('Error sharing statistics: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Paylaşım başarısız.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -250,6 +340,14 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                             color: widget.themeConfig.textColor,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: _exportStatistics,
+                          icon: Icon(
+                            Icons.download,
+                            color: widget.themeConfig.textColor,
                           ),
                         ),
                       ],

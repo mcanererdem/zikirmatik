@@ -1,29 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/zikr_model.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../models/theme_model.dart';
-import '../models/goal_model.dart';
+import '../models/user_profile_model.dart';
 import '../utils/localizations.dart';
 import '../services/settings_service.dart';
-import '../services/ad_service.dart';
-import '../services/counter_logic.dart';
+import '../services/supabase_service.dart';
 import '../services/audio_manager.dart';
 import '../services/feedback_manager.dart';
-import '../services/widget_service.dart';
 import '../services/notification_service.dart';
-import '../widgets/confetti_animation.dart';
-import '../widgets/success_dialog.dart';
-import '../widgets/target_dialog.dart';
-import '../widgets/zikr_selection_dialog.dart';
-import '../widgets/add_zikr_dialog.dart';
-import '../widgets/goal_dialog.dart';
 import '../services/tts_service.dart';
-import '../services/supabase_service.dart';
+import '../services/widget_service.dart';
+import '../models/zikr_model.dart';
+import '../models/goal_model.dart';
+import '../services/counter_logic.dart';
+import '../services/ad_service.dart';
+import '../utils/dialog_manager.dart';
+import '../utils/random_name_generator.dart';
+import 'dart:async';
+import 'dart:math';
+import '../widgets/settings_dialog_new.dart';
+import '../widgets/zikr_selection_dialog.dart';
+import '../widgets/target_dialog.dart';
+import '../widgets/success_dialog.dart';
+import '../widgets/goal_dialog.dart';
+import '../widgets/add_zikr_dialog.dart';
+import '../widgets/notification_settings_dialog.dart';
+import '../widgets/confetti_animation.dart';
 import 'kupa_screen_new.dart';
 import 'statistics_screen_new.dart';
 import 'profile_screen.dart';
@@ -100,6 +105,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     WidgetsBinding.instance.addObserver(this);
     _localizations = AppLocalizations('en');
     
+    // Dialog durumlarını sıfırla (uygulama başladığında)
+    DialogManager.resetAllStates();
+    
+    // Rastgele kullanıcı ismi oluştur
+    _generateUserId();
+    
     // Supabase'i başlat
     _supabaseService.initialize();
     
@@ -148,6 +159,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     );
     
     _neonAnimationController.repeat(reverse: true);
+  }
+
+  Future<void> _generateUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUserId = prefs.getString('user_id');
+    
+    if (savedUserId != null && savedUserId!.isNotEmpty) {
+      _currentUserId = savedUserId;
+      print('👤 Existing user ID loaded: $_currentUserId');
+    } else {
+      // Rastgele isim oluştur
+      final randomUsername = await RandomNameGenerator.generateRandomUsername();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      _currentUserId = '${randomUsername}_$timestamp';
+      
+      // Kaydet
+      await prefs.setString('user_id', _currentUserId);
+      print('🎲 New random user ID generated: $_currentUserId');
+    }
   }
 
   Future<void> _loadBannerAd() async {
@@ -236,8 +266,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     _buttonAnimationController.dispose();
     _counterAnimationController.dispose();
     _neonAnimationController.dispose();
-    _audioManager.dispose();
     _bannerAd?.dispose();
+    _ttsService.dispose();
+    
+    // Dialog durumlarını temizle
+    DialogManager.resetAllStates();
+    
     super.dispose();
   }
 
@@ -251,6 +285,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           _counter = savedCount;
         });
       }
+      
+      // Animasyon hızını güncelle (ayarlardan değiştirilmiş olabilir)
+      final prefs = await SharedPreferences.getInstance();
+      final animationSpeed = prefs.getInt('animation_speed') ?? 2;
+      _updateAnimationSpeed(animationSpeed);
     }
   }
 
@@ -362,6 +401,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     // Önceki snackbar'ı kapat
     ScaffoldMessenger.of(context).clearSnackBars();
     
+    if (!DialogManager.canShowSnackbar()) return;
+    
+    DialogManager.onSnackbarShown();
+    
     final typeLabel = goalType == 'daily' ? _localizations.dailyGoal :
                      goalType == 'weekly' ? _localizations.weeklyGoal :
                      _localizations.monthlyGoal;
@@ -441,7 +484,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-      );
+      ).closed.then((_) => DialogManager.onSnackbarHidden());
     });
   }
 
@@ -451,6 +494,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
     if (_isConfettiOn) {
       setState(() => _showConfetti = true);
+
+      if (!DialogManager.canShowDialog()) return;
+      
+      DialogManager.onDialogOpened();
 
       showDialog(
         context: context,
@@ -470,7 +517,40 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           themeConfig: _currentTheme,
           localizations: _localizations,
         ),
+      ).then((_) => DialogManager.onDialogClosed());
+    }
+  }
+
+  Future<void> _syncToLeaderboard() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
+      final username = prefs.getString('username_$_currentUserId') ?? 'user';
+      final displayName = prefs.getString('display_name_$_currentUserId') ?? username;
+      final avatarUrl = prefs.getString('avatar_url_$_currentUserId');
+
+      // Supabase'e profil oluştur/güncelle
+      final userProfile = UserProfile(
+        userId: _currentUserId,
+        username: username,
+        displayName: displayName,
+        avatarUrl: avatarUrl,
+        totalZikrs: totalZikrs,
+        lastZikrDate: DateTime.now(),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
+
+      await _supabaseService.updateUserProfile(userProfile);
+
+      // Leaderboard'a ekle
+      await _supabaseService.updateDailyLeaderboard(_currentUserId, totalZikrs);
+      await _supabaseService.updateWeeklyLeaderboard(_currentUserId, totalZikrs);
+      await _supabaseService.updateMonthlyLeaderboard(_currentUserId, totalZikrs);
+
+      print('✅ Auto-sync to leaderboard: $username ($totalZikrs zikrs)');
+    } catch (e) {
+      print('❌ Error auto-syncing to leaderboard: $e');
     }
   }
 
@@ -487,66 +567,144 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   Future<void> _checkAndUnlockAchievements() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final today = DateTime.now();
+      final todayKey = '${today.year}_${today.month}_${today.day}';
+      final lastCheckDate = prefs.getString('last_achievement_check_$_currentUserId') ?? '';
+      
+      // Günlük kontrolü sıfırla - sadece günlük kupaları sıfırla
+      if (lastCheckDate != todayKey) {
+        // Sadece günlük kupaları sıfırla
+        await prefs.remove('daily_warrior_unlocked_$_currentUserId');
+        await prefs.setString('last_achievement_check_$_currentUserId', todayKey);
+        print('📅 Daily achievements reset for $todayKey');
+      }
+      
       final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
       
       print('Checking achievements for $totalZikrs zikrs');
       
-      // Bronz Kupa - 100 zikir
+      // Leaderboard senkronizasyonu kontrolü
+      final leaderboardEnabled = prefs.getBool('leaderboard_enabled') ?? true;
+      if (leaderboardEnabled) {
+        // Her 50 zikirde bir leaderboard güncelle
+        if (totalZikrs % 50 == 0) {
+          await _syncToLeaderboard();
+        }
+        
+        // Aktif sayaç değiştiğinde kupa güncelle
+        final previousZikrs = prefs.getInt('previous_zikrs_${widget.currentUserId}') ?? 0;
+        if (totalZikrs > previousZikrs) {
+          await _syncToLeaderboard();
+        }
+        await prefs.setInt('previous_zikrs_${widget.currentUserId}', totalZikrs);
+      }
+      
+      // Bronz Kupa - 100 zikir (kalıcı)
       if (totalZikrs >= 100) {
         final bronzeUnlocked = prefs.getBool('bronze_kupa_unlocked_$_currentUserId') ?? false;
         if (!bronzeUnlocked) {
           print('🥉 Bronze Kupa unlocked!');
           _showAchievementNotification('🥉 Bronz Kupa Kazandınız!', '100 zikir hedefine ulaştınız!');
           await prefs.setBool('bronze_kupa_unlocked_$_currentUserId', true);
+          // Supabase'e kaydet
+          try {
+            await _supabaseService.unlockAchievement(_currentUserId, 'bronze_kupa');
+          } catch (e) {
+            print('Error saving bronze achievement to Supabase: $e');
+          }
         }
       }
       
-      // Gümüş Kupa - 500 zikir
+      // Gümüş Kupa - 500 zikir (kalıcı)
       if (totalZikrs >= 500) {
         final silverUnlocked = prefs.getBool('silver_kupa_unlocked_$_currentUserId') ?? false;
         if (!silverUnlocked) {
           print('🥈 Silver Kupa unlocked!');
           _showAchievementNotification('🥈 Gümüş Kupa Kazandınız!', '500 zikir hedefine ulaştınız!');
           await prefs.setBool('silver_kupa_unlocked_$_currentUserId', true);
+          // Supabase'e kaydet
+          try {
+            await _supabaseService.unlockAchievement(_currentUserId, 'silver_kupa');
+          } catch (e) {
+            print('Error saving silver achievement to Supabase: $e');
+          }
         }
       }
       
-      // Altın Kupa - 1000 zikir
+      // Altın Kupa - 1000 zikir (kalıcı)
       if (totalZikrs >= 1000) {
         final goldUnlocked = prefs.getBool('gold_kupa_unlocked_$_currentUserId') ?? false;
         if (!goldUnlocked) {
           print('🥇 Gold Kupa unlocked!');
           _showAchievementNotification('🥇 Altın Kupa Kazandınız!', '1000 zikir hedefine ulaştınız!');
           await prefs.setBool('gold_kupa_unlocked_$_currentUserId', true);
+          // Supabase'e kaydet
+          try {
+            await _supabaseService.unlockAchievement(_currentUserId, 'gold_kupa');
+          } catch (e) {
+            print('Error saving gold achievement to Supabase: $e');
+          }
         }
       }
       
-      // Elmas Kupa - 5000 zikir
+      // Elmas Kupa - 5000 zikir (kalıcı)
       if (totalZikrs >= 5000) {
         final diamondUnlocked = prefs.getBool('diamond_kupa_unlocked_$_currentUserId') ?? false;
         if (!diamondUnlocked) {
           print('💎 Diamond Kupa unlocked!');
           _showAchievementNotification('💎 Elmas Kupa Kazandınız!', '5000 zikir hedefine ulaştınız!');
           await prefs.setBool('diamond_kupa_unlocked_$_currentUserId', true);
+          // Supabase'e kaydet
+          try {
+            await _supabaseService.unlockAchievement(_currentUserId, 'diamond_kupa');
+          } catch (e) {
+            print('Error saving diamond achievement to Supabase: $e');
+          }
         }
       }
       
-      // Platin Kupa - 10000 zikir
+      // Platin Kupa - 10000 zikir (kalıcı)
       if (totalZikrs >= 10000) {
         final platinumUnlocked = prefs.getBool('platinum_kupa_unlocked_$_currentUserId') ?? false;
         if (!platinumUnlocked) {
           print('🏆 Platinum Kupa unlocked!');
           _showAchievementNotification('🏆 Platin Kupa Kazandınız!', '10000 zikir hedefine ulaştınız!');
           await prefs.setBool('platinum_kupa_unlocked_$_currentUserId', true);
+          // Supabase'e kaydet
+          try {
+            await _supabaseService.unlockAchievement(_currentUserId, 'platinum_kupa');
+          } catch (e) {
+            print('Error saving platinum achievement to Supabase: $e');
+          }
         }
       }
+      
+      // Günlük Savaşçı - 1000 zikir/gün (günlük)
+      final todayZikrs = prefs.getInt('daily_count_${today.year}_${today.month}_${today.day}_$_currentUserId') ?? 0;
+      if (todayZikrs >= 1000) {
+        final dailyWarriorUnlocked = prefs.getBool('daily_warrior_unlocked_$_currentUserId') ?? false;
+        if (!dailyWarriorUnlocked) {
+          print('⚔️ Daily Warrior unlocked!');
+          _showAchievementNotification('⚔️ Günlük Savaşçı!', 'Bugün 1000 zikir yaptınız!');
+          await prefs.setBool('daily_warrior_unlocked_$_currentUserId', true);
+          // Supabase'e kaydet
+          try {
+            await _supabaseService.unlockAchievement(_currentUserId, 'daily_warrior');
+          } catch (e) {
+            print('Error saving daily warrior achievement to Supabase: $e');
+          }
+        }
+      }
+      
     } catch (e) {
       print('Error checking achievements: $e');
     }
   }
 
   void _showAchievementNotification(String title, String message) {
-    if (mounted) {
+    if (mounted && DialogManager.canShowSnackbar()) {
+      DialogManager.onSnackbarShown();
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Column(
@@ -578,7 +736,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-      );
+      ).closed.then((_) => DialogManager.onSnackbarHidden());
     }
   }
 
@@ -756,6 +914,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           themeConfig: _currentTheme,
           localizations: _localizations,
           currentUserId: _currentUserId,
+          onSettingsChanged: () {
+            // Ayarlar değiştiğinde ana sayfayı güncelle
+            _loadSettings();
+          },
         ),
       ),
     );
@@ -836,7 +998,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 ),
                 Container(
                   width: double.infinity,
-                  height: (_bannerAd?.size.height ?? AdSize.banner.height).toDouble(),
+                  height: (_bannerAd?.size.height ?? 50.0).toDouble(),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.03),
                     border: Border(
@@ -847,7 +1009,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                     ),
                   ),
                   child: _isBannerAdLoaded && _bannerAd != null
-                      ? Center(child: AdWidget(ad: _bannerAd!))
+                      ? Center(child: Container(
+                          width: _bannerAd!.size.width.toDouble(),
+                          height: _bannerAd!.size.height.toDouble(),
+                          child: AdWidget(ad: _bannerAd!),
+                        ))
                       : Center(
                           child: Text(
                             _isBannerAdLoaded ? 'Preparing ad...' : 'Ad not loaded',
@@ -1005,6 +1171,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                         themeConfig: _currentTheme,
                         localizations: _localizations,
                         currentUserId: _currentUserId,
+                        onSettingsChanged: () {
+                          // Ayarlar değiştiğinde ana sayfayı güncelle
+                          _loadSettings();
+                        },
                       ),
                     ),
                   );
@@ -1349,6 +1519,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                     themeConfig: _currentTheme,
                     localizations: _localizations,
                     currentUserId: _currentUserId,
+                    currentZikrCount: _counter, // Mevcut zikir sayısını geç
                   ),
                 ),
               );

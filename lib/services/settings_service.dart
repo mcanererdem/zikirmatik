@@ -58,7 +58,7 @@ class SettingsService {
 
   Future<bool> getVibration() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_vibrationKey) ?? false;
+    return prefs.getBool(_vibrationKey) ?? false; // Default olarak kapalı
   }
 
   // Sound
@@ -133,7 +133,7 @@ class SettingsService {
 
   Future<bool> getConfetti() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_confettiKey) ?? false;
+    return prefs.getBool(_confettiKey) ?? true; // Default olarak açık
   }
 
   Future<void> saveTtsEnabled(bool enabled) async {

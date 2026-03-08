@@ -70,14 +70,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Future<void> _loadLeaderboard() async {
     try {
+      print('=== LEADERBOARD DEBUG ===');
       print('Loading leaderboard from Supabase...');
+      print('Current User ID: ${widget.currentUserId}');
       
       // SupabaseService üzerinden leaderboard verilerini çek
       List<Map<String, dynamic>> leaderboardData = await _supabaseService.getLeaderboard(limit: 50);
       
+      print('Supabase returned ${leaderboardData.length} users');
+      
       // Local storage'dan mevcut kullanıcının zikir sayısını oku
       final prefs = await SharedPreferences.getInstance();
       final currentUserZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      
+      print('Current user local zikrs: $currentUserZikrs');
       
       // Mevcut kullanıcıyı ekle (eğer listede yoksa)
       final existingUserIndex = leaderboardData.indexWhere(
@@ -115,10 +121,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         _isLoading = false;
       });
       
-      print('Leaderboard loaded from Supabase with ${leaderboardData.length} users');
-      print('Current user zikrs: $currentUserZikrs, rank: $userRank');
+      print('=== LEADERBOARD DEBUG RESULTS ===');
+      print('Total users in leaderboard: ${leaderboardData.length}');
+      print('Current user zikrs: $currentUserZikrs');
+      print('Current user rank: $userRank');
+      print('Current user in list: ${existingUserIndex != -1 ? "YES" : "NO"}');
+      print('==============================');
     } catch (e) {
+      print('=== LEADERBOARD ERROR ===');
       print('Error loading leaderboard from Supabase: $e');
+      print('Falling back to local data...');
+      print('========================');
       // Supabase hata verirse local verileri kullan
       _loadLocalLeaderboard();
     }
@@ -126,10 +139,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Future<void> _loadLocalLeaderboard() async {
     try {
+      print('=== LOCAL LEADERBOARD DEBUG ===');
       print('Loading local leaderboard...');
       
       final prefs = await SharedPreferences.getInstance();
       final currentUserZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      
+      print('Current user local zikrs: $currentUserZikrs');
       
       final sampleData = [
         {'user_id': 'sample1', 'username': 'Ahmet', 'display_name': 'Ahmet Yılmaz', 'total_zikrs': 1500, 'rank': 1},
@@ -161,9 +177,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         _isLoading = false;
       });
       
-      print('Local leaderboard loaded with current user zikrs: $currentUserZikrs, rank: $userRank');
+      print('=== LOCAL LEADERBOARD RESULTS ===');
+      print('Sample users: ${sampleData.length}');
+      print('Total users (with current): ${allUsers.length}');
+      print('Current user zikrs: $currentUserZikrs');
+      print('Current user rank: $userRank');
+      print('==============================');
     } catch (e) {
+      print('=== LOCAL LEADERBOARD ERROR ===');
       print('Error loading local leaderboard: $e');
+      print('==============================');
       setState(() => _isLoading = false);
     }
   }

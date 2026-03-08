@@ -143,4 +143,8 @@ class TtsService {
         return 'en-US';
     }
   }
+
+  void dispose() {
+    _tts.stop();
+  }
 }

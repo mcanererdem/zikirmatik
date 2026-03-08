@@ -65,12 +65,14 @@ class KupaScreen extends StatefulWidget {
   final ThemeConfig themeConfig;
   final AppLocalizations localizations;
   final String currentUserId;
+  final int currentZikrCount; // Mevcut zikir sayısı
 
   const KupaScreen({
     super.key,
     required this.themeConfig,
     required this.localizations,
     required this.currentUserId,
+    required this.currentZikrCount,
   });
 
   @override
@@ -142,7 +144,62 @@ class _KupaScreenState extends State<KupaScreen>
 
   List<Achievement> _defineAllAchievements() {
     return [
-      // Başlangıç başarımları
+      // Bronz Kupa Başarımları
+      Achievement(
+        id: 'bronze_kupa',
+        title: 'Bronz Kupa',
+        description: '100 zikir tamamla',
+        icon: '🥉',
+        requirement: '100 zikir',
+        points: 100,
+        category: 'bronze',
+      ),
+      
+      // Gümüş Kupa Başarımları
+      Achievement(
+        id: 'silver_kupa',
+        title: 'Gümüş Kupa',
+        description: '500 zikir tamamla',
+        icon: '🥈',
+        requirement: '500 zikir',
+        points: 250,
+        category: 'silver',
+      ),
+      
+      // Altın Kupa Başarımları
+      Achievement(
+        id: 'gold_kupa',
+        title: 'Altın Kupa',
+        description: '1000 zikir tamamla',
+        icon: '🥇',
+        requirement: '1000 zikir',
+        points: 500,
+        category: 'gold',
+      ),
+      
+      // Elmas Kupa Başarımları
+      Achievement(
+        id: 'diamond_kupa',
+        title: 'Elmas Kupa',
+        description: '5000 zikir tamamla',
+        icon: '💎',
+        requirement: '5000 zikir',
+        points: 1000,
+        category: 'diamond',
+      ),
+      
+      // Platin Kupa Başarımları
+      Achievement(
+        id: 'platinum_kupa',
+        title: 'Platin Kupa',
+        description: '10000 zikir tamamla',
+        icon: '🏆',
+        requirement: '10000 zikir',
+        points: 2000,
+        category: 'platinum',
+      ),
+      
+      // Özel Başarımlar
       Achievement(
         id: 'first_zikr',
         title: 'İlk Adım',
@@ -150,19 +207,8 @@ class _KupaScreenState extends State<KupaScreen>
         icon: '🌱',
         requirement: '1 zikir',
         points: 10,
-        category: 'beginner',
+        category: 'special',
       ),
-      Achievement(
-        id: 'first_100',
-        title: 'Yüz Başlangıç',
-        description: '100 zikir tamamla',
-        icon: '🌟',
-        requirement: '100 zikir',
-        points: 50,
-        category: 'beginner',
-      ),
-      
-      // Standart başarımlar
       Achievement(
         id: 'daily_warrior',
         title: 'Günlük Savaşçı',
@@ -170,7 +216,7 @@ class _KupaScreenState extends State<KupaScreen>
         icon: '⚔️',
         requirement: '1000 zikir/gün',
         points: 100,
-        category: 'regular',
+        category: 'special',
       ),
       Achievement(
         id: 'week_streak',
@@ -179,10 +225,8 @@ class _KupaScreenState extends State<KupaScreen>
         icon: '🔥',
         requirement: '7 gün seri',
         points: 150,
-        category: 'regular',
+        category: 'special',
       ),
-      
-      // İleri başarımlar
       Achievement(
         id: 'monthly_master',
         title: 'Aylık Usta',
@@ -190,62 +234,7 @@ class _KupaScreenState extends State<KupaScreen>
         icon: '👑',
         requirement: '10,000 zikir/ay',
         points: 300,
-        category: 'advanced',
-      ),
-      Achievement(
-        id: 'speed_demon',
-        title: 'Hız Şeytanı',
-        description: '1 saatte 2000 zikir yap',
-        icon: '⚡',
-        requirement: '2000 zikir/saat',
-        points: 250,
-        category: 'advanced',
-      ),
-      
-      // Usta başarımlar
-      Achievement(
-        id: 'diamond_zikir',
-        title: 'Elmas Zikir',
-        description: '50,000 toplam zikir yap',
-        icon: '💎',
-        requirement: '50,000 zikir',
-        points: 500,
-        category: 'master',
-      ),
-      Achievement(
-        id: 'legendary',
-        title: 'Efsanevi',
-        description: '100,000 toplam zikir yap',
-        icon: '🏆',
-        requirement: '100,000 zikir',
-        points: 1000,
-        category: 'master',
-      ),
-      Achievement(
-        id: 'variety_master',
-        title: 'Çeşit Ustası',
-        description: '5 farklı zikir türü yap',
-        icon: '🎨',
-        requirement: '5 zikir türü',
-        points: 60,
-      ),
-      
-      // Master başarımları
-      Achievement(
-        id: 'zikir_master',
-        title: 'Zikir Ustası',
-        description: '10000 zikir tamamla',
-        icon: '🏆',
-        requirement: '10000 zikir',
-        points: 500,
-      ),
-      Achievement(
-        id: 'legend',
-        title: 'Efsane',
-        description: '100000 zikir tamamla',
-        icon: '💎',
-        requirement: '100000 zikir',
-        points: 1000,
+        category: 'special',
       ),
     ];
   }
@@ -484,6 +473,30 @@ class _KupaScreenState extends State<KupaScreen>
   Widget _buildAchievementCard(Achievement achievement) {
     final isUnlocked = achievement.isUnlocked;
     
+    // Sonraki kupa bilgisi
+    String nextCupName = '';
+    int remainingForNext = 0;
+    
+    if (isUnlocked) {
+      // Bu kupa açıksa, sonraki kupayı bul
+      final allAchievements = _defineAllAchievements();
+      final currentIndex = allAchievements.indexWhere((a) => a.id == achievement.id);
+      
+      if (currentIndex >= 0 && currentIndex < allAchievements.length - 1) {
+        final nextAchievement = allAchievements[currentIndex + 1];
+        if (!nextAchievement.isUnlocked) {
+          nextCupName = nextAchievement.title;
+          // Gerçek zikir sayısını hesapla - SharedPreferences'ten al
+          final nextRequired = int.tryParse(nextAchievement.requirement.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+          remainingForNext = (nextRequired - _getCurrentZikrCount()).clamp(0, nextRequired);
+        }
+      }
+    } else {
+      // Bu kupa kapalıysa, kalanı hesapla
+      final required = int.tryParse(achievement.requirement.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      remainingForNext = (required - _getCurrentZikrCount()).clamp(0, required);
+    }
+    
     return Container(
       decoration: BoxDecoration(
         gradient: isUnlocked 
@@ -558,27 +571,68 @@ class _KupaScreenState extends State<KupaScreen>
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.star,
-                  size: 12,
-                  color: isUnlocked ? Colors.amber : Colors.grey,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${achievement.points} puan',
-                  style: GoogleFonts.notoSans(
-                    fontSize: 10,
-                    color: isUnlocked ? Colors.amber : Colors.grey,
-                    fontWeight: FontWeight.w500,
+            if (!isUnlocked)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Kalan: $remainingForNext',
+                    style: GoogleFonts.notoSans(
+                      fontSize: 9,
+                      color: Colors.orange,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              )
+            else if (nextCupName.isNotEmpty && remainingForNext > 0)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sonraki: $nextCupName',
+                    style: GoogleFonts.notoSans(
+                      fontSize: 9,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                  Text(
+                    'Kalan: $remainingForNext',
+                    style: GoogleFonts.notoSans(
+                      fontSize: 9,
+                      color: Colors.orange,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Icon(
+                    Icons.star,
+                    size: 12,
+                    color: isUnlocked ? Colors.amber : Colors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${achievement.points} puan',
+                    style: GoogleFonts.notoSans(
+                      fontSize: 10,
+                      color: isUnlocked ? Colors.amber : Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
     );
+  }
+
+  // Mevcut zikir sayısını al
+  int _getCurrentZikrCount() {
+    return widget.currentZikrCount;
   }
 }

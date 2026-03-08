@@ -136,4 +136,22 @@ class AdService {
   bool get isBannerAdLoaded => _isBannerAdLoaded;
   bool get isRewardedAdLoaded => _isRewardedAdLoaded;
   BannerAd? get bannerAd => _bannerAd;
+
+  // Reklam durumunu kontrol et ve gerekirse yeniden yükle
+  Future<bool> ensureRewardedAdLoaded() async {
+    if (_isRewardedAdLoaded && _rewardedAd != null) {
+      return true;
+    }
+    
+    try {
+      await loadRewardedAd(
+        onAdLoaded: () {},
+        onAdFailedToLoad: (_) {},
+      );
+      return _isRewardedAdLoaded;
+    } catch (e) {
+      print('Error ensuring rewarded ad is loaded: $e');
+      return false;
+    }
+  }
 }

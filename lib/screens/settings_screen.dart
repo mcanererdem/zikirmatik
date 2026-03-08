@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
+import '../models/user_profile_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dialog_manager.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
 import '../services/ad_service.dart';
+import '../services/supabase_service.dart';
 import '../screens/support_screen_new.dart';
 import '../screens/about_screen_new.dart';
 import '../screens/import_export_screen.dart';
@@ -19,12 +19,14 @@ class SettingsScreen extends StatefulWidget {
   final ThemeConfig themeConfig;
   final AppLocalizations localizations;
   final String currentUserId;
+  final VoidCallback? onSettingsChanged;
 
   const SettingsScreen({
     super.key,
     required this.themeConfig,
     required this.localizations,
     required this.currentUserId,
+    this.onSettingsChanged,
   });
 
   @override
@@ -35,6 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsService _settingsService = SettingsService();
   final NotificationService _notificationService = NotificationService();
   final AdService _adService = AdService();
+  final SupabaseService _supabaseService = SupabaseService();
   ThemeConfig _currentTheme = AppThemes.getTheme('dark_blue');
   String _currentLanguage = 'tr';
   bool _isVibrationOn = true;
@@ -42,10 +45,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isConfettiOn = true;
   bool _isReminderEnabled = false;
   bool _isTtsOn = false;
+  bool _isLeaderboardEnabled = true;
   String _appVersion = '1.0.0';
   
   // Yeni özellikler
-  bool _isAutoBackupEnabled = false;
+  // bool _isAutoBackupEnabled = false;
   int _animationSpeed = 0; // 0: kapalı, 1: yavaş, 2: normal, 3: hızlı
   
   // Bildirim zamanlama
@@ -75,8 +79,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       
       // Yeni özellikleri SharedPreferences'ten yükle
       final prefs = await SharedPreferences.getInstance();
-      final autoBackup = prefs.getBool('auto_backup_enabled') ?? false;
+      // final autoBackup = prefs.getBool('auto_backup_enabled') ?? false;
       final animationSpeed = prefs.getInt('animation_speed') ?? 0;
+      final leaderboardEnabled = prefs.getBool('leaderboard_enabled') ?? true;
       
       // Bildirim zamanını yükle
       final reminderHour = prefs.getInt('reminder_hour') ?? 21;
@@ -94,7 +99,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _isConfettiOn = confetti;
           _isReminderEnabled = reminderEnabled;
           _isTtsOn = ttsEnabled;
-          _isAutoBackupEnabled = autoBackup;
+          _isLeaderboardEnabled = leaderboardEnabled;
+          // _isAutoBackupEnabled = autoBackup;
           _animationSpeed = animationSpeed;
           _reminderTime = TimeOfDay(hour: reminderHour, minute: reminderMinute);
           _selectedDays = selectedDays.map((day) => true).toList();
@@ -171,6 +177,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _loadRewardedAd();
       },
     );
+  }
+
+  Future<void> _syncProfileToLeaderboard() async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profil senkronize ediliyor...'),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Kullanıcı profil bilgilerini al
+      final prefs = await SharedPreferences.getInstance();
+      final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      final username = prefs.getString('username_${widget.currentUserId}') ?? 'user';
+      final displayName = prefs.getString('display_name_${widget.currentUserId}') ?? username;
+      final avatarUrl = prefs.getString('avatar_url_${widget.currentUserId}');
+
+      // Supabase'e profil oluştur/güncelle
+      final userProfile = UserProfile(
+        userId: widget.currentUserId,
+        username: username,
+        displayName: displayName,
+        avatarUrl: avatarUrl,
+        totalZikrs: totalZikrs,
+        lastZikrDate: DateTime.now(),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await _supabaseService.updateUserProfile(userProfile);
+
+      // Leaderboard'a ekle
+      await _supabaseService.updateDailyLeaderboard(widget.currentUserId, totalZikrs);
+      await _supabaseService.updateWeeklyLeaderboard(widget.currentUserId, totalZikrs);
+      await _supabaseService.updateMonthlyLeaderboard(widget.currentUserId, totalZikrs);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profil başarıyla senkronize edildi!'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      print('✅ Profile synced to leaderboard: $username ($totalZikrs zikrs)');
+    } catch (e) {
+      print('❌ Error syncing profile to leaderboard: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Senkronizasyon başarısız. Lütfen tekrar deneyin.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -298,6 +361,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             
+            // Sosyal & Leaderboard
+            _buildModernSection(
+              title: 'Sosyal & Leaderboard',
+              icon: Icons.leaderboard,
+              children: [
+                _buildModernToggleSetting(
+                  title: 'Leaderboard',
+                  subtitle: 'Liderlik tablosuna katıl',
+                  icon: Icons.leaderboard,
+                  value: _isLeaderboardEnabled,
+                  onChanged: (value) async {
+                    setState(() {
+                      _isLeaderboardEnabled = value;
+                    });
+                    
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('leaderboard_enabled', value);
+                    
+                    if (value) {
+                      await _syncProfileToLeaderboard();
+                    }
+                    
+                    if (widget.onSettingsChanged != null) {
+                      widget.onSettingsChanged!();
+                    }
+                  },
+                ),
+                _buildModernNavigationSetting(
+                  title: 'Profili Senkronize Et',
+                  subtitle: 'Liderlik tablosunu güncelle',
+                  icon: Icons.sync,
+                  onTap: _syncProfileToLeaderboard,
+                ),
+              ],
+            ),
+            
             const SizedBox(height: 16),
             
             // Temel Ayarlar
@@ -333,7 +432,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _isTtsOn,
                   onTap: _toggleTts,
                 ),
-                _buildAnimationSpeedSetting(),
               ],
             ),
             
@@ -362,13 +460,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Diğer',
               icon: Icons.more_horiz,
               children: [
-                _buildModernToggleSetting(
-                  title: 'Otomatik Yedekleme',
-                  subtitle: 'Verilerinizi otomatik yedekleyin',
-                  icon: Icons.backup,
-                  value: _isAutoBackupEnabled,
-                  onTap: _toggleAutoBackup,
-                ),
+                // _buildModernToggleSetting(
+                //   title: 'Otomatik Yedekleme',
+                //   subtitle: 'Verilerinizi otomatik yedekleyin',
+                //   icon: Icons.backup,
+                //   value: _isAutoBackupEnabled,
+                //   onTap: _toggleAutoBackup,
+                // ),
                 _buildModernNavigationSetting(
                   title: 'İmport/Export',
                   subtitle: 'Verilerinizi dışa aktarın veya içe aktarın',
@@ -1047,48 +1145,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Method implementations
   void _showThemeSelector() {
+    if (!DialogManager.canShowDialog()) return;
+    
+    DialogManager.onDialogOpened();
+    
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: Text('Tema Seç', style: GoogleFonts.notoSans()),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              'blue_gold',
-              'green_gold', 
-              'purple_gold',
-              'dark_night',
-              'moonlight',
-              'deep_space',
-              'northern_lights',
-              'dark_blue',
-            ].map((themeId) {
-              final theme = AppThemes.getTheme(themeId);
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: AppThemes.themes.map((theme) {
+              final isSelected = _currentTheme.id == theme.id;
               return ListTile(
                 title: Text(
-                  theme.nameTr,
+                  _getThemeName(theme),
                   style: GoogleFonts.notoSans(),
                 ),
-                trailing: _currentTheme.id == themeId 
+                trailing: isSelected
                     ? Icon(Icons.check, color: widget.themeConfig.accentColor)
                     : null,
                 onTap: () {
                   Navigator.pop(context);
-                  _changeTheme(themeId);
+                  DialogManager.onDialogClosed();
+                  _changeTheme(theme.id);
                 },
               );
             }).toList(),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              DialogManager.onDialogClosed();
+            },
+            child: Text('İptal'),
+          ),
+        ],
       ),
-    );
+    ).then((_) => DialogManager.onDialogClosed());
+  }
+
+  String _getThemeName(ThemeConfig theme) {
+    switch (_currentLanguage) {
+      case 'tr':
+        return theme.nameTr;
+      case 'en':
+        return theme.nameEn;
+      case 'ar':
+        return theme.nameAr;
+      case 'id':
+        return theme.nameId;
+      default:
+        return theme.nameTr;
+    }
   }
 
   void _showLanguageSelector() {
+    if (!DialogManager.canShowDialog()) return;
+    
+    DialogManager.onDialogOpened();
+    
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: Text('Dil Seç', style: GoogleFonts.notoSans()),
         content: SizedBox(
@@ -1122,6 +1245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: () {
                   Navigator.pop(context);
+                  DialogManager.onDialogClosed();
                   _changeLanguage(lang['code']!);
                 },
               );
@@ -1129,7 +1253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ),
-    );
+    ).then((_) => DialogManager.onDialogClosed());
   }
 
   void _changeTheme(String themeId) async {
@@ -1175,21 +1299,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _toggleVibration() {
     setState(() => _isVibrationOn = !_isVibrationOn);
     _settingsService.saveVibration(_isVibrationOn);
+    
+    // Ana sayfaya hemen yansıtması için bildirim gönder
+    if (widget.onSettingsChanged != null) {
+      widget.onSettingsChanged!();
+    }
   }
 
   void _toggleSound() {
     setState(() => _isSoundOn = !_isSoundOn);
     _settingsService.saveSound(_isSoundOn);
+    
+    // Ana sayfaya hemen yansıtması için bildirim gönder
+    if (widget.onSettingsChanged != null) {
+      widget.onSettingsChanged!();
+    }
   }
 
   void _toggleConfetti() {
     setState(() => _isConfettiOn = !_isConfettiOn);
     _settingsService.saveConfetti(_isConfettiOn);
+    
+    // Ana sayfaya hemen yansıtması için bildirim gönder
+    if (widget.onSettingsChanged != null) {
+      widget.onSettingsChanged!();
+    }
   }
 
   void _toggleTts() async {
     setState(() => _isTtsOn = !_isTtsOn);
     await _settingsService.saveTtsEnabled(_isTtsOn);
+    
+    // Ana sayfaya hemen yansıtması için bildirim gönder
+    if (widget.onSettingsChanged != null) {
+      widget.onSettingsChanged!();
+    }
   }
 
   void _toggleReminder() {
@@ -1201,13 +1345,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       _cancelReminder();
     }
+    
+    // Ana sayfaya hemen yansıtması için bildirim gönder
+    if (widget.onSettingsChanged != null) {
+      widget.onSettingsChanged!();
+    }
   }
 
-  void _toggleAutoBackup() async {
-    setState(() => _isAutoBackupEnabled = !_isAutoBackupEnabled);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('auto_backup_enabled', _isAutoBackupEnabled);
-  }
+  // void _toggleAutoBackup() async {
+  //   setState(() => _isAutoBackupEnabled = !_isAutoBackupEnabled);
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.setBool('auto_backup_enabled', _isAutoBackupEnabled);
+  // }
 
   void _changeAnimationSpeed(int speed) async {
     setState(() => _animationSpeed = speed);

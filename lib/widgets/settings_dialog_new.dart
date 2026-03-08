@@ -5,11 +5,14 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dialog_manager.dart';
 import '../services/settings_service.dart';
 import '../services/notification_service.dart';
+import '../services/ad_service.dart';
 import '../screens/support_screen_new.dart';
 import '../screens/about_screen_new.dart';
 import '../screens/import_export_screen.dart';
+import '../screens/home_page.dart' as home;
 
 class SettingsDialogNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -39,7 +42,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
   String _appVersion = '1.0.0';
   
   // Yeni özellikler
-  bool _isAutoBackupEnabled = false;
+  // bool _isAutoBackupEnabled = false;
   bool _isDarkModeOnly = false;
   double _textSize = 16.0;
   int _animationSpeed = 1; // 0: yavaş, 1: normal, 2: hızlı
@@ -62,7 +65,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
     
     // Yeni ayarları yükle
     final prefs = await SharedPreferences.getInstance();
-    final autoBackup = prefs.getBool('auto_backup_enabled') ?? false;
+    // final autoBackup = prefs.getBool('auto_backup_enabled') ?? false;
     final darkModeOnly = prefs.getBool('dark_mode_only') ?? false;
     final textSize = prefs.getDouble('text_size') ?? 16.0;
     final animationSpeed = prefs.getInt('animation_speed') ?? 1;
@@ -75,7 +78,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       _isConfettiOn = confetti;
       _isReminderEnabled = reminderEnabled;
       _isTtsOn = ttsEnabled;
-      _isAutoBackupEnabled = autoBackup;
+      // _isAutoBackupEnabled = autoBackup;
       _isDarkModeOnly = darkModeOnly;
       _textSize = textSize;
       _animationSpeed = animationSpeed;
@@ -398,12 +401,6 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       ),
       child: Column(
         children: [
-          _buildToggleSetting(
-            'Otomatik Yedekleme',
-            _isAutoBackupEnabled,
-            Icons.backup,
-            _toggleAutoBackup,
-          ),
           _buildToggleSetting(
             'Sadece Koyu Tema',
             _isDarkModeOnly,
@@ -770,13 +767,6 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
     await _settingsService.saveTtsEnabled(_isTtsOn);
   }
 
-  // Yeni toggle metodları
-  void _toggleAutoBackup() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() => _isAutoBackupEnabled = !_isAutoBackupEnabled);
-    await prefs.setBool('auto_backup_enabled', _isAutoBackupEnabled);
-  }
-
   void _toggleDarkModeOnly() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() => _isDarkModeOnly = !_isDarkModeOnly);
@@ -837,6 +827,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
   }
 
   void _showAdSupportDialog() {
+    if (!DialogManager.canShowDialog()) return;
+    
+    DialogManager.onDialogOpened();
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -856,7 +850,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              DialogManager.onDialogClosed();
+            },
             child: Text(
               'İptal',
               style: GoogleFonts.notoSans(color: Colors.white70),
@@ -865,6 +862,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              DialogManager.onDialogClosed();
               // Reklam gösterme mantığı buraya eklenebilir
             },
             child: Text(
@@ -874,7 +872,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
           ),
         ],
       ),
-    );
+    ).then((_) => DialogManager.onDialogClosed());
   }
 
   void _rateApp() async {

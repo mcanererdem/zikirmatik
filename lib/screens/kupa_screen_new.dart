@@ -3,19 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
-import '../services/supabase_service.dart';
 import 'dart:math';
 
 class KupaScreenNew extends StatefulWidget {
   final ThemeConfig themeConfig;
   final AppLocalizations localizations;
   final String currentUserId;
+  final int currentZikrCount;
 
   const KupaScreenNew({
     super.key,
     required this.themeConfig,
     required this.localizations,
     required this.currentUserId,
+    this.currentZikrCount = 0,
   });
 
   @override
@@ -23,7 +24,6 @@ class KupaScreenNew extends StatefulWidget {
 }
 
 class _KupaScreenNewState extends State<KupaScreenNew> {
-  final SupabaseService _supabaseService = SupabaseService();
   int _totalZikrs = 0;
   bool _isLoading = true;
   Map<String, bool> _unlockedCups = {};
@@ -39,13 +39,92 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
   @override
   void initState() {
     super.initState();
+    // Sayfa açıldığında hemen güncelle
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
     _loadZikrCount();
+  }
+
+  Future<void> _refreshData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final totalZikrs = widget.currentZikrCount > 0 
+          ? widget.currentZikrCount 
+          : prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      
+      setState(() {
+        _totalZikrs = totalZikrs;
+      });
+      
+      // Kupaları yeniden hesapla
+      _allCups = [
+        {
+          'id': 'bronze_kupa',
+          'name': 'Bronz Kupa',
+          'icon': '🥉',
+          'requirement': 100,
+          'description': 'İlk 100 zikir için',
+          'color': Colors.brown,
+          'unlocked': totalZikrs >= 100,
+        },
+        {
+          'id': 'silver_kupa',
+          'name': 'Gümüş Kupa',
+          'icon': '🥈',
+          'requirement': 500,
+          'description': '500 zikir için',
+          'color': Colors.grey,
+          'unlocked': totalZikrs >= 500,
+        },
+        {
+          'id': 'gold_kupa',
+          'name': 'Altın Kupa',
+          'icon': '🥇',
+          'requirement': 1000,
+          'description': '1000 zikir için',
+          'color': Colors.yellow,
+          'unlocked': totalZikrs >= 1000,
+        },
+        {
+          'id': 'diamond_kupa',
+          'name': 'Elmas Kupa',
+          'icon': '💎',
+          'requirement': 5000,
+          'description': '5000 zikir için',
+          'color': Colors.blue,
+          'unlocked': totalZikrs >= 5000,
+        },
+        {
+          'id': 'platinum_kupa',
+          'name': 'Platin Kupa',
+          'icon': '🏆',
+          'requirement': 10000,
+          'description': '10000 zikir için',
+          'color': Colors.purple,
+          'unlocked': totalZikrs >= 10000,
+        },
+      ];
+      
+      // Sonraki kupa bilgisini hesapla
+      _calculateNextCup();
+      
+      print('🔄 Kupa screen refreshed with zikr count: $totalZikrs');
+    } catch (e) {
+      print('Error refreshing kupa screen: $e');
+    }
   }
 
   Future<void> _loadZikrCount() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      final totalZikrs = widget.currentZikrCount > 0 
+          ? widget.currentZikrCount 
+          : prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      
+      setState(() {
+        _totalZikrs = totalZikrs;
+      });
       
       // Tüm kupaları tanımla
       _allCups = [
@@ -56,7 +135,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           'requirement': 100,
           'description': 'İlk 100 zikir için',
           'color': Colors.brown,
-          'unlocked': false,
+          'unlocked': totalZikrs >= 100,
         },
         {
           'id': 'silver_kupa',
@@ -65,7 +144,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           'requirement': 500,
           'description': '500 zikir için',
           'color': Colors.grey,
-          'unlocked': false,
+          'unlocked': totalZikrs >= 500,
         },
         {
           'id': 'gold_kupa',
@@ -74,72 +153,66 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           'requirement': 1000,
           'description': '1000 zikir için',
           'color': Colors.yellow,
-          'unlocked': false,
-        },
-        {
-          'id': 'platinum_kupa',
-          'name': 'Platin Kupa',
-          'icon': '🏆',
-          'requirement': 5000,
-          'description': '5000 zikir için',
-          'color': Colors.blueGrey,
-          'unlocked': false,
+          'unlocked': totalZikrs >= 1000,
         },
         {
           'id': 'diamond_kupa',
           'name': 'Elmas Kupa',
           'icon': '💎',
-          'requirement': 10000,
-          'description': '10000 zikir için',
-          'color': Colors.cyan,
-          'unlocked': false,
+          'requirement': 5000,
+          'description': '5000 zikir için',
+          'color': Colors.blue,
+          'unlocked': totalZikrs >= 5000,
         },
         {
-          'id': 'master_kupa',
-          'name': 'Usta Kupa',
-          'icon': '👑',
-          'requirement': 50000,
-          'description': '50000 zikir için',
+          'id': 'platinum_kupa',
+          'name': 'Platin Kupa',
+          'icon': '🏆',
+          'requirement': 10000,
+          'description': '10000 zikir için',
           'color': Colors.purple,
-          'unlocked': false,
+          'unlocked': totalZikrs >= 10000,
         },
       ];
       
-      // Kazanılmış kupaları kontrol et
-      final unlockedCups = <String, bool>{};
-      for (final cup in _allCups) {
-        final isUnlocked = prefs.getBool('${cup['id']}_${widget.currentUserId}') ?? false;
-        unlockedCups[cup['id'] as String] = isUnlocked;
-        cup['unlocked'] = isUnlocked;
-      }
-      
-      // Kullanıcı seviyesini hesapla
-      final userLevel = _calculateUserLevel(totalZikrs);
-      
-      // Sonraki kupa bilgilerini hesapla
-      final nextCupInfo = _getNextCupInfo(totalZikrs);
+      // Sonraki kupa bilgisini hesapla
+      _calculateNextCup();
       
       setState(() {
-        _totalZikrs = totalZikrs;
-        _unlockedCups = unlockedCups;
-        _userLevel = userLevel;
-        _progressToNextCup = nextCupInfo['progress'] as double;
-        _nextCupName = nextCupInfo['name'] as String;
-        _nextCupRequirement = nextCupInfo['requirement'] as int;
         _isLoading = false;
       });
-      
-      print('Kupa screen loaded: total=$totalZikrs, level=$userLevel, next cup=$_nextCupName');
-      
     } catch (e) {
-      print('Error loading kupa screen: $e');
+      print('Error loading zikr count: $e');
       setState(() {
         _isLoading = false;
       });
     }
   }
 
-  // Yeni yardımcı metodlar
+  void _calculateNextCup() {
+    String nextCup = '';
+    int nextRequirement = 0;
+    double progress = 0.0;
+    
+    for (final cup in _allCups) {
+      if (!cup['unlocked']) {
+        nextCup = cup['name'];
+        nextRequirement = cup['requirement'];
+        progress = _totalZikrs / nextRequirement;
+        break;
+      }
+    }
+    
+    // Kalan zikir sayısını hesapla
+    final remainingForNext = nextRequirement - _totalZikrs;
+    
+    setState(() {
+      _nextCupName = nextCup;
+      _nextCupRequirement = remainingForNext;
+      _progressToNextCup = progress.clamp(0.0, 1.0);
+    });
+  }
+
   int _calculateUserLevel(int totalZikrs) {
     if (totalZikrs >= 50000) return 6;
     if (totalZikrs >= 10000) return 5;
@@ -148,29 +221,6 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
     if (totalZikrs >= 500) return 2;
     if (totalZikrs >= 100) return 1;
     return 0;
-  }
-
-  Map<String, dynamic> _getNextCupInfo(int totalZikrs) {
-    for (final cup in _allCups) {
-      if (!(cup['unlocked'] as bool)) {
-        final requirement = cup['requirement'] as int;
-        final prevRequirement = cup == _allCups.first ? 0 : 
-            (_allCups[_allCups.indexOf(cup) - 1]['requirement'] as int);
-        final progress = (totalZikrs - prevRequirement) / (requirement - prevRequirement);
-        
-        return {
-          'name': cup['name'] as String,
-          'requirement': requirement,
-          'progress': progress.clamp(0.0, 1.0),
-        };
-      }
-    }
-    
-    return {
-      'name': 'Tüm kupalar kazanıldı',
-      'requirement': 0,
-      'progress': 1.0,
-    };
   }
 
   String _getUserLevelTitle(int level) {
@@ -239,6 +289,14 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: _refreshData,
+                          icon: Icon(
+                            Icons.refresh,
+                            color: widget.themeConfig.textColor,
+                          ),
+                        ),
                       ],
                     ),
                     
@@ -264,57 +322,38 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
   }
 
   Widget _buildUserLevelCard() {
+    final level = _calculateUserLevel(_totalZikrs);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            _getUserLevelColor(_userLevel).withOpacity(0.3),
-            _getUserLevelColor(_userLevel).withOpacity(0.1),
+            _getUserLevelColor(level).withOpacity(0.2),
+            _getUserLevelColor(level).withOpacity(0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _getUserLevelColor(_userLevel).withOpacity(0.5),
+          color: _getUserLevelColor(level).withOpacity(0.3),
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Seviye $_userLevel',
-                style: GoogleFonts.notoSans(
-                  color: widget.themeConfig.textColor,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getUserLevelColor(_userLevel),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _getUserLevelTitle(_userLevel),
-                  style: GoogleFonts.notoSans(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
           Text(
-            'Toplam $_totalZikrs zikir',
+            'Seviye $level',
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.8),
               fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _getUserLevelTitle(level),
+            style: GoogleFonts.notoSans(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.8),
             ),
           ),
         ],
@@ -323,14 +362,42 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
   }
 
   Widget _buildNextCupProgress() {
+    if (_nextCupName.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tüm kupaları kazandınız!',
+              style: GoogleFonts.notoSans(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tebrikler! Zikir ustası oldunuz.',
+              style: GoogleFonts.notoSans(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,40 +405,23 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           Text(
             'Sonraki Kupa: $_nextCupName',
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor,
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-          const SizedBox(height: 15),
-          Container(
-            height: 8,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: _progressToNextCup,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      widget.themeConfig.accentColor,
-                      widget.themeConfig.accentColor.withOpacity(0.7),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: _progressToNextCup,
+            backgroundColor: Colors.white.withOpacity(0.3),
+            valueColor: AlwaysStoppedAnimation(Colors.white),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
-            '$_nextCupRequirement zikir gerekli',
+            'Kalan: $_nextCupirRequirement zikir',
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.7),
-              fontSize: 14,
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.8),
             ),
           ),
         ],
@@ -385,9 +435,9 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 1.2,
-        crossAxisSpacing: 15,
-        mainAxisSpacing: 15,
+        childAspectRatio: 1.0, // 1.0'dan 1.2'ye değiştirdik
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
       itemCount: _allCups.length,
       itemBuilder: (context, index) {
@@ -396,22 +446,12 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         
         return Container(
           decoration: BoxDecoration(
-            gradient: isUnlocked
-                ? LinearGradient(
-                    colors: [
-                      (cup['color'] as Color).withOpacity(0.3),
-                      (cup['color'] as Color).withOpacity(0.1),
-                    ],
-                  )
-                : LinearGradient(
-                    colors: [
-                      Colors.grey.withOpacity(0.2),
-                      Colors.grey.withOpacity(0.1),
-                    ],
-                  ),
+            color: isUnlocked 
+                ? (cup['color'] as Color).withOpacity(0.2)
+                : Colors.grey.withOpacity(0.1),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isUnlocked
+              color: isUnlocked 
                   ? (cup['color'] as Color).withOpacity(0.5)
                   : Colors.grey.withOpacity(0.3),
             ),
@@ -421,49 +461,48 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
             children: [
               Text(
                 cup['icon'] as String,
-                style: TextStyle(
-                  fontSize: 40,
-                  color: isUnlocked ? null : Colors.grey.withOpacity(0.5),
-                ),
+                style: const TextStyle(fontSize: 40), // 48'den 40'a düşürdük
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6), // 8'den 6'ya düşürdük
               Text(
                 cup['name'] as String,
                 style: GoogleFonts.notoSans(
-                  color: isUnlocked
-                      ? widget.themeConfig.textColor
-                      : Colors.grey.withOpacity(0.5),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 12, // 14'ten 12'ye düşürdük
+                  fontWeight: FontWeight.w600,
+                  color: isUnlocked 
+                      ? Colors.white
+                      : Colors.grey,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2), // 4'ten 2'ye düşürdük
               Text(
                 cup['description'] as String,
                 style: GoogleFonts.notoSans(
-                  color: isUnlocked
-                      ? widget.themeConfig.textColor.withOpacity(0.7)
-                      : Colors.grey.withOpacity(0.4),
-                  fontSize: 10,
+                  fontSize: 8, // 10'den 8'e düşürdük
+                  color: isUnlocked 
+                      ? Colors.white.withOpacity(0.8)
+                      : Colors.grey.withOpacity(0.7),
                 ),
                 textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                maxLines: 1, // maxLines: 1 ekledik
+                overflow: TextOverflow.ellipsis, // overflow ekle
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${cup['requirement']} zikir',
-                style: GoogleFonts.notoSans(
-                  color: isUnlocked
-                      ? widget.themeConfig.accentColor
-                      : Colors.grey.withOpacity(0.4),
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(height: 4), // 8'den 4'e düşürdük
+              if (isUnlocked)
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 16, // 20'den 16'ya düşürdük
+                )
+              else
+                Icon(
+                  Icons.lock,
+                  color: Colors.grey,
+                  size: 16, // 20'den 16'ya düşürdük
                 ),
-              ),
             ],
           ),
         );

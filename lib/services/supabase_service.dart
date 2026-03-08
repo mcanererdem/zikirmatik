@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -74,7 +75,7 @@ class SupabaseService {
     }
   }
 
-  Future<UserProfile> createOrUpdateUserProfile(UserProfile profile) async {
+  Future<UserProfile> updateUserProfile(UserProfile profile) async {
     try {
       final uuid = toUuid(profile.userId);
       final response = await _supabase
@@ -93,7 +94,7 @@ class SupabaseService {
       
       return UserProfile.fromJson(response);
     } catch (e) {
-      print('Error creating/updating user profile: $e');
+      print('Error updating user profile: $e');
       rethrow;
     }
   }
@@ -151,7 +152,7 @@ class SupabaseService {
   }
 
   // Leaderboard işlemleri
-  Future<void> _updateDailyLeaderboard(String userId, int zikrCount) async {
+  Future<void> updateDailyLeaderboard(String userId, int zikrCount) async {
     try {
       final today = DateTime.now();
       final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
@@ -166,6 +167,43 @@ class SupabaseService {
           });
     } catch (e) {
       print('Error updating daily leaderboard: $e');
+    }
+  }
+
+  Future<void> updateWeeklyLeaderboard(String userId, int zikrCount) async {
+    try {
+      final now = DateTime.now();
+      final weekStart = now.subtract(Duration(days: now.weekday - 1));
+      final weekStr = '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
+      
+      await _supabase
+          .from('leaderboard_weekly')
+          .upsert({
+            'user_id': userId,
+            'week_start': weekStr,
+            'weekly_count': zikrCount,
+            'updated_at': DateTime.now().toIso8601String(),
+          });
+    } catch (e) {
+      print('Error updating weekly leaderboard: $e');
+    }
+  }
+
+  Future<void> updateMonthlyLeaderboard(String userId, int zikrCount) async {
+    try {
+      final now = DateTime.now();
+      final monthStr = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      
+      await _supabase
+          .from('leaderboard_monthly')
+          .upsert({
+            'user_id': userId,
+            'month': monthStr,
+            'monthly_count': zikrCount,
+            'updated_at': DateTime.now().toIso8601String(),
+          });
+    } catch (e) {
+      print('Error updating monthly leaderboard: $e');
     }
   }
 
@@ -299,34 +337,121 @@ class SupabaseService {
     try {
       print('Starting avatar upload...');
       
+      // Basit ve güvenilir internet kontrolü
+      bool hasConnection = false;
+      
+      try {
+        // Basit bir sorgu ile bağlantı testi
+        final response = await _supabase
+            .from('users')
+            .select('id')
+            .limit(1)
+            .timeout(const Duration(seconds: 5));
+        
+        hasConnection = true;
+        print('✅ Internet connection confirmed');
+      } catch (e) {
+        print('❌ Internet connection test failed: $e');
+        
+        // Hata mesajını daha spesifik yap
+        if (e.toString().contains('timeout')) {
+          throw Exception('İnternet bağlantısı çok yavaş. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.');
+        } else if (e.toString().contains('network')) {
+          throw Exception('İnternet bağlantısı bulunamadı. Lütfen Wi-Fi veya mobil veri bağlantınızı kontrol edin.');
+        } else {
+          throw Exception('Bağlantı hatası oluştu. Lütfen internet bağlantınızı kontrol edin.');
+        }
+      }
+      
+      if (!hasConnection) {
+        print('❌ No internet connection');
+        throw Exception('İnternet bağlantısı bulunamadı. Lütfen Wi-Fi veya mobil veri bağlantınızı kontrol edin.');
+      }
+      
+      print('✅ Internet connection confirmed, proceeding with upload...');
+      
+      // Resim dosyasını kontrol et
+      if (imageFile.path.isEmpty) {
+        print('❌ Empty file path');
+        throw Exception('Resim dosyası seçilemedi. Lütfen tekrar deneyin.');
+      }
+      
       // Check if avatars bucket exists, if not create it
       try {
         await _supabase.storage.getBucket('avatars');
         print('Avatars bucket exists');
       } catch (e) {
         print('Creating avatars bucket...');
-        await _supabase.storage.createBucket('avatars');
+        try {
+          await _supabase.storage.createBucket('avatars', 
+            BucketOptions(
+              public: true,
+              allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+              fileSizeLimit: '5242880', // 5MB string olarak
+            )
+          );
+          print('Avatars bucket created successfully');
+        } catch (bucketError) {
+          print('Failed to create bucket: $bucketError');
+          // Bucket oluşturulamazsa devam etmeyi dene
+        }
       }
       
-      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}.jpg';
       final fileBytes = await imageFile.readAsBytes();
       
       print('Uploading file: $fileName, size: ${fileBytes.length} bytes');
       
-      final response = await _supabase.storage
-          .from('avatars')
-          .uploadBinary(fileName, fileBytes);
-      
-      print('Upload response: $response');
-      
-      if (response != null) {
-        final publicUrl = _supabase.storage
-            .from('avatars')
-            .getPublicUrl(fileName);
-        
-        print('Public URL: $publicUrl');
-        return publicUrl;
+      // Dosya boyutunu kontrol et (max 5MB)
+      if (fileBytes.length > 5 * 1024 * 1024) {
+        print('File too large: ${fileBytes.length} bytes');
+        return null;
       }
+      
+      // Dosya tipini kontrol et
+      final fileType = imageFile.mimeType ?? '';
+      if (!['image/jpeg', 'image/png', 'image/webp'].contains(fileType)) {
+        print('Invalid file type: $fileType');
+        return null;
+      }
+      
+      try {
+        final response = await _supabase.storage
+            .from('avatars')
+            .uploadBinary(fileName, fileBytes);
+        
+        print('Upload response: $response');
+        
+        if (response != null) {
+          final publicUrl = _supabase.storage
+              .from('avatars')
+              .getPublicUrl(fileName);
+          
+          print('Public URL: $publicUrl');
+          return publicUrl;
+        }
+      } catch (uploadError) {
+        print('Upload failed: $uploadError');
+        // Eğer dosya zaten varsa, farklı bir isimle dene
+        final newFileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}.jpg';
+        try {
+          final response = await _supabase.storage
+              .from('avatars')
+              .uploadBinary(newFileName, fileBytes);
+          
+          if (response != null) {
+            final publicUrl = _supabase.storage
+                .from('avatars')
+                .getPublicUrl(newFileName);
+            
+            print('Public URL (retry): $publicUrl');
+            return publicUrl;
+          }
+        } catch (retryError) {
+          print('Retry upload also failed: $retryError');
+        }
+      }
+      
       return null;
     } catch (e) {
       print('Error uploading avatar: $e');

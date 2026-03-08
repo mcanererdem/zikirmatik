@@ -22,29 +22,58 @@ class _SupportScreenState extends State<SupportScreen> {
   final AdService _adService = AdService();
   bool _isLoading = false;
 
-  void _watchAd() {
+  @override
+  void initState() {
+    super.initState();
+    // Reklamı önceden yükle
+    _preloadNextAd();
+  }
+
+  void _watchAd() async {
     setState(() => _isLoading = true);
-    _adService.loadRewardedAd(
-      onAdLoaded: () {
-        setState(() => _isLoading = false);
-        _adService.showRewardedAd(
-          onUserEarnedReward: () {
-            _showThankYou();
-          },
-          onAdDismissed: () {},
-        );
-      },
-      onAdFailedToLoad: (_) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.localizations.translate('ad_not_ready') ?? 'Ad is not ready yet.'),
-            backgroundColor: Colors.orange.shade700,
-            duration: const Duration(seconds: 4),
+    
+    // Önce reklamın hazır olup olmadığını kontrol et
+    bool isAdReady = await _adService.ensureRewardedAdLoaded();
+    
+    if (!isAdReady) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.localizations.translate('ad_not_ready') ?? 'Reklam henüz hazır değil. Lütfen biraz bekleyin.'),
+          backgroundColor: Colors.orange.shade700,
+          duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: 'Tekrar Dene',
+            textColor: Colors.white,
+            onPressed: () => _watchAd(),
           ),
-        );
+        ),
+      );
+      return;
+    }
+    
+    // Reklamı göster
+    _adService.showRewardedAd(
+      onUserEarnedReward: () {
+        _showThankYou();
+      },
+      onAdDismissed: () {
+        // Reklam kapandığında bir sonraki kullanım için hazırla
+        _preloadNextAd();
       },
     );
+    
+    setState(() => _isLoading = false);
+  }
+
+  void _preloadNextAd() {
+    // Bir sonraki reklamı önceden yükle
+    Future.delayed(const Duration(seconds: 2), () {
+      _adService.loadRewardedAd(
+        onAdLoaded: () {},
+        onAdFailedToLoad: (_) {},
+      );
+    });
   }
 
   void _showThankYou() {
