@@ -335,40 +335,7 @@ class SupabaseService {
   // Avatar upload işlemi
   Future<String?> uploadAvatar(XFile imageFile) async {
     try {
-      print('Starting avatar upload...');
-      
-      // Basit ve güvenilir internet kontrolü
-      bool hasConnection = false;
-      
-      try {
-        // Basit bir sorgu ile bağlantı testi
-        final response = await _supabase
-            .from('users')
-            .select('id')
-            .limit(1)
-            .timeout(const Duration(seconds: 5));
-        
-        hasConnection = true;
-        print('✅ Internet connection confirmed');
-      } catch (e) {
-        print('❌ Internet connection test failed: $e');
-        
-        // Hata mesajını daha spesifik yap
-        if (e.toString().contains('timeout')) {
-          throw Exception('İnternet bağlantısı çok yavaş. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.');
-        } else if (e.toString().contains('network')) {
-          throw Exception('İnternet bağlantısı bulunamadı. Lütfen Wi-Fi veya mobil veri bağlantınızı kontrol edin.');
-        } else {
-          throw Exception('Bağlantı hatası oluştu. Lütfen internet bağlantınızı kontrol edin.');
-        }
-      }
-      
-      if (!hasConnection) {
-        print('❌ No internet connection');
-        throw Exception('İnternet bağlantısı bulunamadı. Lütfen Wi-Fi veya mobil veri bağlantınızı kontrol edin.');
-      }
-      
-      print('✅ Internet connection confirmed, proceeding with upload...');
+      print('📸 Starting avatar upload...');
       
       // Resim dosyasını kontrol et
       if (imageFile.path.isEmpty) {
@@ -376,86 +343,100 @@ class SupabaseService {
         throw Exception('Resim dosyası seçilemedi. Lütfen tekrar deneyin.');
       }
       
-      // Check if avatars bucket exists, if not create it
-      try {
-        await _supabase.storage.getBucket('avatars');
-        print('Avatars bucket exists');
-      } catch (e) {
-        print('Creating avatars bucket...');
-        try {
-          await _supabase.storage.createBucket('avatars', 
-            BucketOptions(
-              public: true,
-              allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-              fileSizeLimit: '5242880', // 5MB string olarak
-            )
-          );
-          print('Avatars bucket created successfully');
-        } catch (bucketError) {
-          print('Failed to create bucket: $bucketError');
-          // Bucket oluşturulamazsa devam etmeyi dene
-        }
-      }
-      
-      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}.jpg';
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final fileBytes = await imageFile.readAsBytes();
       
-      print('Uploading file: $fileName, size: ${fileBytes.length} bytes');
+      print('📤 Uploading file: $fileName, size: ${fileBytes.length} bytes');
       
       // Dosya boyutunu kontrol et (max 5MB)
       if (fileBytes.length > 5 * 1024 * 1024) {
-        print('File too large: ${fileBytes.length} bytes');
-        return null;
+        print('❌ File too large: ${fileBytes.length} bytes');
+        throw Exception('Resim dosyası çok büyük. Lütfen 5MB\'dan küçük bir resim seçin.');
       }
       
-      // Dosya tipini kontrol et
-      final fileType = imageFile.mimeType ?? '';
-      if (!['image/jpeg', 'image/png', 'image/webp'].contains(fileType)) {
-        print('Invalid file type: $fileType');
-        return null;
-      }
+      // Supabase Storage'a yükle
+      final uploadResponse = await _supabase.storage
+          .from('avatars')
+          .uploadBinary(
+            fileName,
+            fileBytes,
+            fileOptions: FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true,
+            ),
+          );
       
-      try {
-        final response = await _supabase.storage
-            .from('avatars')
-            .uploadBinary(fileName, fileBytes);
-        
-        print('Upload response: $response');
-        
-        if (response != null) {
-          final publicUrl = _supabase.storage
-              .from('avatars')
-              .getPublicUrl(fileName);
-          
-          print('Public URL: $publicUrl');
-          return publicUrl;
-        }
-      } catch (uploadError) {
-        print('Upload failed: $uploadError');
-        // Eğer dosya zaten varsa, farklı bir isimle dene
-        final newFileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}.jpg';
-        try {
-          final response = await _supabase.storage
-              .from('avatars')
-              .uploadBinary(newFileName, fileBytes);
-          
-          if (response != null) {
-            final publicUrl = _supabase.storage
-                .from('avatars')
-                .getPublicUrl(newFileName);
-            
-            print('Public URL (retry): $publicUrl');
-            return publicUrl;
-          }
-        } catch (retryError) {
-          print('Retry upload also failed: $retryError');
-        }
-      }
+      print('✅ Upload successful: ${uploadResponse}');
       
-      return null;
+      // Public URL oluştur
+      final publicUrl = _supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+      
+      print('✅ Public URL: $publicUrl');
+      return publicUrl;
+      
     } catch (e) {
-      print('Error uploading avatar: $e');
-      return null;
+      print('❌ Avatar upload error: $e');
+      
+      // Hata mesajını daha kullanıcı dostu yap
+      String errorMessage = 'Profil fotoğrafı yüklenemedi. ';
+      
+      if (e.toString().contains('network') || e.toString().contains('connection')) {
+        errorMessage += 'İnternet bağlantınızı kontrol edin.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage += 'İşlem zaman aşımına uğradı. Lütfen tekrar deneyin.';
+      } else if (e.toString().contains('permission') || e.toString().contains('unauthorized')) {
+        errorMessage += 'Yetki hatası. Lütfen tekrar giriş yapın.';
+      } else if (e.toString().contains('storage') || e.toString().contains('bucket')) {
+        errorMessage += 'Depolama hatası. Lütfen daha sonra tekrar deneyin.';
+      } else {
+        errorMessage += 'Bilinmeyen bir hata oluştu: $e';
+      }
+      
+      throw Exception(errorMessage);
+    }
+  }
+
+  // Kullanıcı profilini güncelleaderboard
+  Future<void> _updateDailyLeaderboard(String userId, int zikrCount) async {
+    try {
+      final uuid = toUuid(userId);
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      
+      // Check if today's entry exists
+      final existingEntry = await _supabase
+          .from('leaderboard_daily')
+          .select()
+          .eq('user_id', uuid)
+          .eq('date', todayStart.toIso8601String())
+          .maybeSingle();
+      
+      if (existingEntry != null) {
+        // Update existing entry
+        await _supabase
+            .from('leaderboard_daily')
+            .update({
+              'zikr_count': zikrCount,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('user_id', uuid)
+            .eq('date', todayStart.toIso8601String());
+      } else {
+        // Create new entry
+        await _supabase
+            .from('leaderboard_daily')
+            .insert({
+              'user_id': uuid,
+              'date': todayStart.toIso8601String(),
+              'zikr_count': zikrCount,
+              'created_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
+            });
+      }
+    } catch (e) {
+      print('Error updating daily leaderboard: $e');
     }
   }
 }

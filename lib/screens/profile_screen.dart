@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app_settings/app_settings.dart';
+import 'dart:io';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../services/supabase_service.dart';
@@ -50,17 +51,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
-      final userProfile = await _supabaseService.getUserProfile(widget.currentUserId);
+      var userProfile = await _supabaseService.getUserProfile(widget.currentUserId);
       final prefs = await SharedPreferences.getInstance();
       final weeklyZikrs = prefs.getInt('weekly_zikrs_${widget.currentUserId}') ?? 0;
       final currentStreak = prefs.getInt('current_streak_${widget.currentUserId}') ?? 0;
       
-      // Kupa durumunu kontrol et
+      // Kupa durumlarını kontrol et
       final bronzeUnlocked = prefs.getBool('bronze_kupa_unlocked_${widget.currentUserId}') ?? false;
       final silverUnlocked = prefs.getBool('silver_kupa_unlocked_${widget.currentUserId}') ?? false;
       final goldUnlocked = prefs.getBool('gold_kupa_unlocked_${widget.currentUserId}') ?? false;
       final diamondUnlocked = prefs.getBool('diamond_kupa_unlocked_${widget.currentUserId}') ?? false;
       final platinumUnlocked = prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false;
+      
+      // Supabase'den profil yoksa local storage'dan avatar URL'ini al
+      String? avatarUrl = userProfile?.avatarUrl;
+      if (avatarUrl == null) {
+        avatarUrl = prefs.getString('avatar_url_${widget.currentUserId}');
+        // Eğer local storage'da avatar varsa, yeni profil objesi oluştur
+        if (avatarUrl != null && userProfile != null) {
+          userProfile = UserProfile(
+            userId: widget.currentUserId,
+            username: userProfile!.username,
+            displayName: userProfile!.displayName,
+            avatarUrl: avatarUrl,
+            totalZikrs: userProfile!.totalZikrs,
+            lastZikrDate: userProfile!.lastZikrDate,
+            createdAt: userProfile!.createdAt,
+            updatedAt: userProfile!.updatedAt,
+          );
+        }
+      }
       
       setState(() {
         _userProfile = userProfile;
@@ -75,6 +95,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         };
         _isLoading = false;
       });
+      
+      print('👤 User profile loaded: ${userProfile?.displayName ?? 'Unknown'}');
+      print('🖼️ Avatar URL: $avatarUrl');
     } catch (e) {
       print('Error loading user profile: $e');
       setState(() => _isLoading = false);
@@ -128,47 +151,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // İzin kontrolü yap
       final hasPermission = await _checkImagePermission();
       if (!hasPermission) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.warning, color: Colors.white),
-                  SizedBox(width: 8),
-                  Expanded(child: Text('Resim seçme için izin gerekiyor. Ayarlardan izin verin.')),
-                ],
-              ),
-              backgroundColor: Colors.orange,
-              duration: const Duration(seconds: 5),
-              action: SnackBarAction(
-                label: 'Ayarlar',
-                textColor: Colors.white,
-                onPressed: () => _openAppSettings(),
-              ),
-              dismissDirection: DismissDirection.horizontal,
-            ),
-          );
-        }
+        _showPermissionDialog();
         return;
       }
       
-      final XFile? image = await _imagePicker.pickImage(
+      setState(() => _isLoading = true);
+      
+      print('📸 Avatar selection starting...');
+      
+      // Image picker'ı çalıştır
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 512,
         maxHeight: 512,
-        imageQuality: 80,
+        imageQuality: 85,
       );
       
       if (image != null) {
-        setState(() => _isLoading = true);
-        
-        print('📸 Avatar upload başlatılıyor...');
+        print('📸 Image selected: ${image.path}');
         
         // Avatar'ı Supabase'e yükle
         final avatarUrl = await _supabaseService.uploadAvatar(image);
         
         if (avatarUrl != null) {
-          print('✅ Avatar başarıyla yüklendi: $avatarUrl');
+          print('✅ Avatar successfully uploaded: $avatarUrl');
           
           // Kullanıcı profilini güncelle
           await _updateUserProfile(avatarUrl);
@@ -185,68 +192,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 backgroundColor: Colors.green,
                 duration: const Duration(seconds: 3),
-                dismissDirection: DismissDirection.horizontal,
               ),
             );
           }
         } else {
-          print('❌ Avatar yükleme başarısız');
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.warning, color: Colors.white),
-                    SizedBox(width: 8),
-                    Expanded(child: Text('İnternet bağlantısı yok. Wi-Fi veya mobil veriyi kontrol edin.')),
-                  ],
-                ),
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 8),
-                action: SnackBarAction(
-                  label: 'Tekrar Dene',
-                  textColor: Colors.white,
-                  onPressed: () => _pickAndUploadAvatar(),
-                ),
-                dismissDirection: DismissDirection.horizontal,
-              ),
-            );
-          }
+          print('❌ Avatar upload failed');
+          _showErrorSnackBar('Profil fotoğrafı yüklenemedi!');
         }
-      }
-    } catch (e) {
-      print('❌ Avatar upload hatası: $e');
-      
-      String errorMessage = 'Fotoğraf yüklenemedi. ';
-      if (e.toString().contains('Internet bağlantısı')) {
-        errorMessage = 'İnternet bağlantısı bulunamadı. ';
-      } else if (e.toString().contains('Resim dosyası')) {
-        errorMessage = 'Resim dosyası seçilemedi. ';
       } else {
-        errorMessage = 'Beklenmedik hata oluştu. ';
+        print('📸 No image selected');
       }
       
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 8),
-                Expanded(child: Text(errorMessage + 'Lütfen tekrar deneyin.')),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 6),
-            action: SnackBarAction(
-              label: 'Tekrar Dene',
-              textColor: Colors.white,
-              onPressed: () => _pickAndUploadAvatar(),
-            ),
-            dismissDirection: DismissDirection.horizontal,
-          ),
-        );
-      }
+    } catch (e) {
+      print('❌ Avatar selection error: $e');
+      _showErrorSnackBar('Profil fotoğrafı seçilemedi: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -254,17 +213,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: widget.themeConfig.primaryColor,
+        title: Text(
+          'Galeri İzni Gerekli',
+          style: GoogleFonts.notoSans(
+            color: widget.themeConfig.textColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Profil fotoğrafı seçmek için galeri erişim izni gereklidir. Lütfen izni verin.',
+          style: GoogleFonts.notoSans(
+            color: widget.themeConfig.textColor,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'İptal',
+              style: GoogleFonts.notoSans(
+                color: widget.themeConfig.textColor.withOpacity(0.7),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // İzin isteğini tekrar gönder
+              final status = await Permission.photos.request();
+              if (status.isGranted) {
+                // İzin verildi, tekrar deneyin
+                _pickAndUploadAvatar();
+              } else if (status.isPermanentlyDenied) {
+                // Kalıcı olarak reddedildi, ayarlara yönlendir
+                _openAppSettings();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.themeConfig.accentColor,
+            ),
+            child: Text(
+              'İzin Ver',
+              style: GoogleFonts.notoSans(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   Future<bool> _checkImagePermission() async {
     try {
       // Android 13+ için yeni izin sistemi
       if (Theme.of(context).platform == TargetPlatform.android) {
-        final status = await Permission.photos.request();
-        return status.isGranted;
+        // Önce medya izinlerini kontrol et
+        var photosStatus = await Permission.photos.request();
+        var storageStatus = await Permission.storage.request();
+        
+        print('📸 Permission check - Photos: $photosStatus, Storage: $storageStatus');
+        
+        if (photosStatus.isGranted || storageStatus.isGranted) {
+          return true;
+        } else if (photosStatus.isPermanentlyDenied || storageStatus.isPermanentlyDenied) {
+          // İzin kalıcı olarak reddedildi, ayarlara yönlendir
+          return false;
+        } else {
+          // İzin reddedildi, tekrar iste
+          photosStatus = await Permission.photos.request();
+          storageStatus = await Permission.storage.request();
+          return photosStatus.isGranted || storageStatus.isGranted;
+        }
       }
       return true;
     } catch (e) {
-      print('Permission check error: $e');
-      return true;
+      print('📸 Permission check error: $e');
+      return false;
     }
   }
 
@@ -281,26 +321,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Supabase'de güncelle
         await _supabaseService.updateUserProfile(updatedProfile);
         
+        // Local storage'a da kaydet (fallback)
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('avatar_url_${widget.currentUserId}', avatarUrl);
+        
         // Local state'i güncelle
         setState(() {
           _userProfile = updatedProfile;
         });
         
+        print('✅ Avatar URL kaydedildi: $avatarUrl');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profil bilgileri güncellendi!'),
+            content: Text('Profil fotoğrafı başarıyla güncellendi!'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      print('Error updating user profile: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Profil bilgileri güncellenemedi.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      print('❌ Avatar güncelleme hatası: $e');
+      
+      // Supabase hatası olursa local storage'a kaydet
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('avatar_url_${widget.currentUserId}', avatarUrl);
+        
+        // Local state'i güncelle
+        setState(() {
+          if (_userProfile != null) {
+            _userProfile = _userProfile!.copyWith(avatarUrl: avatarUrl);
+          }
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profil fotoğrafı yerel olarak kaydedildi!'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      } catch (localError) {
+        print('❌ Local storage hatası: $localError');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profil fotoğrafı kaydedilemedi!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

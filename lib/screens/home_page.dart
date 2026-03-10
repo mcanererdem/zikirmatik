@@ -1,45 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../models/theme_model.dart';
-import '../models/user_profile_model.dart';
-import '../utils/localizations.dart';
-import '../services/settings_service.dart';
-import '../services/supabase_service.dart';
-import '../services/audio_manager.dart';
-import '../services/feedback_manager.dart';
-import '../services/notification_service.dart';
-import '../services/tts_service.dart';
-import '../services/widget_service.dart';
-import '../models/zikr_model.dart';
-import '../models/goal_model.dart';
-import '../services/counter_logic.dart';
-import '../services/ad_service.dart';
-import '../utils/dialog_manager.dart';
-import '../utils/random_name_generator.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:vibration/vibration.dart';
+import 'package:confetti/confetti.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:math';
-import '../widgets/settings_dialog_new.dart';
+import 'dart:io';
+
+import '../models/theme_model.dart';
+import '../models/zikr_model.dart';
+import '../models/user_profile_model.dart';
+import '../models/goal_model.dart';
+import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
+import '../services/settings_service.dart';
+import '../services/audio_manager.dart';
+import '../services/counter_logic.dart';
+import '../services/feedback_manager.dart';
+import '../services/tts_service.dart';
+import '../services/notification_service.dart';
+import '../services/supabase_service.dart';
+import '../services/widget_service.dart';
 import '../widgets/zikr_selection_dialog.dart';
-import '../widgets/target_dialog.dart';
-import '../widgets/success_dialog.dart';
-import '../widgets/goal_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
+import '../widgets/edit_zikr_dialog.dart';
+import '../widgets/success_dialog.dart';
+import '../widgets/target_dialog.dart';
+import '../widgets/goal_dialog.dart';
 import '../widgets/notification_settings_dialog.dart';
 import '../widgets/confetti_animation.dart';
-import 'kupa_screen_new.dart';
-import 'statistics_screen_new.dart';
-import 'profile_screen.dart';
-import 'leaderboard_screen.dart';
-import 'settings_screen.dart';
-import 'splash_screen.dart';
+import '../widgets/dialog_manager.dart';
+import '../screens/statistics_screen_new.dart';
+import '../screens/kupa_screen_new.dart';
+import '../screens/leaderboard_screen.dart';
+import '../screens/profile_screen.dart';
+import '../screens/settings_screen.dart';
+import '../screens/import_export_screen.dart';
+import '../services/ad_service.dart';
 
 class HomePage extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
+  final Function(String)? onLanguageChanged;
   
-  const HomePage({super.key, this.onThemeModeChanged});
+  const HomePage({super.key, this.onThemeModeChanged, this.onLanguageChanged});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -53,10 +60,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   bool _isConfettiOn = true;
   bool _isReminderEnabled = false;
   bool _showConfetti = false;
+  double _fontSize = 1.0; // Sabit font boyutu
 
   late AnimationController _buttonAnimationController;
   late AnimationController _counterAnimationController;
   late AnimationController _neonAnimationController;
+  // Batch sync için timer
+  Timer? _batchSyncTimer;
   late Animation<double> _buttonScaleAnimation;
   late Animation<double> _counterScaleAnimation;
   late Animation<double> _neonPulseAnimation;
@@ -102,11 +112,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _localizations = AppLocalizations('en');
-    
-    // Dialog durumlarını sıfırla (uygulama başladığında)
-    DialogManager.resetAllStates();
+    print('🏠 HomePage initState called');
+    // Dynamic localization helper'ı başlat
+    DynamicLocalizationHelper.initialize();
     
     // Rastgele kullanıcı ismi oluştur
     _generateUserId();
@@ -169,10 +177,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       _currentUserId = savedUserId;
       print('👤 Existing user ID loaded: $_currentUserId');
     } else {
-      // Rastgele isim oluştur
-      final randomUsername = await RandomNameGenerator.generateRandomUsername();
+      // Simple timestamp ID
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      _currentUserId = '${randomUsername}_$timestamp';
+      _currentUserId = 'user_$timestamp';
       
       // Kaydet
       await prefs.setString('user_id', _currentUserId);
@@ -197,6 +204,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   Future<void> _loadSettings() async {
+    print('🔄 Loading settings...');
     await WidgetService.syncWidgetCounter();
     final themeId = await _settingsService.getTheme();
     final languageCode = await _settingsService.getLanguage();
@@ -214,11 +222,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     // Animasyon hızını yükle
     final prefs = await SharedPreferences.getInstance();
     final animationSpeed = prefs.getInt('animation_speed') ?? 0;
+    final darkModeEnabled = prefs.getBool('dark_mode_enabled') ?? false;
+    final currentLanguage = prefs.getString('language') ?? 'tr';
+    
+    print('🏠 HomePage _loadSettings:');
+    print('🏠 languageCode from settings: $languageCode');
+    print('🏠 currentLanguage from SharedPreferences: $currentLanguage');
+    print('🏠 Using language: $currentLanguage');
 
     setState(() {
-      _currentTheme = AppThemes.getTheme(themeId);
-      _currentLanguage = languageCode;
-      _localizations = AppLocalizations(languageCode);
+      // Sistem dark mode kontrolü ve tema seçimi
+      _currentTheme = AppThemes.getThemeForMode(themeId, darkModeEnabled);
+      print('🎨 Theme loaded: $themeId (dark mode: $darkModeEnabled)');
+      _currentLanguage = currentLanguage; // SharedPreferences'ten gelen dil
+      _localizations = AppLocalizations(currentLanguage);
+      print('🌐 Language loaded: $currentLanguage');
       _isVibrationOn = vibration;
       _isSoundOn = sound;
       _isConfettiOn = confetti;
@@ -245,6 +263,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       
       _target = _selectedZikr!.defaultCount;
     });
+    
+    print('✅ Settings loaded successfully');
+    
+    // Batch sync'i başlat
+    _startBatchSync();
   }
 
   Future<void> _initializeTts() async {
@@ -269,6 +292,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     _bannerAd?.dispose();
     _ttsService.dispose();
     
+    // Batch sync'i durdur
+    _stopBatchSync();
+    
     // Dialog durumlarını temizle
     DialogManager.resetAllStates();
     
@@ -276,9 +302,46 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('🏠 HomePage didChangeDependencies called');
+    // Her sayfa değişiminde dil kontrolü yap
+    _refreshLanguage();
+  }
+
+  Future<void> _refreshLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentLanguage = prefs.getString('language') ?? 'tr';
+    
+    print('🏠 _refreshLanguage called');
+    print('🏠 Current _currentLanguage: $_currentLanguage');
+    print('🏠 Language from SharedPreferences: $currentLanguage');
+    
+    // Dynamic localization helper'ı güncelle
+    await DynamicLocalizationHelper.setLanguage(currentLanguage);
+    
+    if (_currentLanguage != currentLanguage) {
+      print('🏠 Language changed in didChangeDependencies: $_currentLanguage -> $currentLanguage');
+      setState(() {
+        _currentLanguage = currentLanguage;
+        _localizations = AppLocalizations(currentLanguage);
+      });
+      
+      // Ana uygulamaya dil değişimini bildir
+      if (widget.onLanguageChanged != null) {
+        widget.onLanguageChanged!(currentLanguage);
+      }
+      
+      // Tüm sayfaları zorla yenile
+      print('🏠 Forcing UI refresh with new language');
+    } else {
+      print('🏠 Language unchanged, no refresh needed');
+    }
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      await WidgetService.syncWidgetCounter();
       final savedCount = await _settingsService.getCurrentCount();
       if (savedCount != _counter) {
         setState(() {
@@ -530,18 +593,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       final avatarUrl = prefs.getString('avatar_url_$_currentUserId');
 
       // Supabase'e profil oluştur/güncelle
-      final userProfile = UserProfile(
+      final now = DateTime.now();
+      final updatedUserProfile = UserProfile(
         userId: _currentUserId,
-        username: username,
+        username: displayName,
         displayName: displayName,
         avatarUrl: avatarUrl,
         totalZikrs: totalZikrs,
-        lastZikrDate: DateTime.now(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        lastZikrDate: now,
+        createdAt: now,
+        updatedAt: now,
       );
-
-      await _supabaseService.updateUserProfile(userProfile);
 
       // Leaderboard'a ekle
       await _supabaseService.updateDailyLeaderboard(_currentUserId, totalZikrs);
@@ -586,17 +648,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       // Leaderboard senkronizasyonu kontrolü
       final leaderboardEnabled = prefs.getBool('leaderboard_enabled') ?? true;
       if (leaderboardEnabled) {
-        // Her 50 zikirde bir leaderboard güncelle
-        if (totalZikrs % 50 == 0) {
-          await _syncToLeaderboard();
-        }
-        
-        // Aktif sayaç değiştiğinde kupa güncelle
-        final previousZikrs = prefs.getInt('previous_zikrs_${widget.currentUserId}') ?? 0;
+        // Batch sync kullan - her 5 dakikada bir veya 10 zikir biriktiğinde
+        // Aktif sayaç değiştiğinde batch sync tetikle
+        final previousZikrs = prefs.getInt('previous_zikrs_$_currentUserId') ?? 0;
         if (totalZikrs > previousZikrs) {
-          await _syncToLeaderboard();
+          // Batch sync'i tetikle - 10 zikir biriktiğinde sync edecek
+          _batchSyncToLeaderboard();
         }
-        await prefs.setInt('previous_zikrs_${widget.currentUserId}', totalZikrs);
+        await prefs.setInt('previous_zikrs_$_currentUserId', totalZikrs);
       }
       
       // Bronz Kupa - 100 zikir (kalıcı)
@@ -906,6 +965,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     );
   }
 
+  String _getProfileDisplayName() {
+    return DynamicLocalizationHelper.getText({
+      'tr': 'Zikir Çalışanı',
+      'en': 'Dhikr Practitioner',
+      'ar': 'الذاكر',
+      'id': 'Pengamal Zikir',
+    });
+  }
+
   void _openSettings() {
     Navigator.push(
       context,
@@ -915,8 +983,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           localizations: _localizations,
           currentUserId: _currentUserId,
           onSettingsChanged: () {
+            print('🔄 Settings changed callback triggered');
             // Ayarlar değiştiğinde ana sayfayı güncelle
             _loadSettings();
+            setState(() {}); // UI'ı zorla güncelle
           },
         ),
       ),
@@ -1096,7 +1166,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Zikir Çalışanı',
+                          _getProfileDisplayName(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -1172,8 +1242,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                         localizations: _localizations,
                         currentUserId: _currentUserId,
                         onSettingsChanged: () {
+                          print('🔄 Settings changed callback triggered (hamburger menu)');
                           // Ayarlar değiştiğinde ana sayfayı güncelle
                           _loadSettings();
+                          setState(() {}); // UI'ı zorla güncelle
                         },
                       ),
                     ),
@@ -1223,13 +1295,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             ),
           ],
         ),
-        child: Text(
-          '$_counter',
-          style: TextStyle(
-            fontSize: 72,
-            fontWeight: FontWeight.bold,
-            color: _currentTheme.accentColor,
-            letterSpacing: 2,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '$_counter',
+            style: TextStyle(
+              fontSize: 72 * _fontSize,
+              fontWeight: FontWeight.bold,
+              color: _currentTheme.accentColor,
+              letterSpacing: 2,
+            ),
           ),
         ),
       ),
@@ -1297,7 +1372,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 Text(
                   _selectedZikr != null ? _getZikrName(_selectedZikr!) : 'Sübhanallah',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14 * _fontSize,
                     fontWeight: FontWeight.w600,
                     color: _currentTheme.textColor,
                   ),
@@ -1306,7 +1381,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 Text(
                   '${_localizations.target}: $_target',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12 * _fontSize,
                     color: _currentTheme.textColor.withOpacity(0.75),
                   ),
                 ),
@@ -1399,7 +1474,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                   zikrText,
                   style: (_currentLanguage == 'ar'
                       ? GoogleFonts.notoNaskhArabic(
-                          fontSize: 24,
+                          fontSize: 24 * _fontSize,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           shadows: [
@@ -1411,7 +1486,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                           ],
                         )
                       : GoogleFonts.notoSans(
-                          fontSize: 24,
+                          fontSize: 24 * _fontSize,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           shadows: [
@@ -1473,7 +1548,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildControlButton(
-            icon: Icons.bar_chart_rounded,
+            icon: Icons.insert_chart_rounded,
             isActive: true,
             onTap: () {
               Navigator.push(
@@ -1561,5 +1636,42 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         ),
       ),
     );
+  }
+
+  // Batch sync metotları
+  void _startBatchSync() {
+    _batchSyncTimer?.cancel();
+    _batchSyncTimer = Timer.periodic(Duration(minutes: 5), (_) {
+      _batchSyncToLeaderboard();
+    });
+    print('🔄 Batch sync started - every 5 minutes');
+  }
+
+  void _stopBatchSync() {
+    _batchSyncTimer?.cancel();
+    print('⏹️ Batch sync stopped');
+  }
+
+  Future<void> _batchSyncToLeaderboard() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final leaderboardEnabled = prefs.getBool('leaderboard_enabled') ?? true;
+      
+      if (!leaderboardEnabled) {
+        return;
+      }
+
+      final lastSync = prefs.getInt('last_sync_count_$_currentUserId') ?? 0;
+      final currentCount = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
+      
+      // Sadece 10 zikir biriktiğinde sync et
+      if (currentCount - lastSync >= 10) {
+        await _syncToLeaderboard();
+        await prefs.setInt('last_sync_count_$_currentUserId', currentCount);
+        print('📊 Batch sync: ${currentCount - lastSync} zikrs synced');
+      }
+    } catch (e) {
+      print('❌ Batch sync error: $e');
+    }
   }
 }

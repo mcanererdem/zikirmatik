@@ -196,8 +196,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     return Scaffold(
       backgroundColor: widget.themeConfig.primaryColor,
       appBar: AppBar(
-        backgroundColor: widget.themeConfig.primaryColor,
-        elevation: 0,
         title: Text(
           'Liderlik Tablosu',
           style: GoogleFonts.notoSans(
@@ -205,13 +203,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: IconThemeData(color: widget.themeConfig.textColor),
-        actions: [
-          IconButton(
-            onPressed: _loadLeaderboard,
-            icon: Icon(Icons.refresh, color: widget.themeConfig.textColor),
-          ),
-        ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        // Refresh butonu kaldırıldı
       ),
       body: Column(
         children: [

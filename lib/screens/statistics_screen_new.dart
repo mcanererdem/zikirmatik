@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
+import 'dart:io';
+import 'dart:math';
+import 'package:fl_chart/fl_chart.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
-import 'dart:math';
-import 'dart:io';
+import '../utils/dynamic_localization_helper.dart';
+import '../services/settings_service.dart';
 
 class StatisticsScreenNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -27,10 +30,12 @@ class StatisticsScreenNew extends StatefulWidget {
 
 class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   int _totalZikrs = 0;
-  int _currentStreak = 0;
-  int _longestStreak = 0;
+  // Streak sistemi kaldırıldı - kafa karıştırıcıydı
+  int _currentStreak = 0; // Geriye dönük uyumluluk için
+  int _longestStreak = 0; // Geriye dönük uyumluluk için
   DateTime? _lastZikrDate;
   bool _isLoading = true;
+  String _currentLanguage = 'tr'; // Dil değişkeni eklendi
   
   // Yeni özellikler
   int _weeklyZikrs = 0;
@@ -43,6 +48,10 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   String _mostProductiveDay = '';
   String _mostProductiveHour = '';
 
+  String _getStatisticsTitle() {
+    return DynamicLocalizationHelper.statistics;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -54,11 +63,16 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
       final prefs = await SharedPreferences.getInstance();
       final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
       final lastZikrDateStr = prefs.getString('last_zikr_date_${widget.currentUserId}');
+      final currentLanguage = prefs.getString('language') ?? 'tr'; // Dil yükle
       
       DateTime? lastZikrDate;
       if (lastZikrDateStr != null) {
         lastZikrDate = DateTime.parse(lastZikrDateStr);
       }
+      
+      setState(() {
+        _currentLanguage = currentLanguage; // Dil güncelle
+      });
       
       // Gelişmiş streak hesaplaması
       int currentStreak = 0;
@@ -239,12 +253,32 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
       // JSON formatında veriyi string'e çevir
       String jsonStats = _formatStatsAsJson(stats);
       
-      // Downloads klasörüne kaydet
-      final directory = await getDownloadsDirectory();
+      // Downloads klasörüne kaydet (Android için External Storage)
+      Directory? directory;
+      if (Platform.isAndroid) {
+        // Android için External Storage Downloads
+        directory = Directory('/storage/emulated/0/Download');
+        if (!await directory.exists()) {
+          // Eğer klasör yoksa oluştur
+          await directory.create(recursive: true);
+        }
+      } else {
+        directory = await getDownloadsDirectory();
+      }
+      
       if (directory != null) {
         final fileName = 'zikirmatik_istatistik_${DateTime.now().millisecondsSinceEpoch}.json';
         final file = File('${directory.path}/$fileName');
         await file.writeAsString(jsonStats);
+        
+        // Başarılı mesajı
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('İstatistikler Dosyalarım/Downloads klasörüne kaydedildi: ${file.path}'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
         
         // Başarılı mesajı göster
         if (mounted) {
@@ -335,7 +369,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          'İstatistikler',
+                          _getStatisticsTitle(),
                           style: GoogleFonts.notoSans(
                             color: widget.themeConfig.textColor,
                             fontSize: 24,

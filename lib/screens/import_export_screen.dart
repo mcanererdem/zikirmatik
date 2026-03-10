@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show Platform;
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 
@@ -337,32 +338,74 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             'platinum_kupa_unlocked': prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false,
           },
           'settings': {
-            'theme': prefs.getString('theme') ?? 'dark_blue',
+            'theme': prefs.getString('theme') ?? 'ocean_blue',
             'language': prefs.getString('language') ?? 'tr',
-            'vibration': prefs.getBool('vibration_on') ?? true,
-            'sound': prefs.getBool('sound_on') ?? true,
-            'confetti': prefs.getBool('confetti_on') ?? true,
+            'vibration': prefs.getBool('vibration') ?? true,
+            'sound': prefs.getBool('sound') ?? true,
+            'confetti': prefs.getBool('confetti') ?? true,
             'reminder': prefs.getBool('reminder_enabled') ?? false,
             'tts': prefs.getBool('tts_enabled') ?? false,
           },
         },
       };
 
-      // Downloads klasörünü al
-      final directory = await getDownloadsDirectory();
-      if (directory == null) {
-        throw Exception('Downloads klasörüne erişilemedi');
+      // Downloads klasörüne kaydet (Android için)
+      Directory? targetDir;
+      if (Platform.isAndroid) {
+        // Android için Downloads klasörünü dene
+        targetDir = Directory('/storage/emulated/0/Download');
+        
+        // Eğer Downloads klasörüne erişilemezse, uygulama dokümanlarını kullan
+        if (!await targetDir.exists()) {
+          try {
+            await targetDir.create(recursive: true);
+          } catch (e) {
+            print('❌ Cannot create Downloads folder, using app documents');
+            targetDir = await getApplicationDocumentsDirectory();
+          }
+        }
+        
+        // Yazma izni kontrolü
+        try {
+          final testFile = File('${targetDir.path}/test_write.tmp');
+          await testFile.writeAsString('test');
+          await testFile.delete();
+        } catch (e) {
+          print('❌ Cannot write to Downloads, using app documents');
+          targetDir = await getApplicationDocumentsDirectory();
+        }
+      } else {
+        targetDir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+      }
+      
+      if (targetDir == null) {
+        setState(() {
+          _statusMessage = '❌ Dosya klasörüne erişilemedi';
+        });
+        return;
       }
 
       // Dosyayı oluştur
       final fileName = 'zikirmatik_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-      final file = File('${directory.path}/$fileName');
+      final file = File('${targetDir.path}/$fileName');
+      
+      print('📁 Saving to: ${file.path}');
       
       // JSON verisini dosyaya yaz
-      await file.writeAsString(jsonEncode(exportData));
+      try {
+        await file.writeAsString(jsonEncode(exportData));
+        print('✅ File saved successfully');
+      } catch (e) {
+        print('❌ Error writing file: $e');
+        setState(() {
+          _statusMessage = '❌ Dosya yazma hatası: $e';
+        });
+        return;
+      }
       
+      final folderName = targetDir.path.contains('Download') ? 'Downloads' : 'Uygulama Dokümanları';
       setState(() {
-        _statusMessage = '✅ Veriler başarıyla dışa aktarıldı!\nDosya: ${directory.path}/$fileName\n\nNot: Dosyayı Dosyalarım/Downloads klasöründe bulabilirsiniz.';
+        _statusMessage = '✅ Veriler başarıyla dışa aktarıldı!\nDosya: ${file.path}\n\nNot: Dosyayı $folderName klasöründe bulabilirsiniz.';
       });
       
     } catch (e) {
@@ -383,22 +426,31 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     });
 
     try {
-      // Downloads klasöründen dosya seç
-      final directory = await getDownloadsDirectory();
-      if (directory == null) {
-        throw Exception('Downloads klasörüne erişilemedi');
+      // Downloads klasöründen dosya seç (Android için)
+      Directory? initialDirectory;
+      if (Platform.isAndroid) {
+        initialDirectory = Directory('/storage/emulated/0/Download');
+        
+        // Downloads klasörü var mı kontrol et
+        if (!await initialDirectory.exists()) {
+          initialDirectory = await getApplicationDocumentsDirectory();
+        }
+      } else {
+        initialDirectory = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
       }
 
       // FilePicker ile dosya seç
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        initialDirectory: directory.path,
+        initialDirectory: initialDirectory?.path,
       );
 
       if (result != null && result.files.first.path != null) {
         final file = File(result.files.first.path!);
         final content = await file.readAsString();
+        
+        print('📁 Importing from: ${file.path}');
         
         // JSON verisini parse et
         final importData = jsonDecode(content);

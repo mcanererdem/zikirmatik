@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:confetti/confetti.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
-import 'dart:math';
+import '../utils/dynamic_localization_helper.dart';
+import '../services/settings_service.dart';
 
 class KupaScreenNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -25,16 +27,16 @@ class KupaScreenNew extends StatefulWidget {
 
 class _KupaScreenNewState extends State<KupaScreenNew> {
   int _totalZikrs = 0;
-  bool _isLoading = true;
-  Map<String, bool> _unlockedCups = {};
-  
-  // Yeni özellikler
   List<Map<String, dynamic>> _allCups = [];
-  int _userLevel = 0;
-  double _progressToNextCup = 0.0;
+  Map<String, bool> _unlockedCups = {};
   String _nextCupName = '';
   int _nextCupRequirement = 0;
+  bool _hasShownNotification = false;
+  String _currentLanguage = 'tr'; // Dil değişkeni eklendi
+  int _userLevel = 0;
+  double _progressToNextCup = 0.0;
   DateTime? _lastCupUnlocked;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -46,6 +48,15 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
     _loadZikrCount();
   }
 
+  @override
+  void didUpdateWidget(KupaScreenNew oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Widget güncellendiğinde (zikir sayısı değiştiğinde) veriyi yenile
+    if (oldWidget.currentZikrCount != widget.currentZikrCount) {
+      _refreshData();
+    }
+  }
+
   Future<void> _refreshData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -53,66 +64,207 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           ? widget.currentZikrCount 
           : prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
       
+      // Dil bilgisini yükle
+      final currentLanguage = prefs.getString('language') ?? 'tr';
+      
+      print('🔄 Kupa screen refreshing with zikr count: $totalZikrs');
+      print('🌐 Kupa screen language: $currentLanguage');
+      
       setState(() {
         _totalZikrs = totalZikrs;
+        _currentLanguage = currentLanguage; // Dil güncelle
+        
+        // Kupaları yeniden hesapla
+        _allCups = [
+          {
+            'id': 'bronze_kupa',
+            'name': _getKupaName('bronze'),
+            'icon': '🥉',
+            'requirement': 100,
+            'description': _getKupaDescription('bronze'),
+            'color': Colors.brown,
+            'unlocked': totalZikrs >= 100,
+          },
+          {
+            'id': 'silver_kupa',
+            'name': _getKupaName('silver'),
+            'icon': '🥈',
+            'requirement': 500,
+            'description': _getKupaDescription('silver'),
+            'color': Colors.grey,
+            'unlocked': totalZikrs >= 500,
+          },
+          {
+            'id': 'gold_kupa',
+            'name': _getKupaName('gold'),
+            'icon': '🥇',
+            'requirement': 1000,
+            'description': _getKupaDescription('gold'),
+            'color': Colors.yellow,
+            'unlocked': totalZikrs >= 1000,
+          },
+          {
+            'id': 'diamond_kupa',
+            'name': _getKupaName('diamond'),
+            'icon': '💎',
+            'requirement': 5000,
+            'description': _getKupaDescription('diamond'),
+            'color': Colors.blue,
+            'unlocked': totalZikrs >= 5000,
+          },
+          {
+            'id': 'platinum_kupa',
+            'name': _getKupaName('platinum'),
+            'icon': '🏆',
+            'requirement': 10000,
+            'description': _getKupaDescription('platinum'),
+            'color': Colors.purple,
+            'unlocked': totalZikrs >= 10000,
+          },
+        ];
       });
-      
-      // Kupaları yeniden hesapla
-      _allCups = [
-        {
-          'id': 'bronze_kupa',
-          'name': 'Bronz Kupa',
-          'icon': '🥉',
-          'requirement': 100,
-          'description': 'İlk 100 zikir için',
-          'color': Colors.brown,
-          'unlocked': totalZikrs >= 100,
-        },
-        {
-          'id': 'silver_kupa',
-          'name': 'Gümüş Kupa',
-          'icon': '🥈',
-          'requirement': 500,
-          'description': '500 zikir için',
-          'color': Colors.grey,
-          'unlocked': totalZikrs >= 500,
-        },
-        {
-          'id': 'gold_kupa',
-          'name': 'Altın Kupa',
-          'icon': '🥇',
-          'requirement': 1000,
-          'description': '1000 zikir için',
-          'color': Colors.yellow,
-          'unlocked': totalZikrs >= 1000,
-        },
-        {
-          'id': 'diamond_kupa',
-          'name': 'Elmas Kupa',
-          'icon': '💎',
-          'requirement': 5000,
-          'description': '5000 zikir için',
-          'color': Colors.blue,
-          'unlocked': totalZikrs >= 5000,
-        },
-        {
-          'id': 'platinum_kupa',
-          'name': 'Platin Kupa',
-          'icon': '🏆',
-          'requirement': 10000,
-          'description': '10000 zikir için',
-          'color': Colors.purple,
-          'unlocked': totalZikrs >= 10000,
-        },
-      ];
       
       // Sonraki kupa bilgisini hesapla
       _calculateNextCup();
       
-      print('🔄 Kupa screen refreshed with zikr count: $totalZikrs');
+      print('🏆 Unlocked cups: ${_allCups.where((cup) => cup['unlocked']).length}');
+      print('🎯 Next cup: $_nextCupName (need $_nextCupRequirement)');
+      
+      // Kupa kazanma bildirimlerini kontrol et
+      _checkForNewUnlocks();
+      
     } catch (e) {
       print('Error refreshing kupa screen: $e');
     }
+  }
+
+  String _getTrophiesTitle() {
+    return DynamicLocalizationHelper.getText({
+      'tr': 'Kupalar',
+      'en': 'Trophies',
+      'ar': 'الكؤوس',
+      'id': 'Piala',
+    });
+  }
+
+  String _getKupaName(String type) {
+    return DynamicLocalizationHelper.getText({
+      'tr': {
+        'bronze': 'Bronz Kupa',
+        'silver': 'Gümüş Kupa',
+        'gold': 'Altın Kupa',
+        'diamond': 'Elmas Kupa',
+        'platinum': 'Platin Kupa',
+      }[type] ?? 'Kupa',
+      'en': {
+        'bronze': 'Bronze Cup',
+        'silver': 'Silver Cup',
+        'gold': 'Gold Cup',
+        'diamond': 'Diamond Cup',
+        'platinum': 'Platinum Cup',
+      }[type] ?? 'Cup',
+      'ar': {
+        'bronze': 'كأس برونزي',
+        'silver': 'كأس فضي',
+        'gold': 'كأس ذهبي',
+        'diamond': 'كأس ماسي',
+        'platinum': 'كأس بلاتيني',
+      }[type] ?? 'كأس',
+      'id': {
+        'bronze': 'Piala Perunggu',
+        'silver': 'Piala Perak',
+        'gold': 'Piala Emas',
+        'diamond': 'Piala Berlian',
+        'platinum': 'Piala Platinum',
+      }[type] ?? 'Piala',
+    });
+  }
+
+  String _getKupaDescription(String type) {
+    return DynamicLocalizationHelper.getText({
+      'tr': {
+        'bronze': 'İlk 100 zikir için',
+        'silver': '500 zikir için',
+        'gold': '1000 zikir için',
+        'diamond': '5000 zikir için',
+        'platinum': '10000 zikir için',
+      }[type] ?? 'Zikir için',
+      'en': {
+        'bronze': 'For first 100 dhikr',
+        'silver': 'For 500 dhikr',
+        'gold': 'For 1000 dhikr',
+        'diamond': 'For 5000 dhikr',
+        'platinum': 'For 10000 dhikr',
+      }[type] ?? 'For dhikr',
+      'ar': {
+        'bronze': 'لأول 100 ذكر',
+        'silver': 'لـ 500 ذكر',
+        'gold': 'لـ 1000 ذكر',
+        'diamond': 'لـ 5000 ذكر',
+        'platinum': 'لـ 10000 ذكر',
+      }[type] ?? 'للذكر',
+      'id': {
+        'bronze': 'Untuk 100 zikir pertama',
+        'silver': 'Untuk 500 zikir',
+        'gold': 'Untuk 1000 zikir',
+        'diamond': 'Untuk 5000 zikir',
+        'platinum': 'Untuk 10000 zikir',
+      }[type] ?? 'Untuk zikir',
+    });
+  }
+
+  void _checkForNewUnlocks() {
+    // Sadece yeni kazanılan kupaları kontrol et
+    for (var cup in _allCups) {
+      if (cup['unlocked'] == true) {
+        final wasUnlocked = _unlockedCups[cup['id']] ?? false;
+        if (!wasUnlocked) {
+          // Yeni kupa kazanıldı!
+          _unlockedCups[cup['id']] = true;
+          // Sadece ilk defa kazanılırsa bildirim göster
+          if (mounted && !_hasShownNotification) {
+            _showCupUnlockedNotification(cup);
+            _hasShownNotification = true;
+          }
+        }
+      }
+    }
+  }
+
+  void _showCupUnlockedNotification(Map<String, dynamic> cup) {
+    if (!mounted) return;
+    
+    String message = DynamicLocalizationHelper.getText({
+      'tr': '🎉 Tebrikler! ${cup['name']} kazandınız!',
+      'en': '🎉 Congratulations! You won ${cup['name']}!',
+      'ar': '🎉 مبروك! لقد فزت بـ ${cup['name']}!',
+      'id': '🎉 Selamat! Anda memenangkan ${cup['name']}!',
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Text(
+              cup['icon'],
+              style: const TextStyle(fontSize: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _loadZikrCount() async {
@@ -213,42 +365,6 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
     });
   }
 
-  int _calculateUserLevel(int totalZikrs) {
-    if (totalZikrs >= 50000) return 6;
-    if (totalZikrs >= 10000) return 5;
-    if (totalZikrs >= 5000) return 4;
-    if (totalZikrs >= 1000) return 3;
-    if (totalZikrs >= 500) return 2;
-    if (totalZikrs >= 100) return 1;
-    return 0;
-  }
-
-  String _getUserLevelTitle(int level) {
-    switch (level) {
-      case 0: return 'Yeni Başlayan';
-      case 1: return 'Bronz Zikir Çeken';
-      case 2: return 'Gümüş Zikir Çeken';
-      case 3: return 'Altın Zikir Çeken';
-      case 4: return 'Platin Zikir Çeken';
-      case 5: return 'Elmas Zikir Çeken';
-      case 6: return 'Zikir Ustası';
-      default: return 'Bilinmeyen Seviye';
-    }
-  }
-
-  Color _getUserLevelColor(int level) {
-    switch (level) {
-      case 0: return Colors.grey;
-      case 1: return Colors.brown;
-      case 2: return Colors.grey;
-      case 3: return Colors.yellow;
-      case 4: return Colors.blueGrey;
-      case 5: return Colors.cyan;
-      case 6: return Colors.purple;
-      default: return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -282,7 +398,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          'Kupalar',
+                          _getTrophiesTitle(),
                           style: GoogleFonts.notoSans(
                             color: widget.themeConfig.textColor,
                             fontSize: 24,
@@ -290,20 +406,9 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
                           ),
                         ),
                         const Spacer(),
-                        IconButton(
-                          onPressed: _refreshData,
-                          icon: Icon(
-                            Icons.refresh,
-                            color: widget.themeConfig.textColor,
-                          ),
-                        ),
+                        // Refresh butonu kaldırıldı
                       ],
                     ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Kullanıcı Seviyesi Kartı
-                    _buildUserLevelCard(),
                     
                     const SizedBox(height: 20),
                     
@@ -317,46 +422,6 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
                   ],
                 ),
               ),
-      ),
-    );
-  }
-
-  Widget _buildUserLevelCard() {
-    final level = _calculateUserLevel(_totalZikrs);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            _getUserLevelColor(level).withOpacity(0.2),
-            _getUserLevelColor(level).withOpacity(0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _getUserLevelColor(level).withOpacity(0.3),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Seviye $level',
-            style: GoogleFonts.notoSans(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _getUserLevelTitle(level),
-            style: GoogleFonts.notoSans(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.8),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -418,7 +483,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Kalan: $_nextCupirRequirement zikir',
+            'Kalan: $_nextCupRequirement zikir',
             style: GoogleFonts.notoSans(
               fontSize: 12,
               color: Colors.white.withOpacity(0.8),

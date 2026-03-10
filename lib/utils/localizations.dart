@@ -9,7 +9,8 @@ class AppLocalizations {
       'counter': 'Sayaç',
       'target': 'Hedef',
       'reset': 'Sıfırla',
-      'continue': 'Devam Et',
+      'continue': 'Devam',
+      'continueText': 'Devam Et',
       'cancel': 'İptal',
       'ok': 'Tamam',
       'settings': 'Ayarlar',
@@ -201,7 +202,6 @@ class AppLocalizations {
       'this_year': 'Bu Yıl',
       'last_year': 'Geçen Yıl',
       'next_year': 'Gelecek Yıl',
-    },
       'zikr_count': 'Zikir',
       'edit': 'Düzenle',
       'delete': 'Sil',
@@ -266,6 +266,7 @@ class AppLocalizations {
       'last_12_months': 'Son 12 Ay',
       'optional': 'Opsiyonel',
       'required': 'gerekli',
+      'count_cannot_be_zero': 'Sayı 0 olamaz',
       'transliteration': 'Okunuş',
       'version': 'Sürüm 1.0.0',
       'support_us': 'Bizi Destekleyin',
@@ -309,6 +310,10 @@ class AppLocalizations {
       'test_notification_sent': 'Test bildirimi gönderildi!',
       'test': 'Test',
       'close': 'Kapat',
+      'optional': 'Opsiyonel',
+      'required': 'gerekli',
+      'count_cannot_be_zero': 'Sayı 0 olamaz',
+      'transliteration': 'Okunuş',
     },
     'en': {
       'app_name': 'Tasbih Counter',
@@ -322,9 +327,14 @@ class AppLocalizations {
       'test_notification_sent': 'Test notification sent!',
       'test': 'Test',
       'close': 'Close',
+      'optional': 'Optional',
+      'required': 'Required',
+      'count_cannot_be_zero': 'Count cannot be zero',
+      'transliteration': 'Transliteration',
       'target': 'Target',
       'reset': 'Reset',
       'continue': 'Continue',
+      'continueText': 'Continue',
       'cancel': 'Cancel',
       'ok': 'OK',
       'settings': 'Settings',
@@ -350,13 +360,13 @@ class AppLocalizations {
       'zikr_name_de': 'German Name',
       'zikr_name_sw': 'Swahili Name',
       'zikr_name_ha': 'Hausa Name',
-      'contact': 'Contact',
-      'source_code': 'Source Code',
-      'default_count': 'Default Count',
-      'set_target': 'Set Target',
-      'quick_select': 'Quick Select',
-      'custom_target': 'Custom Target',
-      'enter_target': 'Enter target number',
+      'contact': 'İletişim',
+      'source_code': 'Kaynak Kodu',
+      'default_count': 'Varsayılan Sayı',
+      'set_target': 'Hedef Belirle',
+      'quick_select': 'Hızlı Seçim',
+      'custom_target': 'Özel Hedef',
+      'enter_target': 'Hedef sayısını girin',
       'success_title': 'MashaAllah! 🎉',
       'success_message': 'Target reached!',
       'zikr_count': 'Dhikr',
@@ -423,6 +433,7 @@ class AppLocalizations {
       'last_12_months': 'Last 12 Months',
       'optional': 'Optional',
       'required': 'required',
+      'count_cannot_be_zero': 'Count cannot be zero',
       'transliteration': 'Transliteration',
       'version': 'Version 1.0.0',
       'support_us': 'Support Us',
@@ -2205,7 +2216,6 @@ class AppLocalizations {
   String get counter => translate('counter');
   String get target => translate('target');
   String get reset => translate('reset');
-  String get continueText => translate('continue');
   String get cancel => translate('cancel');
   String get ok => translate('ok');
   String get settings => translate('settings');
@@ -2270,4 +2280,5 @@ class AppLocalizations {
   String get trophies => translate('trophies');
   String get reminderEnabled => translate('reminder_enabled');
   String get reminderDisabled => translate('reminder_disabled');
+  String get continueText => translate('continueText');
 }

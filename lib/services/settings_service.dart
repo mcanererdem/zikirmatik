@@ -43,11 +43,18 @@ class SettingsService {
   Future<void> saveLanguage(String languageCode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_languageKey, languageCode);
+    print('🔧 SettingsService: Language saved to SharedPreferences: $languageCode');
+    
+    // Doğru kaydedildiğini kontrol et
+    final savedLanguage = prefs.getString(_languageKey);
+    print('🔧 SettingsService: Verification - saved language: $savedLanguage');
   }
 
   Future<String> getLanguage() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_languageKey) ?? 'en'; // Default İngilizce
+    final language = prefs.getString(_languageKey) ?? 'en'; // Default İngilizce
+    print('🔧 SettingsService: Language retrieved from SharedPreferences: $language');
+    return language;
   }
 
   // Vibration

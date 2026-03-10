@@ -4,6 +4,8 @@ class ZikrModel {
   final String nameTr;
   final String nameEn;
   final int defaultCount;
+  final bool isCustom;
+  final bool isEditable;
 
   ZikrModel({
     required this.id,
@@ -11,7 +13,29 @@ class ZikrModel {
     required this.nameTr,
     required this.nameEn,
     required this.defaultCount,
+    this.isCustom = false,
+    this.isEditable = false,
   });
+
+  ZikrModel copyWith({
+    String? id,
+    String? nameAr,
+    String? nameTr,
+    String? nameEn,
+    int? defaultCount,
+    bool? isCustom,
+    bool? isEditable,
+  }) {
+    return ZikrModel(
+      id: id ?? this.id,
+      nameAr: nameAr ?? this.nameAr,
+      nameTr: nameTr ?? this.nameTr,
+      nameEn: nameEn ?? this.nameEn,
+      defaultCount: defaultCount ?? this.defaultCount,
+      isCustom: isCustom ?? this.isCustom,
+      isEditable: isEditable ?? this.isEditable,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -42,6 +66,7 @@ class DefaultZikrs {
       nameTr: 'Sübhanallah',
       nameEn: 'Subhanallah',
       defaultCount: 33,
+      isEditable: true,
     ),
     ZikrModel(
       id: '2',
@@ -49,6 +74,7 @@ class DefaultZikrs {
       nameTr: 'Elhamdülillah',
       nameEn: 'Alhamdulillah',
       defaultCount: 33,
+      isEditable: true,
     ),
     ZikrModel(
       id: '3',
@@ -56,6 +82,7 @@ class DefaultZikrs {
       nameTr: 'Allahu Ekber',
       nameEn: 'Allahu Akbar',
       defaultCount: 33,
+      isEditable: true,
     ),
     ZikrModel(
       id: '4',
@@ -63,6 +90,7 @@ class DefaultZikrs {
       nameTr: 'La ilahe illallah',
       nameEn: 'La ilaha illallah',
       defaultCount: 100,
+      isEditable: true,
     ),
     ZikrModel(
       id: '5',
@@ -70,6 +98,7 @@ class DefaultZikrs {
       nameTr: 'Estağfirullah',
       nameEn: 'Astaghfirullah',
       defaultCount: 100,
+      isEditable: true,
     ),
     ZikrModel(
       id: '6',
@@ -77,6 +106,7 @@ class DefaultZikrs {
       nameTr: 'Salat-ı Şerif',
       nameEn: 'Salawat',
       defaultCount: 100,
+      isEditable: true,
     ),
   ];
 }

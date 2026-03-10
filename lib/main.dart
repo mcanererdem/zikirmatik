@@ -94,6 +94,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
+  String _currentLanguage = 'tr';
   late Future<void> _initialization;
 
   @override
@@ -101,6 +102,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _initialization = _initializeApp();
     _loadThemeMode();
+    _loadLanguage();
     _syncWidgetCounter();
   }
 
@@ -117,6 +119,15 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> _loadLanguage() async {
+    final settingsService = SettingsService();
+    final language = await settingsService.getLanguage();
+    setState(() {
+      _currentLanguage = language;
+    });
+    print('🌐 MyApp: Language loaded: $_currentLanguage');
+  }
+
   // Sync app counter with widget counter on app start to reflect widget interactions
   Future<void> _syncWidgetCounter() async {
     try {
@@ -126,6 +137,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations(_currentLanguage);
+    
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Tasbih Counter',
@@ -145,27 +158,27 @@ class _MyAppState extends State<MyApp> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Splash screen göster
-            final settingsService = SettingsService();
-            return FutureBuilder<String>(
-              future: settingsService.getLanguage(),
-              builder: (context, langSnapshot) {
-                final languageCode = langSnapshot.data ?? 'tr';
-                final localizations = AppLocalizations(languageCode);
-                final themeId = 'blue_gold'; // Varsayılan tema
-                final themeConfig = AppThemes.getTheme(themeId);
-                
-                return SplashScreen(
-                  themeConfig: themeConfig,
-                  localizations: localizations,
-                );
-              },
+            final themeId = 'blue_gold'; // Varsayılan tema
+            final themeConfig = AppThemes.getTheme(themeId);
+            
+            return SplashScreen(
+              themeConfig: themeConfig,
+              localizations: localizations,
             );
           }
           
           // Ana sayfaya geç
-          return HomePage(onThemeModeChanged: (mode) {
-            setState(() => _themeMode = mode);
-          });
+          return HomePage(
+            onThemeModeChanged: (mode) {
+              setState(() => _themeMode = mode);
+            },
+            onLanguageChanged: (language) {
+              setState(() {
+                _currentLanguage = language;
+              });
+              print('🌐 MyApp: Language changed to: $_currentLanguage');
+            },
+          );
         },
       ),
     );

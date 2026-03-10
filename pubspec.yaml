@@ -2,7 +2,7 @@ name: zikirmatik_app
 description: A modern and user-friendly zikirmatik application.
 author: Caner Erdem
 publish_to: 'none'
-version: 1.0.8+9
+version: 1.0.9+10
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -32,6 +32,7 @@ dependencies:
   image_picker: ^1.0.4
   permission_handler: ^11.3.1
   app_settings: ^5.1.1
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:
