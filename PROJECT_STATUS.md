@@ -28,11 +28,11 @@ Bu dosya hangi ekran/servisin aktif olduğu, hangi dosyaların silineceği ve k�
 
 | Dosya | Önerilen aksiyon | Not |
 |-------|-------------------|-----|
-| `lib/screens/settings_screen_old.dart` | Silinecek | Aktif: settings_screen.dart. Referans yoksa kaldır. |
-| `lib/screens/kupa_screen.dart` | Silinecek (referans kontrolü sonrası) | Aktif: KupaScreenNew. Grep ile "KupaScreen(" araması yapıp sadece KupaScreenNew kullanılıyorsa sil. |
-| `lib/screens/support_screen.dart` | Silinecek | Aktif: support_screen_new.dart (SupportScreenNew). |
-| `lib/utils/localizations_broken.dart` | Silinecek | Kırık/eski; import edilmemeli. |
-| `lib/screens/home_page_backup.dart` | İsteğe bağlı silinecek | Yedek; gerek yoksa kaldır. |
+| ~~settings_screen_old~~ | Silindi | |
+| ~~kupa_screen~~ | Silindi | |
+| ~~support_screen~~ | Silindi | |
+| ~~localizations_broken~~ | Silindi | |
+| `lib/screens/home_page_backup.dart` | İsteğe bağlı | Yedek; varsa kaldırılabilir. |
 | `lib/screens/about_screen_new.dart` | Karar verilecek | AboutScreen mi AboutScreenNew mi resmî olacak; biri kaldırılacak veya tek isim altında birleştirilecek. |
 | `lib/utils/dialog_manager.dart` vs `lib/widgets/dialog_manager.dart` | Birleştir / tek dosya bırak | Hangi dosyanın nerede kullanıldığı grep ile kontrol edilmeli; tek bir dialog_manager kullanılmalı. |
 
@@ -60,4 +60,4 @@ Bu dosya hangi ekran/servisin aktif olduğu, hangi dosyaların silineceği ve k�
 - [ ] Eski dosyaları (settings_screen_old, kupa_screen, support_screen, localizations_broken) referans kontrolü sonrası sil.
 - [ ] dialog_manager çakışmasını çöz; tek dosya bırak.
 
-Bu liste TODO.md veya Notion ile de senkron tutulabilir; tek bir “yapılacaklar” kaynağı kullanılması önerilir.
+Tüm görevler **TODO.md** dosyasında (Kanban). Tek kaynak orası.  “yapılacaklar” 

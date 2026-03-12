@@ -1522,6 +1522,28 @@ class AppLocalizations {
       'import_failed': '导入失败',
       'export_success': '导出成功!',
       'export_failed': '导出失败',
+      'notifications': '通知',
+      'reminders': '提醒',
+      'dhikr_reminders': '赞念提醒',
+      'sound_vibration': '声音与振动',
+      'vibrate_while_counting': '计数时振动',
+      'sound_while_counting': '计数时声音',
+      'confetti_effect': '彩纸效果',
+      'confetti_effect_description': '达成目标时彩纸效果',
+      'advanced': '高级',
+      'text_to_speech': '语音朗读',
+      'read_dhikr_texts_aloud': '朗读赞念文本',
+      'show_leaderboard': '显示排行榜',
+      'bronze_cup': '铜杯',
+      'silver_cup': '银杯',
+      'gold_cup': '金杯',
+      'diamond_cup': '钻石杯',
+      'platinum_cup': '白金杯',
+      'bronze_cup_description': '首次100赞念',
+      'silver_cup_description': '500赞念',
+      'gold_cup_description': '1000赞念',
+      'diamond_cup_description': '5000赞念',
+      'platinum_cup_description': '10000赞念',
 },
     // Japonca (Japonya)
     'ja': {
@@ -1658,6 +1680,28 @@ class AppLocalizations {
       'import_failed': 'インポート失敗',
       'export_success': 'エクスポート成功!',
       'export_failed': 'エクスポート失敗',
+      'notifications': '通知',
+      'reminders': 'リマインダー',
+      'dhikr_reminders': 'ズィクルリマインダー',
+      'sound_vibration': '音と振動',
+      'vibrate_while_counting': 'カウント時に振動',
+      'sound_while_counting': 'カウント時に音',
+      'confetti_effect': '紙吹雪',
+      'confetti_effect_description': '目標達成時の紙吹雪',
+      'advanced': '詳細',
+      'text_to_speech': '音声読み上げ',
+      'read_dhikr_texts_aloud': 'ズィクルを読み上げ',
+      'show_leaderboard': 'ランキングを表示',
+      'bronze_cup': '銅杯',
+      'silver_cup': '銀杯',
+      'gold_cup': '金杯',
+      'diamond_cup': 'ダイヤモンド杯',
+      'platinum_cup': 'プラチナ杯',
+      'bronze_cup_description': '初回100ズィクル',
+      'silver_cup_description': '500ズィクル',
+      'gold_cup_description': '1000ズィクル',
+      'diamond_cup_description': '5000ズィクル',
+      'platinum_cup_description': '10000ズィクル',
 },
     // Rusça (Rusya)
     'ru': {
@@ -1794,6 +1838,28 @@ class AppLocalizations {
       'import_failed': 'Импорт не удался',
       'export_success': 'Экспорт успешен!',
       'export_failed': 'Экспорт не удался',
+      'notifications': 'Уведомления',
+      'reminders': 'Напоминания',
+      'dhikr_reminders': 'Напоминания о зикре',
+      'sound_vibration': 'Звук и вибрация',
+      'vibrate_while_counting': 'Вибрация при счёте',
+      'sound_while_counting': 'Звук при счёте',
+      'confetti_effect': 'Конфетти',
+      'confetti_effect_description': 'Эффект конфетти при достижении цели',
+      'advanced': 'Дополнительно',
+      'text_to_speech': 'Озвучивание',
+      'read_dhikr_texts_aloud': 'Читать зикр вслух',
+      'show_leaderboard': 'Показать таблицу лидеров',
+      'bronze_cup': 'Бронзовая чаша',
+      'silver_cup': 'Серебряная чаша',
+      'gold_cup': 'Золотая чаша',
+      'diamond_cup': 'Бриллиантовая чаша',
+      'platinum_cup': 'Платиновая чаша',
+      'bronze_cup_description': 'За первые 100 зикров',
+      'silver_cup_description': 'За 500 зикров',
+      'gold_cup_description': 'За 1000 зикров',
+      'diamond_cup_description': 'За 5000 зикров',
+      'platinum_cup_description': 'За 10000 зикров',
 },
     // Almanca (Almanya)
     'de': {
@@ -1930,6 +1996,28 @@ class AppLocalizations {
       'import_failed': 'Import fehlgeschlagen',
       'export_success': 'Export erfolgreich!',
       'export_failed': 'Export fehlgeschlagen',
+      'notifications': 'Benachrichtigungen',
+      'reminders': 'Erinnerungen',
+      'dhikr_reminders': 'Dhikr-Erinnerungen',
+      'sound_vibration': 'Ton & Vibration',
+      'vibrate_while_counting': 'Vibration beim Zählen',
+      'sound_while_counting': 'Ton beim Zählen',
+      'confetti_effect': 'Konfetti',
+      'confetti_effect_description': 'Konfetti bei Zielerreichung',
+      'advanced': 'Erweitert',
+      'text_to_speech': 'Sprachausgabe',
+      'read_dhikr_texts_aloud': 'Dhikr-Texte vorlesen',
+      'show_leaderboard': 'Bestenliste anzeigen',
+      'bronze_cup': 'Bronzepokal',
+      'silver_cup': 'Silberpokal',
+      'gold_cup': 'Goldpokal',
+      'diamond_cup': 'Diamantpokal',
+      'platinum_cup': 'Platinpokal',
+      'bronze_cup_description': 'Für die ersten 100 Dhikr',
+      'silver_cup_description': 'Für 500 Dhikr',
+      'gold_cup_description': 'Für 1000 Dhikr',
+      'diamond_cup_description': 'Für 5000 Dhikr',
+      'platinum_cup_description': 'Für 10000 Dhikr',
 },
     // Svahili (Doğu Afrika)
     'sw': {
@@ -2066,6 +2154,28 @@ class AppLocalizations {
       'import_failed': 'Uhamishaji umeshindwa',
       'export_success': 'Uhamishaji nje umefanikiwa!',
       'export_failed': 'Uhamishaji nje umeshindwa',
+      'notifications': 'Arifa',
+      'reminders': 'Vikumbusho',
+      'dhikr_reminders': 'Vikumbusho vya Dhikr',
+      'sound_vibration': 'Sauti na Mtetemo',
+      'vibrate_while_counting': 'Mtetemo unapohesabu',
+      'sound_while_counting': 'Sauti unapohesabu',
+      'confetti_effect': 'Konfeti',
+      'confetti_effect_description': 'Athari ya konfeti unapofikia lengo',
+      'advanced': 'Zaidi',
+      'text_to_speech': 'Kusoma kwa sauti',
+      'read_dhikr_texts_aloud': 'Soma maandishi ya Dhikr kwa sauti',
+      'show_leaderboard': 'Onyesha orodha ya wanaongoza',
+      'bronze_cup': 'Kombe la Shaba',
+      'silver_cup': 'Kombe la Fedha',
+      'gold_cup': 'Kombe la Dhahabu',
+      'diamond_cup': 'Kombe la Almasi',
+      'platinum_cup': 'Kombe la Platini',
+      'bronze_cup_description': 'Kwa Dhikr 100 za kwanza',
+      'silver_cup_description': 'Kwa Dhikr 500',
+      'gold_cup_description': 'Kwa Dhikr 1000',
+      'diamond_cup_description': 'Kwa Dhikr 5000',
+      'platinum_cup_description': 'Kwa Dhikr 10000',
 },
     // Hausa (Batı Afrika)
     'ha': {
@@ -2197,15 +2307,885 @@ class AppLocalizations {
       'export': 'Fitar da Bayanai',
       'import': 'Shigar da Bayanai',
       'import_success': 'Shigarwa ta yi nasara!',
-      'import_failed': 'Shigarwa ta kasa',
-      'export_success': 'Fitarwa ta yi nasara!',
-      'export_failed': 'Fitarwa ta kasa',
-      'developer_name': 'Caner Erdem',
-      'developer_title': 'Geliştirici',
-      'developer_website': 'www.mcanererdem.com',
-      'developer_email': 'info@mcanererdem.com',
-      'developer_github': 'github.com/mcanererdem',
-},
+      'notifications': 'Bildirimler',
+      'reminders': 'Hatırlatıcılar',
+      'dhikr_reminders': 'Zikir hatırlatıcıları',
+      'sound_vibration': 'Ses ve Titreşim',
+      'vibrate_while_counting': 'Zikir sayarken titreşim',
+      'sound_while_counting': 'Zikir sayarken ses',
+      'confetti_effect': 'Konfeti',
+      'confetti_effect_description': 'Hedef tamamlandığında konfeti efekti',
+      'advanced': 'Gelişmiş',
+      'text_to_speech': 'Metin Okuma (TTS)',
+      'read_dhikr_texts_aloud': 'Zikir metinlerini sesli oku',
+      'show_leaderboard': 'Liderlik tablosunu göster',
+      'bronze_cup': 'Bronz Kupa',
+      'silver_cup': 'Gümüş Kupa',
+      'gold_cup': 'Altın Kupa',
+      'diamond_cup': 'Elmas Kupa',
+      'platinum_cup': 'Platin Kupa',
+      'bronze_cup_description': 'İlk 100 zikir için',
+      'silver_cup_description': '500 zikir için',
+      'gold_cup_description': '1000 zikir için',
+      'diamond_cup_description': '5000 zikir için',
+      'platinum_cup_description': '10000 zikir için',
+      'cup_unlocked_congratulations': '🎉 Tebrikler! {name} kazandınız!',
+      'cup_unlocked_message': '🎉 Congratulations! You won {name}!',
+      'cup_unlocked_arabic': '🎉 مبروك! لقد فزت بـ {name}!',
+      'cup_unlocked_indonesian': '🎉 Selamat! Anda memenangkan {name}!',
+      'statistics': 'İstatistikler',
+      'trophies': 'Kupalar',
+      'profile': 'Profil',
+      'leaderboard': 'Liderlik Tablosu',
+      'export': 'Dışa Aktar',
+      'import': 'İçe Aktar',
+      'support': 'Destek',
+      'about': 'Hakkında',
+      'ok': 'Tamam',
+      'cancel': 'İptal',
+      'save': 'Kaydet',
+      'delete': 'Sil',
+      'edit': 'Düzenle',
+      'back': 'Geri',
+      'next': 'Sonraki',
+      'previous': 'Önceki',
+      'total': 'Toplam',
+      'daily': 'Günlük',
+      'weekly': 'Haftalık',
+      'monthly': 'Aylık',
+      'year': 'Yıl',
+      'theme': 'Tema',
+      'language': 'Dil',
+      'vibration': 'Titreşim',
+      'sound': 'Ses',
+      'dark_mode': 'Karanlık Modu',
+      'light_mode': 'Açık Mod',
+      'reset': 'Sıfırla',
+      'target': 'Hedef',
+      'counter': 'Sayaç',
+      'continue': 'Devam',
+      'select': 'Seç',
+      'add': 'Ekle',
+      'remove': 'Kaldır',
+      'search': 'Ara',
+      'filter': 'Filtrele',
+      'sort': 'Sırala',
+      'refresh': 'Yenile',
+      'loading': 'Yükleniyor...',
+      'error': 'Hata',
+      'success': 'Başarılı',
+      'warning': 'Uyarı',
+      'info': 'Bilgi',
+      'yes': 'Evet',
+      'no': 'Hayır',
+      'share': 'Paylaş',
+      'copy': 'Kopyala',
+      'paste': 'Yapıştır',
+      'cut': 'Kes',
+      'undo': 'Geri Al',
+      'redo': 'Yinele',
+      'help': 'Yardım',
+      'feedback': 'Geri Bildirim',
+      'contact': 'İletişim',
+      'website': 'Web Sitesi',
+      'github': 'GitHub',
+      'email': 'E-posta',
+      'phone': 'Telefon',
+      'address': 'Adres',
+      'name': 'Ad',
+      'description': 'Açıklama',
+      'date': 'Tarih',
+      'time': 'Saat',
+      'hour': 'Saat',
+      'minute': 'Dakika',
+      'second': 'Saniye',
+      'day': 'Gün',
+      'week': 'Hafta',
+      'month': 'Ay',
+      'level': 'Seviye',
+      'score': 'Skor',
+      'rank': 'Sıralama',
+      'achievement': 'Başarı',
+      'bronze': 'Bronz',
+      'silver': 'Gümüş',
+      'gold': 'Altın',
+      'diamond': 'Elmas',
+      'platinum': 'Platin',
+      'unlocked': 'Kilidi Açıldı',
+      'locked': 'Kilitli',
+      'progress': 'İlerleme',
+      'completed': 'Tamamlandı',
+      'pending': 'Bekliyor',
+      'active': 'Aktif',
+      'inactive': 'Pasif',
+      'online': 'Çevrimiçi',
+      'offline': 'Çevrimdışı',
+      'connected': 'Bağlandı',
+      'disconnected': 'Bağlantı Kesildi',
+      'sync': 'Senkronize Et',
+      'backup': 'Yedekle',
+      'restore': 'Geri Yükle',
+      'download': 'İndir',
+      'upload': 'Yükle',
+      'file': 'Dosya',
+      'folder': 'Klasör',
+      'image': 'Resim',
+      'video': 'Video',
+      'audio': 'Ses',
+      'document': 'Belge',
+      'camera': 'Kamera',
+      'gallery': 'Galeri',
+      'permission': 'İzin',
+      'allow': 'İzin Ver',
+      'deny': 'Reddet',
+      'enable': 'Etkinleştir',
+      'disable': 'Devre Dışı Bırak',
+      'on': 'Açık',
+      'off': 'Kapalı',
+      'open': 'Aç',
+      'close': 'Kapat',
+      'exit': 'Çık',
+      'quit': 'Çık',
+      'start': 'Başla',
+      'stop': 'Dur',
+      'pause': 'Duraklat',
+      'play': 'Oynat',
+      'retry': 'Tekrar Dene',
+      'skip': 'Atla',
+      'first': 'İlk',
+      'last': 'Son',
+      'all': 'Tümü',
+      'none': 'Hiçbiri',
+      'any': 'Herhangi',
+      'other': 'Diğer',
+      'more': 'Daha Fazla',
+      'less': 'Daha Az',
+      'new': 'Yeni',
+      'old': 'Eski',
+      'recent': 'Son',
+      'favorite': 'Favori',
+      'bookmark': 'Yer İmi',
+      'history': 'Geçmiş',
+      'log': 'Günlük',
+      'report': 'Rapor',
+      'analytics': 'Analitik',
+      'performance': 'Performans',
+      'quality': 'Kalite',
+      'speed': 'Hız',
+      'size': 'Boyut',
+      'color': 'Renk',
+      'style': 'Stil',
+      'design': 'Tasarım',
+      'layout': 'Yerleşim',
+      'format': 'Format',
+      'option': 'Seçenek',
+      'setting': 'Ayar',
+      'configuration': 'Yapılandırma',
+      'preference': 'Tercih',
+      'custom': 'Özel',
+      'default': 'Varsayılan',
+      'automatic': 'Otomatik',
+      'manual': 'Manuel',
+      'secure': 'Güvenli',
+      'private': 'Özel',
+      'public': 'Herkese Açık',
+      'hidden': 'Gizli',
+      'visible': 'Görünür',
+      'available': 'Mevcut',
+      'unavailable': 'Mevcut Değil',
+      'required': 'Gerekli',
+      'optional': 'İsteğe Bağlı',
+      'recommended': 'Önerilen',
+      'suggested': 'Önerilen',
+      'popular': 'Popüler',
+      'trending': 'Trend',
+      'featured': 'Öne Çıkan',
+      'latest': 'En Son',
+      'updated': 'Güncellendi',
+      'created': 'Oluşturuldu',
+      'modified': 'Değiştirildi',
+      'deleted': 'Silindi',
+      'archived': 'Arşivlendi',
+      'expired': 'Süresi Doldu',
+      'valid': 'Geçerli',
+      'invalid': 'Geçersiz',
+      'correct': 'Doğru',
+      'incorrect': 'Yanlış',
+      'true': 'Doğru',
+      'false': 'Yanlış',
+      'unknown': 'Bilinmeyen',
+      'empty': 'Boş',
+      'full': 'Dolu',
+      'partial': 'Kısmi',
+      'complete': 'Tamamlandı',
+      'incomplete': 'Tamamlanmadı',
+      'ready': 'Hazır',
+      'busy': 'Meşgul',
+      'idle': 'Boşta',
+      'running': 'Çalışıyor',
+      'stopped': 'Durdu',
+      'whom': 'Kimi',
+    },
+    'en': {
+      'notifications': 'Notifications',
+      'reminders': 'Reminders',
+      'dhikr_reminders': 'Dhikr reminders',
+      'sound_vibration': 'Sound & Vibration',
+      'vibrate_while_counting': 'Vibrate while counting',
+      'sound_while_counting': 'Sound while counting',
+      'confetti_effect': 'Confetti',
+      'confetti_effect_description': 'Confetti effect when goal completed',
+      'advanced': 'Advanced',
+      'text_to_speech': 'Text to Speech (TTS)',
+      'read_dhikr_texts_aloud': 'Read dhikr texts aloud',
+      'show_leaderboard': 'Show leaderboard',
+      'bronze_cup': 'Bronze Cup',
+      'silver_cup': 'Silver Cup',
+      'gold_cup': 'Gold Cup',
+      'diamond_cup': 'Diamond Cup',
+      'platinum_cup': 'Platinum Cup',
+      'bronze_cup_description': 'For first 100 dhikr',
+      'silver_cup_description': 'For 500 dhikr',
+      'gold_cup_description': 'For 1000 dhikr',
+      'diamond_cup_description': 'For 5000 dhikr',
+      'platinum_cup_description': 'For 10000 dhikr',
+      'cup_unlocked_congratulations': '🎉 Congratulations! You won {name}!',
+      'cup_unlocked_message': '🎉 Congratulations! You won {name}!',
+      'cup_unlocked_arabic': '🎉 مبروك! لقد فزت بـ {name}!',
+      'cup_unlocked_indonesian': '🎉 Selamat! Anda memenangkan {name}!',
+      'statistics': 'Statistics',
+      'trophies': 'Trophies',
+      'profile': 'Profile',
+      'leaderboard': 'Leaderboard',
+      'export': 'Export',
+      'import': 'Import',
+      'support': 'Support',
+      'about': 'About',
+      'ok': 'OK',
+      'cancel': 'Cancel',
+      'save': 'Save',
+      'delete': 'Delete',
+      'edit': 'Edit',
+      'back': 'Back',
+      'next': 'Next',
+      'previous': 'Previous',
+      'total': 'Total',
+      'daily': 'Daily',
+      'weekly': 'Weekly',
+      'monthly': 'Monthly',
+      'year': 'Year',
+      'theme': 'Theme',
+      'language': 'Language',
+      'vibration': 'Vibration',
+      'sound': 'Sound',
+      'dark_mode': 'Dark Mode',
+      'light_mode': 'Light Mode',
+      'reset': 'Reset',
+      'target': 'Target',
+      'counter': 'Counter',
+      'continue': 'Continue',
+      'select': 'Select',
+      'add': 'Add',
+      'remove': 'Remove',
+      'search': 'Search',
+      'filter': 'Filter',
+      'sort': 'Sort',
+      'refresh': 'Refresh',
+      'loading': 'Loading...',
+      'error': 'Error',
+      'success': 'Success',
+      'warning': 'Warning',
+      'info': 'Info',
+      'yes': 'Yes',
+      'no': 'No',
+      'share': 'Share',
+      'copy': 'Copy',
+      'paste': 'Paste',
+      'cut': 'Cut',
+      'undo': 'Undo',
+      'redo': 'Redo',
+      'help': 'Help',
+      'feedback': 'Feedback',
+      'contact': 'Contact',
+      'website': 'Website',
+      'github': 'GitHub',
+      'email': 'Email',
+      'phone': 'Phone',
+      'address': 'Address',
+      'name': 'Name',
+      'description': 'Description',
+      'date': 'Date',
+      'time': 'Time',
+      'hour': 'Hour',
+      'minute': 'Minute',
+      'second': 'Second',
+      'day': 'Day',
+      'week': 'Week',
+      'month': 'Month',
+      'level': 'Level',
+      'score': 'Score',
+      'rank': 'Rank',
+      'achievement': 'Achievement',
+      'bronze': 'Bronze',
+      'silver': 'Silver',
+      'gold': 'Gold',
+      'diamond': 'Diamond',
+      'platinum': 'Platinum',
+      'unlocked': 'Unlocked',
+      'locked': 'Locked',
+      'progress': 'Progress',
+      'completed': 'Completed',
+      'pending': 'Pending',
+      'active': 'Active',
+      'inactive': 'Inactive',
+      'online': 'Online',
+      'offline': 'Offline',
+      'connected': 'Connected',
+      'disconnected': 'Disconnected',
+      'sync': 'Sync',
+      'backup': 'Backup',
+      'restore': 'Restore',
+      'download': 'Download',
+      'upload': 'Upload',
+      'file': 'File',
+      'folder': 'Folder',
+      'image': 'Image',
+      'video': 'Video',
+      'audio': 'Audio',
+      'document': 'Document',
+      'camera': 'Camera',
+      'gallery': 'Gallery',
+      'permission': 'Permission',
+      'allow': 'Allow',
+      'deny': 'Deny',
+      'enable': 'Enable',
+      'disable': 'Disable',
+      'on': 'On',
+      'off': 'Off',
+      'open': 'Open',
+      'close': 'Close',
+      'exit': 'Exit',
+      'quit': 'Quit',
+      'start': 'Start',
+      'stop': 'Stop',
+      'pause': 'Pause',
+      'play': 'Play',
+      'retry': 'Retry',
+      'skip': 'Skip',
+      'first': 'First',
+      'last': 'Last',
+      'all': 'All',
+      'none': 'None',
+      'any': 'Any',
+      'other': 'Other',
+      'more': 'More',
+      'less': 'Less',
+      'new': 'New',
+      'old': 'Old',
+      'recent': 'Recent',
+      'favorite': 'Favorite',
+      'bookmark': 'Bookmark',
+      'history': 'History',
+      'log': 'Log',
+      'report': 'Report',
+      'analytics': 'Analytics',
+      'performance': 'Performance',
+      'quality': 'Quality',
+      'speed': 'Speed',
+      'size': 'Size',
+      'color': 'Color',
+      'style': 'Style',
+      'design': 'Design',
+      'layout': 'Layout',
+      'format': 'Format',
+      'option': 'Option',
+      'setting': 'Setting',
+      'configuration': 'Configuration',
+      'preference': 'Preference',
+      'custom': 'Custom',
+      'default': 'Default',
+      'automatic': 'Automatic',
+      'manual': 'Manual',
+      'secure': 'Secure',
+      'private': 'Private',
+      'public': 'Public',
+      'hidden': 'Hidden',
+      'visible': 'Visible',
+      'available': 'Available',
+      'unavailable': 'Unavailable',
+      'required': 'Required',
+      'optional': 'Optional',
+      'recommended': 'Recommended',
+      'suggested': 'Suggested',
+      'popular': 'Popular',
+      'trending': 'Trending',
+      'featured': 'Featured',
+      'latest': 'Latest',
+      'updated': 'Updated',
+      'created': 'Created',
+      'modified': 'Modified',
+      'deleted': 'Deleted',
+      'archived': 'Archived',
+      'expired': 'Expired',
+      'valid': 'Valid',
+      'invalid': 'Invalid',
+      'correct': 'Correct',
+      'incorrect': 'Incorrect',
+      'true': 'True',
+      'false': 'False',
+      'unknown': 'Unknown',
+      'empty': 'Empty',
+      'full': 'Full',
+      'partial': 'Partial',
+      'complete': 'Complete',
+      'incomplete': 'Incomplete',
+      'ready': 'Ready',
+      'busy': 'Busy',
+      'idle': 'Idle',
+      'running': 'Running',
+      'stopped': 'Stopped',
+      'whom': 'Whom',
+    },
+    'ar': {
+      'notifications': 'الإشعارات',
+      'reminders': 'التذكيرات',
+      'dhikr_reminders': 'تذكيرات الذكر',
+      'sound_vibration': 'الصوت والاهتزاز',
+      'vibrate_while_counting': 'اهتزاز أثناء العد',
+      'sound_while_counting': 'صوت أثناء العد',
+      'confetti_effect': 'الكونفيتي',
+      'confetti_effect_description': 'تأثير الكونفيتي عند إكمال الهدف',
+      'advanced': 'متقدم',
+      'text_to_speech': 'نص إلى كلام (TTS)',
+      'read_dhikr_texts_aloud': 'اقرأ نصوص الذكر بصوت عالٍ',
+      'show_leaderboard': 'إظهار لوحة الصدارة',
+      'bronze_cup': 'كأس برونزي',
+      'silver_cup': 'كأس فضي',
+      'gold_cup': 'كأس ذهبي',
+      'diamond_cup': 'كأس ماسي',
+      'platinum_cup': 'كأس بلاتيني',
+      'bronze_cup_description': 'لأول 100 ذكر',
+      'silver_cup_description': 'لـ 500 ذكر',
+      'gold_cup_description': 'لـ 1000 ذكر',
+      'diamond_cup_description': 'لـ 5000 ذكر',
+      'platinum_cup_description': 'لـ 10000 ذكر',
+      'cup_unlocked_congratulations': '🎉 مبروك! لقد فزت بـ {name}!',
+      'cup_unlocked_message': '🎉 Congratulations! You won {name}!',
+      'cup_unlocked_arabic': '🎉 مبروك! لقد فزت بـ {name}!',
+      'cup_unlocked_indonesian': '🎉 Selamat! Anda memenangkan {name}!',
+      'statistics': 'الإحصائيات',
+      'trophies': 'الكؤوس',
+      'profile': 'الملف الشخصي',
+      'leaderboard': 'لوحة الصدارة',
+      'export': 'تصدير',
+      'import': 'استيراد',
+      'support': 'الدعم',
+      'about': 'حول',
+      'ok': 'موافق',
+      'cancel': 'إلغاء',
+      'save': 'حفظ',
+      'delete': 'حذف',
+      'edit': 'تعديل',
+      'back': 'رجوع',
+      'next': 'التالي',
+      'previous': 'السابق',
+      'total': 'المجموع',
+      'daily': 'يومي',
+      'weekly': 'أسبوعي',
+      'monthly': 'شهري',
+      'year': 'سنة',
+      'theme': 'المظهر',
+      'language': 'اللغة',
+      'vibration': 'الاهتزاز',
+      'sound': 'الصوت',
+      'dark_mode': 'الوضع الليلي',
+      'light_mode': 'الوضع النهاري',
+      'reset': 'إعادة تعيين',
+      'target': 'الهدف',
+      'counter': 'العداد',
+      'continue': 'متابعة',
+      'select': 'اختر',
+      'add': 'أضف',
+      'remove': 'إزالة',
+      'search': 'بحث',
+      'filter': 'تصفية',
+      'sort': 'فرز',
+      'refresh': 'تحديث',
+      'loading': 'جاري التحميل...',
+      'error': 'خطأ',
+      'success': 'نجاح',
+      'warning': 'تحذير',
+      'info': 'معلومات',
+      'yes': 'نعم',
+      'no': 'لا',
+      'share': 'مشاركة',
+      'copy': 'نسخ',
+      'paste': 'لصق',
+      'cut': 'قص',
+      'undo': 'تراجع',
+      'redo': 'إعادة',
+      'help': 'مساعدة',
+      'feedback': 'ملاحظات',
+      'contact': 'اتصل',
+      'website': 'الموقع الإلكتروني',
+      'github': 'GitHub',
+      'email': 'البريد الإلكتروني',
+      'phone': 'هاتف',
+      'address': 'عنوان',
+      'name': 'الاسم',
+      'description': 'الوصف',
+      'date': 'التاريخ',
+      'time': 'الوقت',
+      'hour': 'ساعة',
+      'minute': 'دقيقة',
+      'second': 'ثانية',
+      'day': 'يوم',
+      'week': 'أسبوع',
+      'month': 'شهر',
+      'level': 'مستوى',
+      'score': 'درجة',
+      'rank': 'ترتيب',
+      'achievement': 'إنجاز',
+      'bronze': 'برونزي',
+      'silver': 'فضي',
+      'gold': 'ذهبي',
+      'diamond': 'ماسي',
+      'platinum': 'بلاتين',
+      'unlocked': 'تم فتح القفل',
+      'locked': 'مقفل',
+      'progress': 'التقدم',
+      'completed': 'مكتمل',
+      'pending': 'في انتظار',
+      'active': 'نشط',
+      'inactive': 'غير نشط',
+      'online': 'متصل',
+      'offline': 'غير متصل',
+      'connected': 'متصل',
+      'disconnected': 'انقطع الاتصال',
+      'sync': 'مزامنة',
+      'backup': 'نسخ احتياطي',
+      'restore': 'استعادة',
+      'download': 'تنزيل',
+      'upload': 'رفع',
+      'file': 'ملف',
+      'folder': 'مجلد',
+      'image': 'صورة',
+      'video': 'فيديو',
+      'audio': 'صوت',
+      'document': 'وثيقة',
+      'camera': 'كاميرا',
+      'gallery': 'معرض الصور',
+      'permission': 'إذن',
+      'allow': 'سماح',
+      'deny': 'رفض',
+      'enable': 'تفعيل',
+      'disable': 'تعطيل',
+      'on': 'مفعل',
+      'off': 'معطل',
+      'open': 'فتح',
+      'close': 'إغلاق',
+      'exit': 'خروج',
+      'quit': 'استقال',
+      'start': 'ابدأ',
+      'stop': 'توقف',
+      'pause': 'إيقاف',
+      'play': 'تشغيل',
+      'retry': 'إعادة المحاولة',
+      'skip': 'تخطي',
+      'first': 'الأول',
+      'last': 'الأخير',
+      'all': 'الكل',
+      'none': 'لا شيء',
+      'any': 'أي',
+      'other': 'أخرى',
+      'more': 'المزيد',
+      'less': 'أقل',
+      'new': 'جديد',
+      'old': 'قديم',
+      'recent': 'الحديث',
+      'favorite': 'المفضلة',
+      'bookmark': 'علامة مرجعية',
+      'history': 'التاريخ',
+      'log': 'سجل',
+      'report': 'تقرير',
+      'analytics': 'التحليلات',
+      'performance': 'الأداء',
+      'quality': 'الجودة',
+      'speed': 'السرعة',
+      'size': 'الحجم',
+      'color': 'اللون',
+      'style': 'النمط',
+      'design': 'تصميم',
+      'layout': 'تخطيط',
+      'format': 'تنسيق',
+      'option': 'خيار',
+      'setting': 'إعداد',
+      'configuration': 'تكوين',
+      'preference': 'تفضيل',
+      'custom': 'مخصص',
+      'default': 'افتراضي',
+      'automatic': 'تلقائي',
+      'manual': 'يدوي',
+      'secure': 'آمن',
+      'private': 'خاص',
+      'public': 'عام',
+      'hidden': 'مخفي',
+      'visible': 'مرئي',
+      'available': 'متاح',
+      'unavailable': 'غير متاح',
+      'required': 'مطلوب',
+      'optional': 'اختياري',
+      'recommended': 'موصى به',
+      'suggested': 'مقترح',
+      'popular': 'شائع',
+      'trending': 'الرائج',
+      'featured': 'مميز',
+      'latest': 'الأحدث',
+      'updated': 'محدث',
+      'created': 'تم إنشاؤه',
+      'modified': 'تم تعديله',
+      'deleted': 'تم حذفه',
+      'archived': 'مؤرشف',
+      'expired': 'منتهي الصلاحية',
+      'valid': 'صالح',
+      'invalid': 'غير صالح',
+      'correct': 'صحيح',
+      'incorrect': 'غير صحيح',
+      'true': 'صحيح',
+      'false': 'خطأ',
+      'unknown': 'غير معروف',
+      'empty': 'فارغ',
+      'full': 'ممتلئ',
+      'partial': 'جزئي',
+      'complete': 'مكتمل',
+      'incomplete': 'غير مكتمل',
+      'ready': 'جاهز',
+      'busy': 'مشغول',
+      'idle': 'خامل',
+      'running': 'يعمل',
+      'stopped': 'توقف',
+      'whom': 'من',
+    },
+    'id': {
+      'notifications': 'Notifikasi',
+      'reminders': 'Pengingat',
+      'dhikr_reminders': 'Pengingat Dhikr',
+      'sound_vibration': 'Suara & Getaran',
+      'vibrate_while_counting': 'Getar saat menghitung',
+      'sound_while_counting': 'Suara saat menghitung',
+      'confetti_effect': 'Konfeti',
+      'confetti_effect_description': 'Efek konfeti saat target selesai',
+      'advanced': 'Lanjutan',
+      'text_to_speech': 'Teks ke Suara (TTS)',
+      'read_dhikr_texts_aloud': 'Bacakan teks dhikr dengan keras',
+      'show_leaderboard': 'Tampilkan papan peringkat',
+      'bronze_cup': 'Piala Perunggu',
+      'silver_cup': 'Piala Perak',
+      'gold_cup': 'Piala Emas',
+      'diamond_cup': 'Piala Berlian',
+      'platinum_cup': 'Piala Platinum',
+      'bronze_cup_description': 'Untuk 100 dhikr pertama',
+      'silver_cup_description': 'Untuk 500 dhikr',
+      'gold_cup_description': 'Untuk 1000 dhikr',
+      'diamond_cup_description': 'Untuk 5000 dhikr',
+      'platinum_cup_description': 'Untuk 10000 dhikr',
+      'cup_unlocked_congratulations': '🎉 Selamat! Anda memenangkan {name}!',
+      'cup_unlocked_message': '🎉 Congratulations! You won {name}!',
+      'cup_unlocked_arabic': '🎉 مبروك! لقد فزت بـ {name}!',
+      'cup_unlocked_indonesian': '🎉 Selamat! Anda memenangkan {name}!',
+      'statistics': 'Statistik',
+      'trophies': 'Piala',
+      'profile': 'Profil',
+      'leaderboard': 'Papan Peringkat',
+      'export': 'Ekspor',
+      'import': 'Impor',
+      'support': 'Dukungan',
+      'about': 'Tentang',
+      'ok': 'OK',
+      'cancel': 'Batal',
+      'save': 'Simpan',
+      'delete': 'Hapus',
+      'edit': 'Edit',
+      'back': 'Kembali',
+      'next': 'Berikutnya',
+      'previous': 'Sebelumnya',
+      'total': 'Total',
+      'daily': 'Harian',
+      'weekly': 'Mingguan',
+      'monthly': 'Bulanan',
+      'year': 'Tahun',
+      'theme': 'Tema',
+      'language': 'Bahasa',
+      'vibration': 'Getaran',
+      'sound': 'Suara',
+      'dark_mode': 'Mode Gelap',
+      'light_mode': 'Mode Terang',
+      'reset': 'Reset',
+      'target': 'Target',
+      'counter': 'Penghitung',
+      'continue': 'Lanjutkan',
+      'select': 'Pilih',
+      'add': 'Tambah',
+      'remove': 'Hapus',
+      'search': 'Cari',
+      'filter': 'Filter',
+      'sort': 'Urutkan',
+      'refresh': 'Segarkan',
+      'loading': 'Memuat...',
+      'error': 'Kesalahan',
+      'success': 'Berhasil',
+      'warning': 'Peringatan',
+      'info': 'Info',
+      'yes': 'Ya',
+      'no': 'Tidak',
+      'share': 'Bagikan',
+      'copy': 'Salin',
+      'paste': 'Tempel',
+      'cut': 'Potong',
+      'undo': 'Batalkan',
+      'redo': 'Ulangi',
+      'help': 'Bantuan',
+      'feedback': 'Masukan',
+      'contact': 'Kontak',
+      'website': 'Situs Web',
+      'github': 'GitHub',
+      'email': 'Email',
+      'phone': 'Telepon',
+      'address': 'Alamat',
+      'name': 'Nama',
+      'description': 'Deskripsi',
+      'date': 'Tanggal',
+      'time': 'Waktu',
+      'hour': 'Jam',
+      'minute': 'Menit',
+      'second': 'Detik',
+      'day': 'Hari',
+      'week': 'Minggu',
+      'month': 'Bulan',
+      'level': 'Level',
+      'score': 'Skor',
+      'rank': 'Peringkat',
+      'achievement': 'Pencapaian',
+      'bronze': 'Perunggu',
+      'silver': 'Perak',
+      'gold': 'Emas',
+      'diamond': 'Berlian',
+      'platinum': 'Platinum',
+      'unlocked': 'Dibuka',
+      'locked': 'Terkunci',
+      'progress': 'Kemajuan',
+      'completed': 'Selesai',
+      'pending': 'Menunggu',
+      'active': 'Aktif',
+      'inactive': 'Tidak Aktif',
+      'online': 'Daring',
+      'offline': 'Luring',
+      'connected': 'Terhubung',
+      'disconnected': 'Terputus',
+      'sync': 'Sinkronisasi',
+      'backup': 'Cadangkan',
+      'restore': 'Pulihkan',
+      'download': 'Unduh',
+      'upload': 'Unggah',
+      'file': 'File',
+      'folder': 'Folder',
+      'image': 'Gambar',
+      'video': 'Video',
+      'audio': 'Audio',
+      'document': 'Dokumen',
+      'camera': 'Kamera',
+      'gallery': 'Galeri',
+      'permission': 'Izin',
+      'allow': 'Izinkan',
+      'deny': 'Tolak',
+      'enable': 'Aktifkan',
+      'disable': 'Nonaktifkan',
+      'on': 'Aktif',
+      'off': 'Nonaktif',
+      'open': 'Buka',
+      'close': 'Tutup',
+      'exit': 'Keluar',
+      'quit': 'Keluar',
+      'start': 'Mulai',
+      'stop': 'Berhenti',
+      'pause': 'Jeda',
+      'play': 'Mainkan',
+      'retry': 'Coba Lagi',
+      'skip': 'Lewati',
+      'first': 'Pertama',
+      'last': 'Terakhir',
+      'all': 'Semua',
+      'none': 'Tidak Ada',
+      'any': 'Apapun',
+      'other': 'Lainnya',
+      'more': 'Lebih Banyak',
+      'less': 'Kurang',
+      'new': 'Baru',
+      'old': 'Lama',
+      'recent': 'Baru-baru Ini',
+      'favorite': 'Favorit',
+      'bookmark': 'Penanda',
+      'history': 'Riwayat',
+      'log': 'Log',
+      'report': 'Laporan',
+      'analytics': 'Analitik',
+      'performance': 'Kinerja',
+      'quality': 'Kualitas',
+      'speed': 'Kecepatan',
+      'size': 'Ukuran',
+      'color': 'Warna',
+      'style': 'Gaya',
+      'design': 'Desain',
+      'layout': 'Tata Letak',
+      'format': 'Format',
+      'option': 'Opsi',
+      'setting': 'Pengaturan',
+      'configuration': 'Konfigurasi',
+      'preference': 'Preferensi',
+      'custom': 'Kustom',
+      'default': 'Bawaan',
+      'automatic': 'Otomatis',
+      'manual': 'Manual',
+      'secure': 'Aman',
+      'private': 'Pribadi',
+      'public': 'Publik',
+      'hidden': 'Tersembunyi',
+      'visible': 'Terlihat',
+      'available': 'Tersedia',
+      'unavailable': 'Tidak Tersedia',
+      'required': 'Diperlukan',
+      'optional': 'Opsional',
+      'recommended': 'Direkomendasikan',
+      'suggested': 'Disarankan',
+      'popular': 'Populer',
+      'trending': 'Tren',
+      'featured': 'Unggulan',
+      'latest': 'Terbaru',
+      'updated': 'Diperbarui',
+      'created': 'Dibuat',
+      'modified': 'Dimodifikasi',
+      'deleted': 'Dihapus',
+      'archived': 'Diarsipkan',
+      'expired': 'Kedaluwarsa',
+      'valid': 'Valid',
+      'invalid': 'Tidak Valid',
+      'correct': 'Benar',
+      'incorrect': 'Salah',
+      'true': 'Benar',
+      'false': 'Salah',
+      'unknown': 'Tidak Dikenal',
+      'empty': 'Kosong',
+      'full': 'Penuh',
+      'partial': 'Sebagian',
+      'complete': 'Lengkap',
+      'incomplete': 'Tidak Lengkap',
+      'ready': 'Siap',
+      'busy': 'Sibuk',
+      'idle': 'Menganggur',
+      'running': 'Berjalan',
+      'stopped': 'Berhenti',
+      'whom': 'Siapa',
+    },
   };
 
   String translate(String key) {
@@ -2247,13 +3227,228 @@ class AppLocalizations {
   String get incrementCounter => translate('incrementCounter');
   String get resetCounter => translate('resetCounter');
   String get changeTarget => translate('changeTarget');
-  String get vibrationOn => translate('vibrationOn');
-  String get vibrationOff => translate('vibrationOff');
-  String get soundOn => translate('soundOn');
-  String get soundOff => translate('soundOff');
+  
+  // New DynamicLocalizationHelper keys
+  String get notifications => translate('notifications');
+  String get reminders => translate('reminders');
+  String get dhikrReminders => translate('dhikr_reminders');
+  String get soundVibration => translate('sound_vibration');
+  String get vibrateWhileCounting => translate('vibrate_while_counting');
+  String get soundWhileCounting => translate('sound_while_counting');
+  String get confettiEffect => translate('confetti_effect');
+  String get confettiEffectDescription => translate('confetti_effect_description');
+  String get advanced => translate('advanced');
+  String get textToSpeech => translate('text_to_speech');
+  String get readDhikrTextsAloud => translate('read_dhikr_texts_aloud');
+  String get showLeaderboard => translate('show_leaderboard');
+  String get bronzeCup => translate('bronze_cup');
+  String get silverCup => translate('silver_cup');
+  String get goldCup => translate('gold_cup');
+  String get diamondCup => translate('diamond_cup');
+  String get platinumCup => translate('platinum_cup');
+  String get bronzeCupDescription => translate('bronze_cup_description');
+  String get silverCupDescription => translate('silver_cup_description');
+  String get goldCupDescription => translate('gold_cup_description');
+  String get diamondCupDescription => translate('diamond_cup_description');
+  String get platinumCupDescription => translate('platinum_cup_description');
+  String get cupUnlockedCongratulations => translate('cup_unlocked_congratulations');
+  String get cupUnlockedMessage => translate('cup_unlocked_message');
+  String get cupUnlockedArabic => translate('cup_unlocked_arabic');
+  String get cupUnlockedIndonesian => translate('cup_unlocked_indonesian');
+  String get statistics => translate('statistics');
+  String get trophies => translate('trophies');
+  String get profile => translate('profile');
+  String get leaderboard => translate('leaderboard');
+  String get export => translate('export');
+  String get import => translate('import');
+  String get support => translate('support');
   String get about => translate('about');
-  String get confettiOn => translate('confettiOn');
-  String get confettiOff => translate('confettiOff');
+  String get back => translate('back');
+  String get next => translate('next');
+  String get previous => translate('previous');
+  String get total => translate('total');
+  String get daily => translate('daily');
+  String get weekly => translate('weekly');
+  String get monthly => translate('monthly');
+  String get year => translate('year');
+  String get darkMode => translate('dark_mode');
+  String get lightMode => translate('light_mode');
+  String get continue_ => translate('continue');
+  String get select => translate('select');
+  String get add => translate('add');
+  String get remove => translate('remove');
+  String get search => translate('search');
+  String get filter => translate('filter');
+  String get sort => translate('sort');
+  String get refresh => translate('refresh');
+  String get loading => translate('loading');
+  String get error => translate('error');
+  String get success => translate('success');
+  String get warning => translate('warning');
+  String get info => translate('info');
+  String get yes => translate('yes');
+  String get no => translate('no');
+  String get share => translate('share');
+  String get copy => translate('copy');
+  String get paste => translate('paste');
+  String get cut => translate('cut');
+  String get undo => translate('undo');
+  String get redo => translate('redo');
+  String get help => translate('help');
+  String get feedback => translate('feedback');
+  String get contact => translate('contact');
+  String get website => translate('website');
+  String get github => translate('github');
+  String get email => translate('email');
+  String get phone => translate('phone');
+  String get address => translate('address');
+  String get name => translate('name');
+  String get description => translate('description');
+  String get date => translate('date');
+  String get time => translate('time');
+  String get hour => translate('hour');
+  String get minute => translate('minute');
+  String get second => translate('second');
+  String get day => translate('day');
+  String get week => translate('week');
+  String get month => translate('month');
+  String get level => translate('level');
+  String get score => translate('score');
+  String get rank => translate('rank');
+  String get achievement => translate('achievement');
+  String get bronze => translate('bronze');
+  String get silver => translate('silver');
+  String get gold => translate('gold');
+  String get diamond => translate('diamond');
+  String get platinum => translate('platinum');
+  String get unlocked => translate('unlocked');
+  String get locked => translate('locked');
+  String get progress => translate('progress');
+  String get completed => translate('completed');
+  String get pending => translate('pending');
+  String get active => translate('active');
+  String get inactive => translate('inactive');
+  String get online => translate('online');
+  String get offline => translate('offline');
+  String get connected => translate('connected');
+  String get disconnected => translate('disconnected');
+  String get sync => translate('sync');
+  String get backup => translate('backup');
+  String get restore => translate('restore');
+  String get download => translate('download');
+  String get upload => translate('upload');
+  String get file => translate('file');
+  String get folder => translate('folder');
+  String get image => translate('image');
+  String get video => translate('video');
+  String get audio => translate('audio');
+  String get document => translate('document');
+  String get camera => translate('camera');
+  String get gallery => translate('gallery');
+  String get permission => translate('permission');
+  String get allow => translate('allow');
+  String get deny => translate('deny');
+  String get enable => translate('enable');
+  String get disable => translate('disable');
+  String get on => translate('on');
+  String get off => translate('off');
+  String get open => translate('open');
+  String get close => translate('close');
+  String get exit => translate('exit');
+  String get quit => translate('quit');
+  String get start => translate('start');
+  String get stop => translate('stop');
+  String get pause => translate('pause');
+  String get play => translate('play');
+  String get retry => translate('retry');
+  String get skip => translate('skip');
+  String get first => translate('first');
+  String get last => translate('last');
+  String get all => translate('all');
+  String get none => translate('none');
+  String get any => translate('any');
+  String get other => translate('other');
+  String get more => translate('more');
+  String get less => translate('less');
+  String get new_ => translate('new');
+  String get old => translate('old');
+  String get recent => translate('recent');
+  String get favorite => translate('favorite');
+  String get bookmark => translate('bookmark');
+  String get history => translate('history');
+  String get log => translate('log');
+  String get report => translate('report');
+  String get analytics => translate('analytics');
+  String get performance => translate('performance');
+  String get quality => translate('quality');
+  String get speed => translate('speed');
+  String get size => translate('size');
+  String get color => translate('color');
+  String get style => translate('style');
+  String get design => translate('design');
+  String get layout => translate('layout');
+  String get format => translate('format');
+  String get option => translate('option');
+  String get setting => translate('setting');
+  String get configuration => translate('configuration');
+  String get preference => translate('preference');
+  String get custom => translate('custom');
+  String get default_ => translate('default');
+  String get automatic => translate('automatic');
+  String get manual => translate('manual');
+  String get secure => translate('secure');
+  String get private_ => translate('private');
+  String get public => translate('public');
+  String get hidden => translate('hidden');
+  String get visible => translate('visible');
+  String get available => translate('available');
+  String get unavailable => translate('unavailable');
+  String get required => translate('required');
+  String get optional => translate('optional');
+  String get recommended => translate('recommended');
+  String get suggested => translate('suggested');
+  String get popular => translate('popular');
+  String get trending => translate('trending');
+  String get featured => translate('featured');
+  String get latest => translate('latest');
+  String get updated => translate('updated');
+  String get created => translate('created');
+  String get modified => translate('modified');
+  String get deleted => translate('deleted');
+  String get archived => translate('archived');
+  String get expired => translate('expired');
+  String get valid => translate('valid');
+  String get invalid => translate('invalid');
+  String get correct => translate('correct');
+  String get incorrect => translate('incorrect');
+  String get true_ => translate('true');
+  String get false_ => translate('false');
+  String get unknown => translate('unknown');
+  String get empty => translate('empty');
+  String get full => translate('full');
+  String get partial => translate('partial');
+  String get complete => translate('complete');
+  String get incomplete => translate('incomplete');
+  String get ready => translate('ready');
+  String get busy => translate('busy');
+  String get idle => translate('idle');
+  String get running => translate('running');
+  String get stopped => translate('stopped');
+  String get whom_ => translate('whom');
+  
+  // Helper method for parameterized strings
+  String getCupUnlockedMessage(String name) {
+    final template = switch (languageCode) {
+      'tr' => cupUnlockedCongratulations,
+      'en' => cupUnlockedMessage,
+      'ar' => cupUnlockedArabic,
+      'id' => cupUnlockedIndonesian,
+      _ => cupUnlockedCongratulations,
+    };
+    return template.replaceAll('{name}', name);
+  }
+  
+  // Additional getters from original code
   String get setReminder => translate('setReminder');
   String get cancelReminder => translate('cancelReminder');
   String get goals => translate('goals');
@@ -2262,11 +3457,54 @@ class AppLocalizations {
   String get monthlyGoal => translate('monthlyGoal');
   String get setGoal => translate('setGoal');
   String get goalCompleted => translate('goalCompleted');
-  String get progress => translate('progress');
-  String get statistics => translate('statistics');
-  String get today => translate('today');
-  String get total => translate('total');
-  String get streak => translate('streak');
+  String get streak_continues => translate('streak_continues');
+  String get new_record => translate('new_record');
+  String get achievement_streaks => translate('achievement_streaks');
+  String get weeks => translate('weeks');
+  String get months => translate('months');
+  String get last_4_weeks => translate('last_4_weeks');
+  String get last_12_months => translate('last_12_months');
+  String get count_cannot_be_zero => translate('count_cannot_be_zero');
+  String get transliteration => translate('transliteration');
+  String get version => translate('version');
+  String get support_us => translate('support_us');
+  String get support_description => translate('support_description');
+  String get watch_ad => translate('watch_ad');
+  String get ad_not_ready => translate('ad_not_ready');
+  String get thank_you_support => translate('thank_you_support');
+  String get features => translate('features');
+  String get feature_goals => translate('feature_goals');
+  String get feature_statistics => translate('feature_statistics');
+  String get feature_widget => translate('feature_widget');
+  String get feature_languages => translate('feature_languages');
+  String get day_streak => translate('day_streak');
+  String get new_best => translate('new_best');
+  String get completed_today => translate('completed_today');
+  String get tts => translate('tts');
+  String get ttsOn => translate('ttsOn');
+  String get ttsOff => translate('ttsOff');
+  String get speak_zikr => translate('speak_zikr');
+  String get import_success => translate('import_success');
+  String get import_failed => translate('import_failed');
+  String get export_success => translate('export_success');
+  String get export_failed => translate('export_failed');
+  String get help_title => translate('help_title');
+  String get help_streak_title => translate('help_streak_title');
+  String get help_streak_text => translate('help_streak_text');
+  String get help_goal_title => translate('help_goal_title');
+  String get help_goal_text => translate('help_goal_text');
+  String get help_addzikr_title => translate('help_addzikr_title');
+  String get help_addzikr_text => translate('help_addzikr_text');
+  String get help_toggles_title => translate('help_toggles_title');
+  String get help_toggles_text => translate('help_toggles_text');
+  String get enable_reminder => translate('enable_reminder');
+  String get reminder_enabled => translate('reminder_enabled');
+  String get reminder_disabled => translate('reminder_disabled');
+  String get reminder_set_success => translate('reminder_set_success');
+  String get reminder_set_fail => translate('reminder_set_fail');
+  String get reminder_cancelled => translate('reminder_cancelled');
+  String get test_notification_sent => translate('test_notification_sent');
+  String get test => translate('test');
   String get consecutiveDays => translate('consecutiveDays');
   String get last7Days => translate('last7Days');
   String get days => translate('days');
@@ -2277,8 +3515,24 @@ class AppLocalizations {
   String get fri => translate('fri');
   String get sat => translate('sat');
   String get sun => translate('sun');
-  String get trophies => translate('trophies');
+  String get week_short => translate('week_short');
+  String get jan => translate('jan');
+  String get feb => translate('feb');
+  String get mar => translate('mar');
+  String get apr => translate('apr');
+  String get may => translate('may');
+  String get jun => translate('jun');
+  String get jul => translate('jul');
+  String get aug => translate('aug');
+  String get sep => translate('sep');
+  String get oct => translate('oct');
+  String get nov => translate('nov');
+  String get dec => translate('dec');
   String get reminderEnabled => translate('reminder_enabled');
   String get reminderDisabled => translate('reminder_disabled');
   String get continueText => translate('continueText');
+  
+  // Additional getters for widget service
+  String get today => translate('today');
+  String get streak => translate('streak');
 }

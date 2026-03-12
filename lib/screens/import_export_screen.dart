@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show Platform;
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
 
 class ImportExportScreen extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -38,10 +39,27 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       appBar: AppBar(
         backgroundColor: widget.themeConfig.primaryColor,
         elevation: 0,
+        foregroundColor: widget.themeConfig.textColor,
         title: Text(
-          'İçe/Dışa Aktar',
+          DynamicLocalizationHelper.getText({
+            'tr': 'İçe/Dışa Aktar',
+            'en': 'Import/Export',
+            'ar': 'استيراد/تصدير',
+            'id': 'Impor/Ekspor',
+            'ur': 'درآمد/برآمد',
+            'bn': 'আমদানি/রপ্তানি',
+            'ms': 'Import/Eksport',
+            'fa': 'وارد/صادر',
+            'fr': 'Importer/Exporter',
+            'zh': '导入/导出',
+            'ja': 'インポート/エクスポート',
+            'ru': 'Импорт/Экспорт',
+            'de': 'Importieren/Exportieren',
+            'sw': 'Uagizaji/Utoaji',
+            'ha': 'Fito/Fito',
+          }),
           style: GoogleFonts.notoSans(
-            color: Colors.white,
+            color: widget.themeConfig.textColor,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -49,7 +67,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           onPressed: () => Navigator.pop(context),
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.white,
+            color: widget.themeConfig.textColor,
           ),
         ),
       ),
@@ -58,7 +76,6 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Açıklama
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -77,18 +94,44 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Veri Yedekleme',
+                    DynamicLocalizationHelper.getText({
+                      'tr': 'Veri Yedekleme',
+                      'en': 'Data Backup',
+                      'ar': 'نسخ احتياطي للبيانات',
+                      'id': 'Cadangan Data',
+                      'ur': 'ڈیٹا بیک اپ',
+                      'bn': 'ডেটা ব্যাকআপ',
+                      'ms': 'Sandaran Data',
+                      'fa': 'پشتیبان‌گیری داده',
+                      'fr': 'Sauvegarde des données',
+                      'zh': '数据备份',
+                      'ja': 'データバックアップ',
+                      'ru': 'Резервная копия',
+                      'de': 'Datensicherung',
+                      'sw': 'Hifadhi ya Data',
+                      'ha': 'Ajiye Bayanai',
+                    }),
                     style: GoogleFonts.notoSans(
-                      color: Colors.white,
+                      color: widget.themeConfig.textColor,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Zikir sayılarınızı, kupalarınızı ve ayarlarınızı yedekleyebilir veya geri yükleyebilirsiniz. Verileriniz JSON formatında saklanır.',
+                    DynamicLocalizationHelper.getText({
+                      'tr': 'Zikir sayılarınızı, kupalarınızı ve ayarlarınızı yedekleyebilir veya geri yükleyebilirsiniz. Verileriniz JSON formatında saklanır.',
+                      'en': 'You can backup or restore your dhikr counts, trophies and settings. Your data is saved in JSON format.',
+                      'ar': 'يمكنك نسخ احتياطي أو استعادة عدد الذكر والجوائز والإعدادات. يتم حفظ بياناتك بتنسيق JSON.',
+                      'id': 'Anda dapat mencadangkan atau memulih hitungan dhikr, piala, dan pengaturan. Data disimpan dalam format JSON.',
+                      'zh': '您可以备份或恢复赞念数、奖杯和设置。数据以 JSON 格式保存。',
+                      'ja': 'ズィクル数、トロフィー、設定をバックアップまたは復元できます。データはJSON形式で保存されます。',
+                      'ru': 'Можно создавать резервные копии или восстанавливать зикры, трофеи и настройки. Данные сохраняются в формате JSON.',
+                      'de': 'Sie können Dhikr-Zählungen, Trophäen und Einstellungen sichern oder wiederherstellen. Daten werden im JSON-Format gespeichert.',
+                      'fr': 'Vous pouvez sauvegarder ou restaurer compteurs, trophées et paramètres. Les données sont enregistrées au format JSON.',
+                    }),
                     style: GoogleFonts.notoSans(
-                      color: Colors.white70,
+                      color: widget.themeConfig.textColor.withOpacity(0.8),
                       fontSize: 14,
                       height: 1.4,
                     ),
@@ -156,9 +199,19 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Dışa Aktar',
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Dışa Aktar',
+                  'en': 'Export',
+                  'ar': 'تصدير',
+                  'id': 'Ekspor',
+                  'zh': '导出',
+                  'ja': 'エクスポート',
+                  'ru': 'Экспорт',
+                  'de': 'Exportieren',
+                  'fr': 'Exporter',
+                }),
                 style: GoogleFonts.notoSans(
-                  color: Colors.white,
+                  color: widget.themeConfig.textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -167,9 +220,19 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Tüm verilerinizi JSON dosyası olarak dışa aktarın.',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Tüm verilerinizi JSON dosyası olarak dışa aktarın.',
+              'en': 'Export all your data as a JSON file.',
+              'ar': 'تصدير جميع بياناتك كملف JSON.',
+              'id': 'Ekspor semua data Anda sebagai file JSON.',
+              'zh': '将所有数据导出为 JSON 文件。',
+              'ja': 'すべてのデータをJSONファイルとしてエクスポートします。',
+              'ru': 'Экспортируйте все данные в файл JSON.',
+              'de': 'Exportieren Sie alle Daten als JSON-Datei.',
+              'fr': 'Exportez toutes vos données en fichier JSON.',
+            }),
             style: GoogleFonts.notoSans(
-              color: Colors.white70,
+              color: widget.themeConfig.textColor.withOpacity(0.8),
               fontSize: 14,
             ),
           ),
@@ -194,23 +257,43 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(widget.themeConfig.textColor),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Dışa Aktarılıyor...',
+                          DynamicLocalizationHelper.getText({
+                            'tr': 'Dışa Aktarılıyor...',
+                            'en': 'Exporting...',
+                            'ar': 'جاري التصدير...',
+                            'id': 'Mengekspor...',
+                            'zh': '导出中...',
+                            'ja': 'エクスポート中...',
+                            'ru': 'Экспорт...',
+                            'de': 'Exportieren...',
+                            'fr': 'Exportation...',
+                          }),
                           style: GoogleFonts.notoSans(
-                            color: Colors.white,
+                            color: widget.themeConfig.textColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     )
                   : Text(
-                      'Dışa Aktar',
+                      DynamicLocalizationHelper.getText({
+                        'tr': 'Dışa Aktar',
+                        'en': 'Export',
+                        'ar': 'تصدير',
+                        'id': 'Ekspor',
+                        'zh': '导出',
+                        'ja': 'エクスポート',
+                        'ru': 'Экспорт',
+                        'de': 'Exportieren',
+                        'fr': 'Exporter',
+                      }),
                       style: GoogleFonts.notoSans(
-                        color: Colors.white,
+                        color: widget.themeConfig.textColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -244,9 +327,9 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'İçe Aktar',
+                widget.localizations.import,
                 style: GoogleFonts.notoSans(
-                  color: Colors.white,
+                  color: widget.themeConfig.textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -255,9 +338,25 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Önceki yedeklemelerinizi geri yükleyin.',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Önceki yedeklemelerinizi geri yükleyin.',
+              'en': 'Restore your previous backups.',
+              'ar': 'استعد النسخ الاحتياطية السابقة.',
+              'id': 'Pulihkan cadangan Anda sebelumnya.',
+              'ur': 'اپنی پچھلی بیک اپ بحال کریں۔',
+              'bn': 'আপনার আগের ব্যাকআপ পুনরুদ্ধার করুন।',
+              'ms': 'Pulihkan sandaran anda sebelum ini.',
+              'fa': 'پشتیبان‌های قبلی را بازیابی کنید.',
+              'fr': 'Restaurer vos sauvegardes précédentes.',
+              'zh': '恢复您之前的备份。',
+              'ja': '以前のバックアップを復元します。',
+              'ru': 'Восстановите предыдущие резервные копии.',
+              'de': 'Stellen Sie frühere Sicherungen wieder her.',
+              'sw': 'Rejesha nakala zako za awali.',
+              'ha': 'Maido backup ɗinku na baya.',
+            }),
             style: GoogleFonts.notoSans(
-              color: Colors.white70,
+              color: widget.themeConfig.textColor.withOpacity(0.8),
               fontSize: 14,
             ),
           ),
@@ -287,18 +386,34 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'İçe Aktarılıyor...',
+                          DynamicLocalizationHelper.getText({
+                            'tr': 'İçe Aktarılıyor...',
+                            'en': 'Importing...',
+                            'ar': 'جاري الاستيراد...',
+                            'id': 'Mengimpor...',
+                            'ur': 'درآمد ہو رہا ہے...',
+                            'bn': 'আমদানি করা হচ্ছে...',
+                            'ms': 'Mengimport...',
+                            'fa': 'در حال وارد کردن...',
+                            'fr': 'Importation...',
+                            'zh': '导入中...',
+                            'ja': 'インポート中...',
+                            'ru': 'Импорт...',
+                            'de': 'Importieren...',
+                            'sw': 'Inapakia...',
+                            'ha': 'Ana shigarwa...',
+                          }),
                           style: GoogleFonts.notoSans(
-                            color: Colors.white,
+                            color: widget.themeConfig.textColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     )
                   : Text(
-                      'İçe Aktar',
+                      widget.localizations.import,
                       style: GoogleFonts.notoSans(
-                        color: Colors.white,
+                        color: widget.themeConfig.textColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),

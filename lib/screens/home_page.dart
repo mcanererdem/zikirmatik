@@ -25,6 +25,7 @@ import '../services/tts_service.dart';
 import '../services/notification_service.dart';
 import '../services/supabase_service.dart';
 import '../services/widget_service.dart';
+import '../services/ad_service.dart';
 import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
 import '../widgets/edit_zikr_dialog.dart';
@@ -40,7 +41,6 @@ import '../screens/leaderboard_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/import_export_screen.dart';
-import '../services/ad_service.dart';
 
 class HomePage extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
@@ -115,6 +115,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     print('🏠 HomePage initState called');
     // Dynamic localization helper'ı başlat
     DynamicLocalizationHelper.initialize();
+    
+    // _localizations'ı başlangıçta başlat
+    _localizations = AppLocalizations('en');
     
     // Rastgele kullanıcı ismi oluştur
     _generateUserId();
@@ -229,6 +232,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     print('🏠 languageCode from settings: $languageCode');
     print('🏠 currentLanguage from SharedPreferences: $currentLanguage');
     print('🏠 Using language: $currentLanguage');
+
+    // Dynamic localization helper'ı güncelle
+    await DynamicLocalizationHelper.setLanguage(currentLanguage);
 
     setState(() {
       // Sistem dark mode kontrolü ve tema seçimi
@@ -826,7 +832,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     if (totalZikrs >= 1000) return 'Gold';
     if (totalZikrs >= 500) return 'Silver';
     if (totalZikrs >= 100) return 'Bronze';
-    return 'Yeni';
+    return DynamicLocalizationHelper.new_;
   }
 
   void _changeTarget() {
@@ -984,10 +990,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           currentUserId: _currentUserId,
           onSettingsChanged: () {
             print('🔄 Settings changed callback triggered');
-            // Ayarlar değiştiğinde ana sayfayı güncelle
             _loadSettings();
-            setState(() {}); // UI'ı zorla güncelle
+            setState(() {});
           },
+          onLanguageChanged: widget.onLanguageChanged,
         ),
       ),
     );
@@ -1209,7 +1215,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                               future: _getHighestCup(),
                               builder: (context, snapshot) {
                                 return Text(
-                                  snapshot.data ?? 'Yeni',
+                                  snapshot.data ?? DynamicLocalizationHelper.new_,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: _currentTheme.textColor.withOpacity(0.7),
@@ -1242,11 +1248,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                         localizations: _localizations,
                         currentUserId: _currentUserId,
                         onSettingsChanged: () {
-                          print('🔄 Settings changed callback triggered (hamburger menu)');
-                          // Ayarlar değiştiğinde ana sayfayı güncelle
                           _loadSettings();
-                          setState(() {}); // UI'ı zorla güncelle
+                          setState(() {});
                         },
+                        onLanguageChanged: widget.onLanguageChanged,
                       ),
                     ),
                   );
