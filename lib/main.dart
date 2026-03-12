@@ -15,6 +15,7 @@ import 'screens/home_page.dart';
 import 'screens/splash_screen.dart';
 import 'models/theme_model.dart';
 import 'utils/localizations.dart';
+import 'utils/dynamic_localization_helper.dart';
 
 @pragma('vm:entry-point')
 void backgroundCallback(Uri? uri) async {
@@ -52,6 +53,9 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
 
+  // Dynamic localization helper'ı başlat
+  await DynamicLocalizationHelper.initialize();
+
   // Status bar ayarları
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -60,7 +64,7 @@ void main() async {
     ),
   );
 
-  // İlk açılışta dil İngilizce olarak ayarlanır
+  // İlk açılışta dil kontrolü ve ayarlama
   final settingsService = SettingsService();
   final savedLanguage = await settingsService.getLanguage();
   
@@ -70,7 +74,12 @@ void main() async {
     const supported = {
       'tr','en','ar','id','ur','bn','ms','fa','fr','zh','ja','ru','de','sw','ha'
     };
-    await settingsService.saveLanguage(supported.contains(deviceLang) ? deviceLang : 'en');
+    final initialLanguage = supported.contains(deviceLang) ? deviceLang : 'tr';
+    await settingsService.saveLanguage(initialLanguage);
+    await DynamicLocalizationHelper.setLanguage(initialLanguage);
+  } else {
+    // Kaydedilmiş dili ayarla
+    await DynamicLocalizationHelper.setLanguage(savedLanguage);
   }
 
   // Run the app immediately to avoid delaying the first frame.
@@ -125,7 +134,19 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _currentLanguage = language;
     });
+    
+    // Dynamic localization helper'ı da güncelle
+    await DynamicLocalizationHelper.setLanguage(language);
+    
     print('🌐 MyApp: Language loaded: $_currentLanguage');
+    
+    // Helper'ın doğru çalıştığını kontrol et
+    print('🌐 DynamicLocalizationHelper test: ${DynamicLocalizationHelper.getText({
+      'tr': 'Test Türkçe',
+      'en': 'Test English',
+      'ar': 'Test Arabic',
+      'id': 'Test Indonesian',
+    })}');
   }
 
   // Sync app counter with widget counter on app start to reflect widget interactions
@@ -142,6 +163,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Tasbih Counter',
+      locale: Locale(_currentLanguage),
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.blue,
@@ -176,6 +198,8 @@ class _MyAppState extends State<MyApp> {
               setState(() {
                 _currentLanguage = language;
               });
+              // Dynamic localization helper'ı güncelle
+              DynamicLocalizationHelper.setLanguage(language);
               print('🌐 MyApp: Language changed to: $_currentLanguage');
             },
           );
