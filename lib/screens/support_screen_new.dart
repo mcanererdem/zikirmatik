@@ -129,7 +129,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                       'ru': 'Мы здесь, чтобы ответить на ваши вопросы и учесть отзывы.',
                       'de': 'Wir sind da, um Ihre Fragen zu beantworten und Ihr Feedback auszuwerten.',
                       'sw': 'Tuko hapa kujibu maswali yako na kukagua maoni yako.',
-                      'ha': 'Muna nan don amsa tambayoyinku da kimanta ra'ayoyinku.',
+                      'ha': "Muna nan don amsa tambayoyinku da kimanta ra'ayoyinku.",
                     }),
                     style: GoogleFonts.notoSans(
                       color: widget.themeConfig.textColor.withOpacity(0.8),
@@ -393,7 +393,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               'ru': 'Данные хранятся на устройстве. Рекомендуем сделать резервную копию через Импорт/Экспорт перед удалением.',
               'de': 'Ihre Daten werden auf dem Gerät gespeichert. Wir empfehlen vor dem Deinstallieren ein Backup über Import/Export.',
               'sw': 'Data yako inahifadhiwa kwenye kifaa chako. Tunapendekeza uhifadhi kwa kutumia Ingiza/Hamisha kabla ya kufuta.',
-              'ha': 'Bayananka yana adana a na'urarka. Muna ba da shawarar yin backup ta Import/Export kafin in sauke.',
+              'ha': "Bayananka yana adana a na'urarka. Muna ba da shawarar yin backup ta Import/Export kafin in sauke.",
             }),
           ),
 
