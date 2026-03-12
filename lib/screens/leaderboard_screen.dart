@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
 import '../services/settings_service.dart';
 import '../services/supabase_service.dart';
 
@@ -197,7 +197,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       backgroundColor: widget.themeConfig.primaryColor,
       appBar: AppBar(
         title: Text(
-          'Liderlik Tablosu',
+          DynamicLocalizationHelper.leaderboard,
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
             fontWeight: FontWeight.bold,
@@ -253,10 +253,86 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       ),
       child: Row(
         children: [
-          _buildPeriodChip('Tüm Zamanlar', 'all'),
-          _buildPeriodChip('Günlük', 'daily'),
-          _buildPeriodChip('Haftalık', 'weekly'),
-          _buildPeriodChip('Aylık', 'monthly'),
+          _buildPeriodChip(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Tüm Zamanlar',
+              'en': 'All Time',
+              'ar': 'كل الأوقات',
+              'id': 'Semua Waktu',
+              'ur': 'تمام اوقات',
+              'bn': 'সব সময়',
+              'ms': 'Semua Masa',
+              'fa': 'همه زمان ها',
+              'fr': 'Tous les Temps',
+              'zh': '所有时间',
+              'ja': '全期間',
+              'ru': 'Все Время',
+              'de': 'Alle Zeiten',
+              'sw': 'Nyakati Zote',
+              'ha': 'Duk Duka Saka',
+            }), 
+            'all'
+          ),
+          _buildPeriodChip(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Günlük',
+              'en': 'Daily',
+              'ar': 'يومي',
+              'id': 'Harian',
+              'ur': 'روزانہ',
+              'bn': 'দৈনিক',
+              'ms': 'Harian',
+              'fa': 'روزانه',
+              'fr': 'Quotidien',
+              'zh': '每日',
+              'ja': '日次',
+              'ru': 'Ежедневно',
+              'de': 'Täglich',
+              'sw': 'Kila Siku',
+              'ha': 'Tsakila',
+            }), 
+            'daily'
+          ),
+          _buildPeriodChip(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Haftalık',
+              'en': 'Weekly',
+              'ar': 'أسبوعي',
+              'id': 'Mingguan',
+              'ur': 'ہفتہ وار',
+              'bn': 'সাপ্তাহিক',
+              'ms': 'Mingguan',
+              'fa': 'هفتگی',
+              'fr': 'Hebdomadaire',
+              'zh': '每周',
+              'ja': '週間',
+              'ru': 'Еженедельно',
+              'de': 'Wöchentlich',
+              'sw': 'Kila Wiki',
+              'ha': 'Makon Sati',
+            }), 
+            'weekly'
+          ),
+          _buildPeriodChip(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Aylık',
+              'en': 'Monthly',
+              'ar': 'شهري',
+              'id': 'Bulanan',
+              'ur': 'ماہانہ',
+              'bn': 'মাসিক',
+              'ms': 'Bulanan',
+              'fa': 'ماهانه',
+              'fr': 'Mensuel',
+              'zh': '每月',
+              'ja': '月次',
+              'ru': 'Ежемесячно',
+              'de': 'Monatlich',
+              'sw': 'Kila Mwezi',
+              'ha': 'Wata',
+            }), 
+            'monthly'
+          ),
         ],
       ),
     );
@@ -359,7 +435,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sen',
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Sen',
+                    'en': 'You',
+                    'ar': 'أنت',
+                    'id': 'Anda',
+                    'ur': 'آپ',
+                    'bn': 'আপনি',
+                    'ms': 'Anda',
+                    'fa': 'شما',
+                    'fr': 'Vous',
+                    'zh': '你',
+                    'ja': 'あなた',
+                    'ru': 'Вы',
+                    'de': 'Sie',
+                    'sw': 'Wewe',
+                    'ha': 'Kai',
+                  }),
                   style: GoogleFonts.notoSans(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -368,7 +460,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_currentUserProfile!['total_zikrs'] ?? 0} zikir',
+                  '${_currentUserProfile!['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
+                    'tr': 'zikir',
+                    'en': 'dhikr',
+                    'ar': 'ذكر',
+                    'id': 'zikir',
+                    'ur': 'ذکر',
+                    'bn': 'জিকির',
+                    'ms': 'zikir',
+                    'fa': 'ذکر',
+                    'fr': 'dhikr',
+                    'zh': '赞念',
+                    'ja': 'ジクル',
+                    'ru': 'зикр',
+                    'de': 'Dhikr',
+                    'sw': 'dhikr',
+                    'ha': 'zikiri',
+                  })}',
                   style: GoogleFonts.notoSans(
                     fontSize: 14,
                     color: widget.themeConfig.textColor.withOpacity(0.8),
@@ -384,7 +492,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              'Sıran: $_currentUserRank',
+              DynamicLocalizationHelper.getText({
+                'tr': 'Sıra',
+                'en': 'Rank',
+                'ar': 'الترتيب',
+                'id': 'Peringkat',
+              }) + ': $_currentUserRank',
               style: GoogleFonts.notoSans(
                 fontSize: 12,
                 color: widget.themeConfig.textColor,
@@ -499,7 +612,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${user['total_zikrs'] ?? 0} zikir',
+                        '${user['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
+                          'tr': 'zikir',
+                          'en': 'dhikr',
+                          'ar': 'ذكر',
+                          'id': 'zikir',
+                        })}',
                         style: GoogleFonts.notoSans(
                           fontSize: 12,
                           color: widget.themeConfig.textColor.withOpacity(0.8),

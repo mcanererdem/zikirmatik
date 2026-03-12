@@ -425,6 +425,20 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     );
   }
 
+  String _msg(String key, [String? param]) {
+    final messages = {
+      'export_no_folder': {'tr': 'Dosya klasörüne erişilemedi', 'en': 'Could not access folder', 'ar': 'تعذر الوصول إلى المجلد', 'zh': '无法访问文件夹', 'ja': 'フォルダにアクセスできません', 'ru': 'Не удалось получить доступ к папке', 'de': 'Ordner nicht erreichbar'},
+      'export_write_error': {'tr': 'Dosya yazma hatası', 'en': 'File write error', 'ar': 'خطأ في كتابة الملف', 'zh': '文件写入错误', 'ja': 'ファイル書き込みエラー', 'ru': 'Ошибка записи файла', 'de': 'Fehler beim Schreiben'},
+      'export_success': {'tr': 'Veriler dışa aktarıldı. Paylaş menüsünden dosyayı İndirilenler\'e veya başka bir yere kaydedebilirsiniz.', 'en': 'Export ready. Use the share menu to save the file to Downloads or elsewhere.', 'ar': 'تم التصدير. استخدم قائمة المشاركة لحفظ الملف في التنزيلات أو مكان آخر.', 'zh': '导出完成。请通过分享菜单将文件保存到“下载”或其他位置。', 'ja': 'エクスポート完了。共有メニューからファイルをダウンロードなどに保存できます。', 'ru': 'Экспорт готов. Используйте меню «Поделиться», чтобы сохранить файл в «Загрузки» или другое место.', 'de': 'Export fertig. Nutzen Sie das Teilen-Menü, um die Datei in Downloads oder anderswo zu speichern.'},
+      'export_error': {'tr': 'Dışa aktarım hatası', 'en': 'Export error', 'ar': 'خطأ في التصدير', 'zh': '导出错误', 'ja': 'エクスポートエラー', 'ru': 'Ошибка экспорта', 'de': 'Exportfehler'},
+      'import_success': {'tr': 'Veriler başarıyla içe aktarıldı', 'en': 'Data imported successfully', 'ar': 'تم استيراد البيانات بنجاح', 'zh': '数据导入成功', 'ja': 'データをインポートしました', 'ru': 'Данные успешно импортированы', 'de': 'Daten erfolgreich importiert'},
+      'import_no_file': {'tr': 'Dosya seçilmedi', 'en': 'No file selected', 'ar': 'لم يتم اختيار ملف', 'zh': '未选择文件', 'ja': 'ファイルが選択されていません', 'ru': 'Файл не выбран', 'de': 'Keine Datei ausgewählt'},
+      'import_error': {'tr': 'İçe aktarım hatası', 'en': 'Import error', 'ar': 'خطأ في الاستيراد', 'zh': '导入错误', 'ja': 'インポートエラー', 'ru': 'Ошибка импорта', 'de': 'Importfehler'},
+    };
+    final text = DynamicLocalizationHelper.getText(messages[key] ?? {'tr': key});
+    return param != null ? '$text: $param' : text;
+  }
+
   Future<void> _exportData() async {
     setState(() {
       _isExporting = true;
@@ -433,8 +447,6 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      
-      // Tüm verileri topla
       final exportData = {
         'userId': widget.currentUserId,
         'exportDate': DateTime.now().toIso8601String(),
@@ -453,84 +465,56 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             'platinum_kupa_unlocked': prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false,
           },
           'settings': {
-            'theme': prefs.getString('theme') ?? 'ocean_blue',
-            'language': prefs.getString('language') ?? 'tr',
-            'vibration': prefs.getBool('vibration') ?? true,
-            'sound': prefs.getBool('sound') ?? true,
-            'confetti': prefs.getBool('confetti') ?? true,
+            'theme': prefs.getString('theme_id') ?? prefs.getString('theme') ?? 'dark_blue',
+            'language': prefs.getString('language_code') ?? prefs.getString('language') ?? 'tr',
+            'vibration': prefs.getBool('vibration_enabled') ?? prefs.getBool('vibration') ?? true,
+            'sound': prefs.getBool('sound_enabled') ?? prefs.getBool('sound') ?? true,
+            'confetti': prefs.getBool('confetti_enabled') ?? prefs.getBool('confetti') ?? true,
             'reminder': prefs.getBool('reminder_enabled') ?? false,
             'tts': prefs.getBool('tts_enabled') ?? false,
           },
         },
       };
 
-      // Downloads klasörüne kaydet (Android için)
-      Directory? targetDir;
-      if (Platform.isAndroid) {
-        // Android için Downloads klasörünü dene
-        targetDir = Directory('/storage/emulated/0/Download');
-        
-        // Eğer Downloads klasörüne erişilemezse, uygulama dokümanlarını kullan
-        if (!await targetDir.exists()) {
-          try {
-            await targetDir.create(recursive: true);
-          } catch (e) {
-            print('❌ Cannot create Downloads folder, using app documents');
-            targetDir = await getApplicationDocumentsDirectory();
-          }
-        }
-        
-        // Yazma izni kontrolü
-        try {
-          final testFile = File('${targetDir.path}/test_write.tmp');
-          await testFile.writeAsString('test');
-          await testFile.delete();
-        } catch (e) {
-          print('❌ Cannot write to Downloads, using app documents');
-          targetDir = await getApplicationDocumentsDirectory();
-        }
-      } else {
-        targetDir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
-      }
-      
-      if (targetDir == null) {
-        setState(() {
-          _statusMessage = '❌ Dosya klasörüne erişilemedi';
-        });
-        return;
-      }
-
-      // Dosyayı oluştur
+      // Geçici dizine yaz, sonra paylaş menüsü ile kullanıcı İndirilenler'e veya istediği yere kaydetsin
+      final dir = await getTemporaryDirectory();
       final fileName = 'zikirmatik_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-      final file = File('${targetDir.path}/$fileName');
-      
-      print('📁 Saving to: ${file.path}');
-      
-      // JSON verisini dosyaya yaz
-      try {
-        await file.writeAsString(jsonEncode(exportData));
-        print('✅ File saved successfully');
-      } catch (e) {
-        print('❌ Error writing file: $e');
+      final file = File('${dir.path}/$fileName');
+
+      await file.writeAsString(jsonEncode(exportData));
+      print('✅ Export file created: ${file.path}');
+
+      await Share.shareFiles(
+        [file.path],
+        subject: 'Zikirmatik backup',
+        text: DynamicLocalizationHelper.getText({
+          'tr': 'Zikirmatik yedek dosyam. İndirilenler\'e veya istediğiniz yere kaydedebilirsiniz.',
+          'en': 'My Zikirmatik backup. You can save it to Downloads or anywhere you like.',
+          'zh': 'Zikirmatik 备份文件，可保存到“下载”或任意位置。',
+          'ja': 'Zikirmatikのバックアップです。ダウンロードなどに保存できます。',
+          'ru': 'Резервная копия Zikirmatik. Сохраните в «Загрузки» или в любое место.',
+          'de': 'Meine Zikirmatik-Sicherung. In Downloads oder anderswo speichern.',
+        }),
+      );
+
+      if (mounted) {
         setState(() {
-          _statusMessage = '❌ Dosya yazma hatası: $e';
+          _statusMessage = '✅ ${_msg('export_success')}';
         });
-        return;
       }
-      
-      final folderName = targetDir.path.contains('Download') ? 'Downloads' : 'Uygulama Dokümanları';
-      setState(() {
-        _statusMessage = '✅ Veriler başarıyla dışa aktarıldı!\nDosya: ${file.path}\n\nNot: Dosyayı $folderName klasöründe bulabilirsiniz.';
-      });
-      
     } catch (e) {
-      setState(() {
-        _statusMessage = '❌ Dışa aktarım hatası: $e';
-      });
+      print('❌ Export error: $e');
+      if (mounted) {
+        setState(() {
+          _statusMessage = '❌ ${_msg('export_write_error')}: $e';
+        });
+      }
     } finally {
-      setState(() {
-        _isExporting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isExporting = false;
+        });
+      }
     }
   }
 
@@ -592,32 +576,38 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         
         // Ayarlar
         final settings = data['settings'];
-        await prefs.setString('theme', settings['theme'] ?? 'dark_blue');
-        await prefs.setString('language', settings['language'] ?? 'tr');
-        await prefs.setBool('vibration_on', settings['vibration'] ?? true);
-        await prefs.setBool('sound_on', settings['sound'] ?? true);
-        await prefs.setBool('confetti_on', settings['confetti'] ?? true);
+        await prefs.setString('theme_id', settings['theme'] ?? 'dark_blue');
+        await prefs.setString('language_code', settings['language'] ?? 'tr');
+        await prefs.setBool('vibration_enabled', settings['vibration'] ?? true);
+        await prefs.setBool('sound_enabled', settings['sound'] ?? true);
+        await prefs.setBool('confetti_enabled', settings['confetti'] ?? true);
         await prefs.setBool('reminder_enabled', settings['reminder'] ?? false);
         await prefs.setBool('tts_enabled', settings['tts'] ?? false);
         
-        setState(() {
-          _statusMessage = '✅ Veriler başarıyla içe aktarıldı!\nDosya: ${result.files.first.name}';
-        });
-        
+        if (mounted) {
+          setState(() {
+            _statusMessage = '✅ ${_msg('import_success')} • ${result.files.first.name}';
+          });
+        }
       } else {
+        if (mounted) {
+          setState(() {
+            _statusMessage = '❌ ${_msg('import_no_file')}';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
-          _statusMessage = '❌ Dosya seçilmedi';
+          _statusMessage = '❌ ${_msg('import_error')}: $e';
         });
       }
-      
-    } catch (e) {
-      setState(() {
-        _statusMessage = '❌ İçe aktarım hatası: $e';
-      });
     } finally {
-      setState(() {
-        _isImporting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isImporting = false;
+        });
+      }
     }
   }
 }

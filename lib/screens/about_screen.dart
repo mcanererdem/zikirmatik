@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
 
 class AboutScreen extends StatelessWidget {
   final ThemeConfig themeConfig;
@@ -123,7 +124,23 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            localizations.translate('version') ?? 'Version 1.0.0',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Sürüm 1.0.0',
+              'en': 'Version 1.0.0',
+              'ar': 'الإصدار 1.0.0',
+              'id': 'Versi 1.0.0',
+              'ur': 'ورژن 1.0.0',
+              'bn': 'সংস্করণ 1.0.0',
+              'ms': 'Versi 1.0.0',
+              'fa': 'نسخه 1.0.0',
+              'fr': 'Version 1.0.0',
+              'zh': '版本 1.0.0',
+              'ja': 'バージョン 1.0.0',
+              'ru': 'Версия 1.0.0',
+              'de': 'Version 1.0.0',
+              'sw': 'Toleo 1.0.0',
+              'ha': 'Sigila 1.0.0',
+            }),
             style: TextStyle(
               fontSize: 14,
               color: themeConfig.textColor.withOpacity(0.7),
@@ -160,7 +177,23 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            localizations.translate('source_code') ?? 'Source Code',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Kaynak Kodu',
+              'en': 'Source Code',
+              'ar': 'الكود المصدري',
+              'id': 'Kode Sumber',
+              'ur': 'سورس کوڈ',
+              'bn': 'সোর্স কোড',
+              'ms': 'Kod Sumber',
+              'fa': 'کد منبع',
+              'fr': 'Code Source',
+              'zh': '源代码',
+              'ja': 'ソースコード',
+              'ru': 'Исходный Код',
+              'de': 'Quellcode',
+              'sw': 'Msingi wa Nambari',
+              'ha': 'Tushen Lambar',
+            }),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -195,7 +228,23 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            localizations.translate('contact') ?? 'Contact',
+            DynamicLocalizationHelper.getText({
+              'tr': 'İletişim',
+              'en': 'Contact',
+              'ar': 'التواصل',
+              'id': 'Kontak',
+              'ur': 'رابطہ کریں',
+              'bn': 'যোগাযোগ',
+              'ms': 'Hubungi',
+              'fa': 'تماس',
+              'fr': 'Contact',
+              'zh': '联系',
+              'ja': '連絡',
+              'ru': 'Контакт',
+              'de': 'Kontakt',
+              'sw': 'Mawasiliano',
+              'ha': 'Tuntuba',
+            }),
             style: TextStyle(
               fontSize: 14,
               color: Colors.white.withOpacity(0.7),
@@ -220,10 +269,86 @@ class AboutScreen extends StatelessWidget {
 
   Widget _buildFeaturesSection() {
     final features = [
-      {'icon': Icons.emoji_events_rounded, 'text': localizations.translate('feature_goals') ?? 'Daily, Weekly, Monthly Goals'},
-      {'icon': Icons.bar_chart_rounded, 'text': localizations.translate('feature_statistics') ?? 'Detailed Statistics'},
-      {'icon': Icons.widgets_rounded, 'text': localizations.translate('feature_widget') ?? 'Home Screen Widget'},
-      {'icon': Icons.language_rounded, 'text': localizations.translate('feature_languages') ?? '15 Languages Support'},
+      {
+        'icon': Icons.emoji_events_rounded, 
+        'text': DynamicLocalizationHelper.getText({
+          'tr': 'Günlük, Haftalık, Aylık Hedefler',
+          'en': 'Daily, Weekly, Monthly Goals',
+          'ar': 'أهداف يومية، أسبوعية، شهرية',
+          'id': 'Tujuan Harian, Mingguan, Bulanan',
+          'ur': 'روزانہ، ہفتہ وار، ماہانہ ہدف',
+          'bn': 'দৈনিক, সাপ্তাহিক, মাসিক লক্ষ্য',
+          'ms': 'Matlamat Harian, Mingguan, Bulanan',
+          'fa': 'اهداف روزانه، هفتگی، ماهانه',
+          'fr': 'Objectifs Quotidiens, Hebdomadaires, Mensuels',
+          'zh': '每日、每周、每月目标',
+          'ja': '日次、週次、月次目標',
+          'ru': 'Ежедневные, Еженедельные, Ежемесячные Цели',
+          'de': 'Tägliche, Wöchentliche, Monatliche Ziele',
+          'sw': 'Lengo la Kila Siku, Wiki, Mwezi',
+          'ha': 'Manufa Na Rana, Mako, Wata',
+        })
+      },
+      {
+        'icon': Icons.bar_chart_rounded, 
+        'text': DynamicLocalizationHelper.getText({
+          'tr': 'Detaylı İstatistikler',
+          'en': 'Detailed Statistics',
+          'ar': 'إحصائيات مفصلة',
+          'id': 'Statistik Detail',
+          'ur': 'تفصیلی احصائیات',
+          'bn': 'বিস্তারিত পরিসংখ্যান',
+          'ms': 'Statistik Terperinci',
+          'fa': 'آمار دقیق',
+          'fr': 'Statistiques Détaillées',
+          'zh': '详细统计',
+          'ja': '詳細な統計',
+          'ru': 'Подробная Статистика',
+          'de': 'Detaillierte Statistik',
+          'sw': 'Takwimu Zaidi',
+          'ha': 'Statistics Cikak',
+        })
+      },
+      {
+        'icon': Icons.widgets_rounded, 
+        'text': DynamicLocalizationHelper.getText({
+          'tr': 'Ana Ekran Widget',
+          'en': 'Home Screen Widget',
+          'ar': 'ودجت الشاشة الرئيسية',
+          'id': 'Widget Layar Utama',
+          'ur': 'ہوم اسکرن ویجیٹ',
+          'bn': 'হোম স্ক্রীন উইজেট',
+          'ms': 'Widget Skrin Utama',
+          'fa': 'ویجت صفحه اصلی',
+          'fr': 'Widget Écran d\'accueil',
+          'zh': '主屏幕小组件',
+          'ja': 'ホーム画面ウィジェット',
+          'ru': 'Виджет Главного Экрана',
+          'de': 'Startbildschirm-Widget',
+          'sw': 'Widget ya Skrini ya Nyumbani',
+          'ha': 'Widget na Gidan Gida',
+        })
+      },
+      {
+        'icon': Icons.language_rounded, 
+        'text': DynamicLocalizationHelper.getText({
+          'tr': '15 Dil Desteği',
+          'en': '15 Languages Support',
+          'ar': 'دعم 15 لغة',
+          'id': 'Dukungan 15 Bahasa',
+          'ur': '15 زبانوں کی سپورٹ',
+          'bn': '15 টি ভাষা সমর্থন',
+          'ms': 'Sokongan 15 Bahasa',
+          'fa': 'پشتیبانی از 15 زبان',
+          'fr': 'Support de 15 Langues',
+          'zh': '支持15种语言',
+          'ja': '15言語サポート',
+          'ru': 'Поддержка 15 Языков',
+          'de': 'Unterstützung für 15 Sprachen',
+          'sw': 'Msaada wa Lugha 15',
+          'ha': 'Tallafi Harshe 15',
+        })
+      },
     ];
 
     return Container(
@@ -241,7 +366,23 @@ class AboutScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            localizations.translate('features') ?? 'Features',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Özellikler',
+              'en': 'Features',
+              'ar': 'المميزات',
+              'id': 'Fitur',
+              'ur': 'خصوصیات',
+              'bn': 'বৈশিষ্ট্য',
+              'ms': 'Ciri-ciri',
+              'fa': 'ویژگی‌ها',
+              'fr': 'Fonctionnalités',
+              'zh': '功能',
+              'ja': '機能',
+              'ru': 'Функции',
+              'de': 'Funktionen',
+              'sw': 'Vipengele',
+              'ha': 'Siffoki',
+            }),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -315,7 +456,23 @@ class AboutScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            localizations.translate('help_title') ?? 'Uygulama Özellikleri',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Uygulama Özellikleri',
+              'en': 'App Features',
+              'ar': 'مميزات التطبيق',
+              'id': 'Fitur Aplikasi',
+              'ur': 'ایپ کی خصوصیات',
+              'bn': 'অ্যাপ বৈশিষ্ট্য',
+              'ms': 'Ciri-ciri Aplikasi',
+              'fa': 'ویژگی‌های برنامه',
+              'fr': 'Fonctionnalités de l\'App',
+              'zh': '应用功能',
+              'ja': 'アプリの機能',
+              'ru': 'Функции Приложения',
+              'de': 'App-Funktionen',
+              'sw': 'Vipengele vya Programu',
+              'ha': 'Siffofin App',
+            }),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,

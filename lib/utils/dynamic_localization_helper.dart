@@ -14,9 +14,14 @@ class DynamicLocalizationHelper {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', language);
     _currentLanguage = language;
+    print('🌐 DynamicLocalizationHelper: Language set to $language');
   }
   
   static String getText(Map<String, String> texts) {
+    return texts[_currentLanguage] ?? texts['tr'] ?? texts.values.first ?? '';
+  }
+  
+  static String _getText(Map<String, String> texts) {
     return texts[_currentLanguage] ?? texts['tr'] ?? texts.values.first ?? '';
   }
   
@@ -26,6 +31,17 @@ class DynamicLocalizationHelper {
     'en': 'Statistics', 
     'ar': 'الإحصائيات',
     'id': 'Statistik',
+    'ur': 'اعدادیات',
+    'bn': 'পরিসংখ্যান',
+    'ms': 'Statistik',
+    'fa': 'آمار',
+    'fr': 'Statistiques',
+    'zh': '统计',
+    'ja': '統計',
+    'ru': 'Статистика',
+    'de': 'Statistik',
+    'sw': 'Takwimu',
+    'ha': 'Kididdigar',
   });
   
   static String get trophies => _getText({
@@ -33,6 +49,17 @@ class DynamicLocalizationHelper {
     'en': 'Trophies',
     'ar': 'الكؤوس', 
     'id': 'Piala',
+    'ur': 'ٹرافیاں',
+    'bn': 'ট্রফি',
+    'ms': 'Piala',
+    'fa': 'جام ها',
+    'fr': 'Trophées',
+    'zh': '奖杯',
+    'ja': 'トロフィー',
+    'ru': 'Трофеи',
+    'de': 'Trophäen',
+    'sw': 'Tuzo',
+    'ha': 'Kofuna',
   });
   
   static String get settings => _getText({
@@ -40,6 +67,17 @@ class DynamicLocalizationHelper {
     'en': 'Settings',
     'ar': 'الإعدادات',
     'id': 'Pengaturan',
+    'ur': 'ترتیبات',
+    'bn': 'সেটিংস',
+    'ms': 'Tetapan',
+    'fa': 'تنظیمات',
+    'fr': 'Paramètres',
+    'zh': '设置',
+    'ja': '設定',
+    'ru': 'Настройки',
+    'de': 'Einstellungen',
+    'sw': 'Mipangilio',
+    'ha': 'Saituna',
   });
   
   static String get profile => _getText({
@@ -47,6 +85,17 @@ class DynamicLocalizationHelper {
     'en': 'Profile',
     'ar': 'الملف الشخصي',
     'id': 'Profil',
+    'ur': 'پروفائل',
+    'bn': 'প্রোফাইল',
+    'ms': 'Profil',
+    'fa': 'پروفایل',
+    'fr': 'Profil',
+    'zh': '个人资料',
+    'ja': 'プロフィール',
+    'ru': 'Профиль',
+    'de': 'Profil',
+    'sw': 'Wasifu',
+    'ha': 'Bayanan',
   });
   
   static String get leaderboard => _getText({
@@ -54,6 +103,17 @@ class DynamicLocalizationHelper {
     'en': 'Leaderboard',
     'ar': 'لوحة الصدارة',
     'id': 'Papan Peringkat',
+    'ur': 'لیڈربورڈ',
+    'bn': 'লিডারবোর্ড',
+    'ms': 'Papan Kedudukan',
+    'fa': 'جدول امتیازات',
+    'fr': 'Classement',
+    'zh': '排行榜',
+    'ja': 'リーダーボード',
+    'ru': 'Таблица лидеров',
+    'de': 'Bestenliste',
+    'sw': 'Ubao wa Waongozaji',
+    'ha': 'Tebur Shugaba',
   });
   
   static String get export => _getText({
@@ -1875,8 +1935,4 @@ class DynamicLocalizationHelper {
     'ar': 'من',
     'id': 'Siapa',
   });
-  
-  static String _getText(Map<String, String> texts) {
-    return texts[_currentLanguage] ?? texts['tr'] ?? texts.values.first ?? '';
-  }
 }

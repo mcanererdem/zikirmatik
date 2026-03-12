@@ -13,6 +13,9 @@ Tek kaynak: tüm görevler bu dosyada. Cursor'da `@TODO.md` ile referans ver.
 - [x] PROJECT_RULES.md oluşturuldu (localization, ekran kullanımı, tema, servis kuralları)
 - [x] Eski dosyalar silindi: settings_screen_old, kupa_screen, support_screen, localizations_broken
 - [x] Dil değişiminde MyApp güncellenmesi: SettingsScreen'e onLanguageChanged eklendi, HomePage'den iletiliyor
+- [x] Import/Export durum mesajları lokalize edildi
+- [x] Export konumu: Paylaş menüsü ile kullanıcı dosyayı İndirilenler'e veya istediği yere kaydedebiliyor (Share.shareFiles)
+- [x] Export/Import ayar anahtarları SettingsService ile eşleştirildi (theme_id, language_code, vibration_enabled vb.)
 
 ---
 
@@ -25,6 +28,9 @@ Tek kaynak: tüm görevler bu dosyada. Cursor'da `@TODO.md` ile referans ver.
 
 ## Todo
 
+- [ ] Supabase entegrasyonunu elden geçir: profil ve leaderboard düzgün çalışmıyor; mantık ve senkronizasyon gözden geçirilsin
+- [ ] Profil ekranında resim seçme (avatar yükleme) sorunlarını gider
+- [ ] Gerekli izinler: depolama/medya (export, profil resmi) ve Supabase için kontrol edilsin
 - [ ] AboutScreen vs AboutScreenNew kararı ver; gereksiz dosyayı kaldır
 - [ ] dialog_manager çakışmasını çöz (lib/utils vs lib/widgets); tek dosya bırak
 - [ ] SupabaseService'e deleteUser metodu ekle (profile_screen TODO)

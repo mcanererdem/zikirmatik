@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
@@ -202,7 +203,23 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   }
 
   String _findMostProductiveDay() {
-    if (_weeklyData.isEmpty) return 'Pazartesi';
+    if (_weeklyData.isEmpty) return DynamicLocalizationHelper.getText({
+      'tr': 'Pazartesi',
+      'en': 'Monday',
+      'ar': 'الاثنين',
+      'id': 'Senin',
+      'ur': 'پیر',
+      'bn': 'সোমবার',
+      'ms': 'Isnin',
+      'fa': 'دوشنبه',
+      'fr': 'Lundi',
+      'zh': '星期一',
+      'ja': '月曜日',
+      'ru': 'Понедельник',
+      'de': 'Montag',
+      'sw': 'Jumatatu',
+      'ha': 'Litinin',
+    });
     
     final maxEntry = _weeklyData.reduce((a, b) => 
         (a['zikrs'] as int) > (b['zikrs'] as int) ? a : b);
@@ -210,7 +227,23 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   }
 
   String _findMostProductiveHour() {
-    if (_hourlyDistribution.isEmpty) return '06:00';
+    if (_hourlyDistribution.isEmpty) return DynamicLocalizationHelper.getText({
+      'tr': '06:00',
+      'en': '06:00',
+      'ar': '06:00',
+      'id': '06:00',
+      'ur': '06:00',
+      'bn': '06:00',
+      'ms': '06:00',
+      'fa': '06:00',
+      'fr': '06:00',
+      'zh': '06:00',
+      'ja': '06:00',
+      'ru': '06:00',
+      'de': '06:00',
+      'sw': '06:00',
+      'ha': '06:00',
+    });
     
     final maxEntry = _hourlyDistribution.entries.reduce((a, b) => 
         a.value > b.value ? a : b);
@@ -218,15 +251,44 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   }
 
   String _getDayName(int weekday) {
-    const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    final days = DynamicLocalizationHelper.getText({
+      'tr': 'Pzt,Sal,Çar,Per,Cum,Cmt,Paz',
+      'en': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+      'ar': 'إث,ثلا,أرب,خم,جم,سب,أحد',
+      'id': 'Sen,Sel,Rab,Kam,Jum,Sab,Ming',
+      'ur': 'پیر,منگل,بدھ,جمعرات,جمعہ,ہفتہ,اتوار',
+      'bn': 'সোম,মঙ্গল,বুধ,বৃহস্পতিবার,শুক্রবার,শনিবার,রবিবার',
+      'ms': 'Isn,Sel,Rab,Kha,Jum,Sab,Ahd',
+      'fa': 'دوشنبه,سه شنبه,چهارشنبه,پنجشنبه,جمعه,شنبه,یکشنبه',
+      'fr': 'Lun,Mar,Mer,Jeu,Ven,Sam,Dim',
+      'zh': '周一,周二,周三,周四,周五,周六,周日',
+      'ja': '月,火,水,木,金,土,日',
+      'ru': 'Пн,Вт,Ср,Чт,Пт,Сб,Вс',
+      'de': 'Mo,Di,Mi,Do,Fr,Sa,So',
+      'sw': 'Jtn,Jn,Jt,Alh,Ijm,Jum,Jkp',
+      'ha': 'Lit,Tal,Lar,Alh,Jum,Asi,Lah',
+    }).split(',');
     return days[weekday - 1];
   }
 
   String _getMonthName(int month) {
-    const months = [
-      'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
-      'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
-    ];
+    final months = DynamicLocalizationHelper.getText({
+      'tr': 'Oca,Şub,Mar,Nis,May,Haz,Tem,Ağu,Eyl,Eki,Kas,Ara',
+      'en': 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec',
+      'ar': 'يناير,فبراير,مارس,أبريل,مايو,يونيو,يوليو,أغسطس,سبتمبر,أكتوبر,نوفمبر,ديسمبر',
+      'id': 'Jan,Feb,Mar,Apr,Mei,Jun,Jul,Agu,Sep,Okt,Nov,Des',
+      'ur': 'جنوری,فروری,مارچ,اپریل,مئی,جون,جولائی,اگست,ستمبر,اکتوبر,نومبر,دسمبر',
+      'bn': 'জানুয়ারী,ফেব্রুয়ারী,মার্চ,এপ্রিল,মে,জুন,জুলাই,আগস্ট,সেপ্টেম্বর,অক্টোবর,নভেম্বর,ডিসেম্বর',
+      'ms': 'Jan,Feb,Mac,Apr,Mei,Jun,Jul,Ogos,Sept,Okt,Nov,Dis',
+      'fa': 'ژانویه,فوریه,مارس,آوریل,مه,ژوئن,ژوئیه,اوت,سپتامبر,اکتبر,نوامبر,دسامبر',
+      'fr': 'Jan,Fév,Mar,Avr,Mai,Juin,Juil,Août,Sep,Oct,Nov,Déc',
+      'zh': '一月,二月,三月,四月,五月,六月,七月,八月,九月,十月,十一月,十二月',
+      'ja': '1月,2月,3月,4月,5月,6月,7月,8月,9月,10月,11月,12月',
+      'ru': 'Янв,Фев,Мар,Апр,Май,Июн,Июл,Авг,Сен,Окт,Ноя,Дек',
+      'de': 'Jan,Feb,Mär,Apr,Mai,Jun,Jul,Aug,Sep,Okt,Nov,Dez',
+      'sw': 'Jan,Feb,Mac,Apr,Mei,Jun,Jul,Ago,Sept,Okt,Nov,Dis',
+      'ha': 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Okt,Nov,Dis',
+    }).split(',');
     return months[month - 1];
   }
 
@@ -428,18 +490,138 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('Toplam', '$_totalZikrs', Icons.auto_awesome),
-              _buildStatItem('Haftalık', '$_weeklyZikrs', Icons.date_range),
-              _buildStatItem('Aylık', '$_monthlyZikrs', Icons.calendar_month),
+              _buildStatItem(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Toplam',
+                  'en': 'Total',
+                  'ar': 'المجموع',
+                  'id': 'Total',
+                  'ur': 'کل',
+                  'bn': 'মোট',
+                  'ms': 'Jumlah',
+                  'fa': 'مجموع',
+                  'fr': 'Total',
+                  'zh': '总计',
+                  'ja': '合計',
+                  'ru': 'Всего',
+                  'de': 'Gesamt',
+                  'sw': 'Jumla',
+                  'ha': 'Duka Cikin',
+                }), 
+                '$_totalZikrs', 
+                Icons.auto_awesome
+              ),
+              _buildStatItem(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Haftalık',
+                  'en': 'Weekly',
+                  'ar': 'أسبوعي',
+                  'id': 'Mingguan',
+                  'ur': 'ہفتہ وار',
+                  'bn': 'সাপ্তাহিক',
+                  'ms': 'Mingguan',
+                  'fa': 'هفتگی',
+                  'fr': 'Hebdomadaire',
+                  'zh': '每周',
+                  'ja': '週間',
+                  'ru': 'Еженедельно',
+                  'de': 'Wöchentlich',
+                  'sw': 'Kila Wiki',
+                  'ha': 'Makon Sati',
+                }), 
+                '$_weeklyZikrs', 
+                Icons.date_range
+              ),
+              _buildStatItem(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Aylık',
+                  'en': 'Monthly',
+                  'ar': 'شهري',
+                  'id': 'Bulanan',
+                  'ur': 'ماہانہ',
+                  'bn': 'মাসিক',
+                  'ms': 'Bulanan',
+                  'fa': 'ماهانه',
+                  'fr': 'Mensuel',
+                  'zh': '每月',
+                  'ja': '月次',
+                  'ru': 'Ежемесячно',
+                  'de': 'Monatlich',
+                  'sw': 'Kila Mwezi',
+                  'ha': 'Wata',
+                }), 
+                '$_monthlyZikrs', 
+                Icons.calendar_month
+              ),
             ],
           ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('Günlük Ort.', '${_dailyAverage.toStringAsFixed(1)}', Icons.trending_up),
-              _buildStatItem('Streak', '$_currentStreak', Icons.local_fire_department),
-              _buildStatItem('Seviye', '${_calculateUserLevel()}', Icons.star),
+              _buildStatItem(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Günlük Ort.',
+                  'en': 'Daily Avg.',
+                  'ar': 'المتوسط اليومي',
+                  'id': 'Rata-rata Harian',
+                  'ur': 'روزانہ اوسط',
+                  'bn': 'দৈনিক গড়',
+                  'ms': 'Purata Harian',
+                  'fa': 'میانگین روزانه',
+                  'fr': 'Moyenne Journalière',
+                  'zh': '日均',
+                  'ja': '日平均',
+                  'ru': 'Среднее Дневное',
+                  'de': 'Tagesdurchschnitt',
+                  'sw': 'Wastani wa Siku',
+                  'ha': 'Matsakaicin Tsakila',
+                }), 
+                '${_dailyAverage.toStringAsFixed(1)}', 
+                Icons.trending_up
+              ),
+              _buildStatItem(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Streak',
+                  'en': 'Streak',
+                  'ar': 'السلسلة',
+                  'id': 'Streak',
+                  'ur': 'سلسلہ',
+                  'bn': 'স্ট্রিক',
+                  'ms': 'Streak',
+                  'fa': 'سلسله',
+                  'fr': 'Série',
+                  'zh': '连续',
+                  'ja': '連続',
+                  'ru': 'Серия',
+                  'de': 'Serie',
+                  'sw': 'Mfululizo',
+                  'ha': 'Saita',
+                }), 
+                '$_currentStreak', 
+                Icons.local_fire_department
+              ),
+              _buildStatItem(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Seviye',
+                  'en': 'Level',
+                  'ar': 'المستوى',
+                  'id': 'Level',
+                  'ur': 'لیول',
+                  'bn': 'স্তর',
+                  'ms': 'Tahap',
+                  'fa': 'سطح',
+                  'fr': 'Niveau',
+                  'zh': '等级',
+                  'ja': 'レベル',
+                  'ru': 'Уровень',
+                  'de': 'Stufe',
+                  'sw': 'Kiwango',
+                  'ha': 'Matsayi',
+                }), 
+                '${_calculateUserLevel()}', 
+                Icons.star
+              ),
             ],
           ),
         ],
@@ -486,7 +668,23 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Haftalık Grafiği',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Haftalık Grafiği',
+              'en': 'Weekly Chart',
+              'ar': 'رسم بياني أسبوعي',
+              'id': 'Grafik Mingguan',
+              'ur': 'ہفتہ وار گراف',
+              'bn': 'সাপ্তাহিক গ্রাফ',
+              'ms': 'Carta Mingguan',
+              'fa': 'نمودار هفتگی',
+              'fr': 'Graphique Hebdomadaire',
+              'zh': '周图表',
+              'ja': '週間チャート',
+              'ru': 'Еженедельный График',
+              'de': 'Wochengrafik',
+              'sw': 'Chati ya Wiki',
+              'ha': 'Makon Saiti',
+            }),
             style: GoogleFonts.notoSans(
               color: widget.themeConfig.textColor,
               fontSize: 18,
@@ -573,7 +771,23 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Detaylı İstatistikler',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Detaylı İstatistikler',
+              'en': 'Detailed Statistics',
+              'ar': 'إحصائيات مفصلة',
+              'id': 'Statistik Detail',
+              'ur': 'تفصیلی احصائیات',
+              'bn': 'বিস্তারিত পরিসংখ্যান',
+              'ms': 'Statistik Terperinci',
+              'fa': 'آمار دقیق',
+              'fr': 'Statistiques Détaillées',
+              'zh': '详细统计',
+              'ja': '詳細な統計',
+              'ru': 'Подробная Статистика',
+              'de': 'Detaillierte Statistik',
+              'sw': 'Takwimu Zaidi',
+              'ha': 'Statistics Cikak',
+            }),
             style: GoogleFonts.notoSans(
               color: widget.themeConfig.textColor,
               fontSize: 18,
@@ -581,12 +795,103 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
             ),
           ),
           const SizedBox(height: 20),
-          _buildDetailRow('En Verimli Gün', _mostProductiveDay),
-          _buildDetailRow('En Verimli Saat', _mostProductiveHour),
-          _buildDetailRow('Son Zikir', _lastZikrDate != null 
-              ? '${_lastZikrDate!.day}/${_lastZikrDate!.month}/${_lastZikrDate!.year}'
-              : 'Yok'),
-          _buildDetailRow('Toplam Gün', _lastZikrDate != null 
+          _buildDetailRow(
+            DynamicLocalizationHelper.getText({
+              'tr': 'En Verimli Gün',
+              'en': 'Most Productive Day',
+              'ar': 'أكثر يوم إنتاجية',
+              'id': 'Hari Paling Produktif',
+              'ur': 'سب سے زیادہ پیداوار دن',
+              'bn': 'সবচেয়ে উৎপাদনশীল দিন',
+              'ms': 'Hari Paling Produktif',
+              'fa': 'مولدترین روز',
+              'fr': 'Jour le Plus Productif',
+              'zh': '最高效的一天',
+              'ja': '最も生産性の高い日',
+              'ru': 'Самый Продуктивный День',
+              'de': 'Produktivster Tag',
+              'sw': 'Siku Iliyozalisha Zaidi',
+              'ha': 'Ran Mafi Yawwa',
+            }), 
+            _mostProductiveDay
+          ),
+          _buildDetailRow(
+            DynamicLocalizationHelper.getText({
+              'tr': 'En Verimli Saat',
+              'en': 'Most Productive Hour', 
+              'ar': 'أكثر ساعة إنتاجية',
+              'id': 'Jam Paling Produktif',
+              'ur': 'سب سے زیادہ پیداوار گھنٹہ',
+              'bn': 'সবচেয়ে উৎপাদনশীল ঘন্টা',
+              'ms': 'Jam Paling Produktif',
+              'fa': 'مولدترین ساعت',
+              'fr': 'Heure la Plus Productive',
+              'zh': '最高效的一小时',
+              'ja': '最も生産性の高い時間',
+              'ru': 'Самый Продуктивный Час',
+              'de': 'Produktivste Stunde',
+              'sw': 'Saa Iliyozalisha Zaidi',
+              'ha': 'Lokaci Mafi Yawwa',
+            }), 
+            _mostProductiveHour
+          ),
+          _buildDetailRow(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Son Zikir',
+              'en': 'Last Dhikr',
+              'ar': 'آخر ذكر',
+              'id': 'Zikir Terakhir',
+              'ur': 'آخری ذکر',
+              'bn': 'সর্বশেষ জিকির',
+              'ms': 'Zikir Terakhir',
+              'fa': 'آخرین ذکر',
+              'fr': 'Dernier Dhikr',
+              'zh': '最后赞念',
+              'ja': '最後のジクル',
+              'ru': 'Последний Зикр',
+              'de': 'Letzter Dhikr',
+              'sw': 'Dhikr ya Mwisho',
+              'ha': 'Zikir Na Karshe',
+            }), 
+            _lastZikrDate != null 
+                ? '${_lastZikrDate!.day}/${_lastZikrDate!.month}/${_lastZikrDate!.year}'
+                : DynamicLocalizationHelper.getText({
+                    'tr': 'Yok',
+                    'en': 'None',
+                    'ar': 'لا شيء',
+                    'id': 'Tidak Ada',
+                    'ur': 'کچھ نہیں',
+                    'bn': 'নেই',
+                    'ms': 'Tiada',
+                    'fa': 'هیچ',
+                    'fr': 'Aucun',
+                    'zh': '无',
+                    'ja': 'なし',
+                    'ru': 'Нет',
+                    'de': 'Keine',
+                    'sw': 'Hakuna',
+                    'ha': 'Babu',
+                  })
+          ),
+          _buildDetailRow(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Toplam Gün',
+              'en': 'Total Days',
+              'ar': 'إجمالي الأيام',
+              'id': 'Total Hari',
+              'ur': 'کل دن',
+              'bn': 'মোট দিন',
+              'ms': 'Jumlah Hari',
+              'fa': 'مجموع روزها',
+              'fr': 'Total des Jours',
+              'zh': '总天数',
+              'ja': '総日数',
+              'ru': 'Всего Дней',
+              'de': 'Gesamte Tage',
+              'sw': 'Jumla ya Siku',
+              'ha': 'Dukkan Sako',
+            }), 
+            _lastZikrDate != null 
               ? '${DateTime.now().difference(_lastZikrDate!).inDays + 1}'
               : '0'),
         ],

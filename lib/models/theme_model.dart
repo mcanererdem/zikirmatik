@@ -13,6 +13,17 @@ class ThemeConfig {
   final String nameEn;
   final String nameAr;
   final String nameId;
+  final String nameUr;
+  final String nameBn;
+  final String nameMs;
+  final String nameFa;
+  final String nameFr;
+  final String nameZh;
+  final String nameJa;
+  final String nameRu;
+  final String nameDe;
+  final String nameSw;
+  final String nameHa;
   final AppThemeMode mode;
   final LinearGradient backgroundGradient;
   final LinearGradient buttonGradient;
@@ -41,6 +52,17 @@ class ThemeConfig {
     required this.nameEn,
     required this.nameAr,
     required this.nameId,
+    required this.nameUr,
+    required this.nameBn,
+    required this.nameMs,
+    required this.nameFa,
+    required this.nameFr,
+    required this.nameZh,
+    required this.nameJa,
+    required this.nameRu,
+    required this.nameDe,
+    required this.nameSw,
+    required this.nameHa,
     required this.mode,
     required this.backgroundGradient,
     required this.buttonGradient,
@@ -67,6 +89,17 @@ class AppThemes {
       nameEn: 'Ocean Blue',
       nameAr: 'أزرق المحيط',
       nameId: 'Biru Lautan',
+      nameUr: 'اوقین بلو',
+      nameBn: 'মহাসাগর নীল',
+      nameMs: 'Biru Lautan',
+      nameFa: 'آبی اقیانوس',
+      nameFr: 'Bleu Océan',
+      nameZh: '海洋蓝',
+      nameJa: 'オーシャンブルー',
+      nameRu: 'Океанский Синий',
+      nameDe: 'Ozeanblau',
+      nameSw: 'Buluu ya Bahari',
+      nameHa: 'Bule Ruwa',
       mode: AppThemeMode.oceanBlue,
       backgroundGradient: LinearGradient(
         begin: Alignment.topLeft,
@@ -118,6 +151,17 @@ class AppThemes {
       nameEn: 'Emerald Green',
       nameAr: 'أخضر الزمرد',
       nameId: 'Hijau Zamrud',
+      nameUr: 'زمردی سبز',
+      nameBn: 'পান্না সবুজ',
+      nameMs: 'Hijau Zamrud',
+      nameFa: 'سبز زمردی',
+      nameFr: 'Vert Émeraude',
+      nameZh: '翠绿色',
+      nameJa: 'エメラルドグリーン',
+      nameRu: 'Изумрудный Зеленый',
+      nameDe: 'Smaragdgrün',
+      nameSw: 'Kijani ya Zambarau',
+      nameHa: 'Green Emerald',
       mode: AppThemeMode.emeraldGreen,
       backgroundGradient: LinearGradient(
         begin: Alignment.topLeft,
@@ -169,6 +213,17 @@ class AppThemes {
       nameEn: 'Rose Pink',
       nameAr: 'وردي الورد',
       nameId: 'Pink Mawar',
+      nameUr: 'گلابی گلاب',
+      nameBn: 'গোলাপী গোলাপী',
+      nameMs: 'Pink Mawar',
+      nameFa: 'صورتی رز',
+      nameFr: 'Rose Rose',
+      nameZh: '玫瑰粉',
+      nameJa: 'ローズピンク',
+      nameRu: 'Розовый Роз',
+      nameDe: 'Rosenpink',
+      nameSw: 'Waridi wa Rose',
+      nameHa: 'Rose Pink',
       mode: AppThemeMode.rosePink,
       backgroundGradient: LinearGradient(
         begin: Alignment.topLeft,
@@ -220,6 +275,17 @@ class AppThemes {
       nameEn: 'Pure Dark',
       nameAr: 'أسود نقي',
       nameId: 'Gelap Murni',
+      nameUr: 'خالصا سیاہ',
+      nameBn: 'খাঁটি কালো',
+      nameMs: 'Gelap Murni',
+      nameFa: 'مشکی خالص',
+      nameFr: 'Noir Pur',
+      nameZh: '纯黑',
+      nameJa: 'ピュアダーク',
+      nameRu: 'Чистый Темный',
+      nameDe: 'Reines Schwarz',
+      nameSw: 'Mweusi Mwema',
+      nameHa: 'Babu Mai Tsarki',
       mode: AppThemeMode.darkMode,
       backgroundGradient: LinearGradient(
         begin: Alignment.topLeft,
@@ -284,6 +350,17 @@ class AppThemes {
         nameEn: theme.nameEn,
         nameAr: theme.nameAr,
         nameId: theme.nameId,
+        nameUr: theme.nameUr,
+        nameBn: theme.nameBn,
+        nameMs: theme.nameMs,
+        nameFa: theme.nameFa,
+        nameFr: theme.nameFr,
+        nameZh: theme.nameZh,
+        nameJa: theme.nameJa,
+        nameRu: theme.nameRu,
+        nameDe: theme.nameDe,
+        nameSw: theme.nameSw,
+        nameHa: theme.nameHa,
         mode: theme.mode,
         backgroundGradient: theme.darkBackgroundGradient ?? theme.backgroundGradient,
         buttonGradient: theme.darkButtonGradient ?? theme.buttonGradient,

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app_settings/app_settings.dart';
 import 'dart:io';
-import '../models/theme_model.dart';
-import '../utils/localizations.dart';
-import '../services/supabase_service.dart';
-import '../models/user_profile_model.dart';
 import 'dart:math';
+import '../models/theme_model.dart';
+import '../models/user_profile_model.dart';
+import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
+import '../services/settings_service.dart';
+import '../services/supabase_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -615,21 +617,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       children: [
         _buildActionTile(
-          'Kullanıcı Adını Düzenle',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Kullanıcı Adını Düzenle',
+            'en': 'Edit Username',
+            'ar': 'تعديل اسم المستخدم',
+            'id': 'Edit Username',
+            'ur': 'صارف نام میں ترمیم کریں',
+            'bn': 'ব্যবহারকারী নাম সম্পাদনা করুন',
+            'ms': 'Edit Nama Pengguna',
+            'fa': 'ویرایش نام کاربری',
+            'fr': 'Modifier le Nom d\'Utilisateur',
+            'zh': '编辑用户名',
+            'ja': 'ユーザー名を編集',
+            'ru': 'Редактировать Имя Пользователя',
+            'de': 'Benutzernamen bearbeiten',
+            'sw': 'Hariri Jina la Mtumiaji',
+            'ha': 'Suna Mai Amfani',
+          }),
           Icons.edit,
           Colors.blue,
           () => _showEditUsernameDialog(),
         ),
         const SizedBox(height: 8),
         _buildActionTile(
-          'Görünen Adı Düzenle',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Görünen Adı Düzenle',
+            'en': 'Edit Display Name',
+            'ar': 'تعديل الاسم المعروض',
+            'id': 'Edit Nama Tampilan',
+            'ur': 'ڈسپلے نام میں ترمیم کریں',
+            'bn': 'প্রদর্শন নাম সম্পাদনা করুন',
+            'ms': 'Edit Nama Paparan',
+            'fa': 'ویرایش نام نمایشی',
+            'fr': 'Modifier le Nom d\'Affichage',
+            'zh': '编辑显示名称',
+            'ja': '表示名を編集',
+            'ru': 'Редактировать Отображаемое Имя',
+            'de': 'Anzeigenamen bearbeiten',
+            'sw': 'Hariri Jina la Onyesha',
+            'ha': 'Suna Bayyana',
+          }),
           Icons.person,
           Colors.green,
           () => _showEditDisplayNameDialog(),
         ),
         const SizedBox(height: 8),
         _buildActionTile(
-          'Hesabı Sil',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Hesabı Sil',
+            'en': 'Delete Account',
+            'ar': 'حذف الحساب',
+            'id': 'Hapus Akun',
+            'ur': 'کھاتہ حذف کریں',
+            'bn': 'অ্যাকাউন্ট মুছে ফেলুন',
+            'ms': 'Padam Akaun',
+            'fa': 'حذف حساب',
+            'fr': 'Supprimer le Compte',
+            'zh': '删除账户',
+            'ja': 'アカウントを削除',
+            'ru': 'Удалить Аккаунт',
+            'de': 'Konto löschen',
+            'sw': 'Futa Akaunti',
+            'ha': 'Share Akaunti',
+          }),
           Icons.delete_forever,
           Colors.red,
           () => _showDeleteAccountDialog(),
@@ -685,7 +735,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: widget.themeConfig.primaryColor,
         title: Text(
-          'Kullanıcı Adını Düzenle',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Kullanıcı Adını Düzenle',
+            'en': 'Edit Username',
+            'ar': 'تعديل اسم المستخدم',
+            'id': 'Edit Username',
+            'ur': 'صارف نام میں ترمیم کریں',
+            'bn': 'ব্যবহারকারী নাম সম্পাদনা করুন',
+            'ms': 'Edit Nama Pengguna',
+            'fa': 'ویرایش نام کاربری',
+            'fr': 'Modifier le Nom d\'Utilisateur',
+            'zh': '编辑用户名',
+            'ja': 'ユーザー名を編集',
+            'ru': 'Редактировать Имя Пользователя',
+            'de': 'Benutzernamen bearbeiten',
+            'sw': 'Hariri Jina la Mtumiaji',
+            'ha': 'Suna Mai Amfani',
+          }),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
             fontWeight: FontWeight.bold,
@@ -695,7 +761,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           controller: controller,
           style: TextStyle(color: widget.themeConfig.textColor),
           decoration: InputDecoration(
-            labelText: 'Kullanıcı Adı',
+            labelText: DynamicLocalizationHelper.getText({
+              'tr': 'Kullanıcı Adı',
+              'en': 'Username',
+              'ar': 'اسم المستخدم',
+              'id': 'Username',
+              'ur': 'صارف نام',
+              'bn': 'ব্যবহারকারী নাম',
+              'ms': 'Nama Pengguna',
+              'fa': 'نام کاربری',
+              'fr': 'Nom d\'Utilisateur',
+              'zh': '用户名',
+              'ja': 'ユーザー名',
+              'ru': 'Имя Пользователя',
+              'de': 'Benutzername',
+              'sw': 'Jina la Mtumiaji',
+              'ha': 'Suna Mai Amfani',
+            }),
             labelStyle: TextStyle(color: widget.themeConfig.textColor.withOpacity(0.7)),
             border: OutlineInputBorder(
               borderSide: BorderSide(color: widget.themeConfig.accentColor),
@@ -713,7 +795,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'İptal',
+              DynamicLocalizationHelper.cancel,
               style: TextStyle(color: widget.themeConfig.accentColor),
             ),
           ),
@@ -725,7 +807,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             child: Text(
-              'Kaydet',
+              DynamicLocalizationHelper.save,
               style: TextStyle(color: widget.themeConfig.accentColor),
             ),
           ),
@@ -742,7 +824,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: widget.themeConfig.primaryColor,
         title: Text(
-          'Görünen Adı Düzenle',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Görünen Adı Düzenle',
+            'en': 'Edit Display Name',
+            'ar': 'تعديل الاسم المعروض',
+            'id': 'Edit Nama Tampilan',
+          }),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
             fontWeight: FontWeight.bold,
@@ -752,7 +839,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           controller: controller,
           style: TextStyle(color: widget.themeConfig.textColor),
           decoration: InputDecoration(
-            labelText: 'Görünen Adı',
+            labelText: DynamicLocalizationHelper.getText({
+              'tr': 'Görünen Adı',
+              'en': 'Display Name',
+              'ar': 'الاسم المعروض',
+              'id': 'Nama Tampilan',
+            }),
             labelStyle: TextStyle(color: widget.themeConfig.textColor.withOpacity(0.7)),
             border: OutlineInputBorder(
               borderSide: BorderSide(color: widget.themeConfig.accentColor),
@@ -770,7 +862,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'İptal',
+              DynamicLocalizationHelper.cancel,
               style: TextStyle(color: widget.themeConfig.accentColor),
             ),
           ),
@@ -782,7 +874,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             child: Text(
-              'Kaydet',
+              DynamicLocalizationHelper.save,
               style: TextStyle(color: widget.themeConfig.accentColor),
             ),
           ),
@@ -883,14 +975,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: widget.themeConfig.primaryColor,
         title: Text(
-          'Hesabı Sil',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Hesabı Sil',
+            'en': 'Delete Account',
+            'ar': 'حذف الحساب',
+            'id': 'Hapus Akun',
+          }),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
             fontWeight: FontWeight.bold,
           ),
         ),
         content: Text(
-          'Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+            'en': 'Are you sure you want to delete your account? This action cannot be undone.',
+            'ar': 'هل أنت متأكد من أنك تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه.',
+            'id': 'Apakah Anda yakin ingin menghapus akun Anda? Tindakan ini tidak dapat dibatalkan.',
+          }),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
           ),
@@ -899,7 +1001,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'İptal',
+              DynamicLocalizationHelper.cancel,
               style: TextStyle(color: widget.themeConfig.accentColor),
             ),
           ),
@@ -909,7 +1011,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               await _deleteAccount();
             },
             child: Text(
-              'Sil',
+              DynamicLocalizationHelper.delete,
               style: TextStyle(color: Colors.red),
             ),
           ),
@@ -999,7 +1101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _userProfile?.displayName ?? 'Zikir Çalışanı',
+                                _userProfile?.displayName ?? 'ZikirUser123',
                                 style: GoogleFonts.notoSans(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -1027,14 +1129,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     children: [
                       _buildStatCard(
-                        'Toplam Zikir',
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Toplam Zikir',
+                          'en': 'Total Dhikr',
+                          'ar': 'مجموع الذكر',
+                          'id': 'Total Zikir',
+                          'ur': 'کل ذکر',
+                          'bn': 'মোট জিকির',
+                          'ms': 'Jumlah Zikir',
+                          'fa': 'مجموع ذکر',
+                          'fr': 'Total Dhikr',
+                          'zh': '总赞念',
+                          'ja': '総ジクル',
+                          'ru': 'Всего Зикров',
+                          'de': 'Gesamte Dhikr',
+                          'sw': 'Jumla ya Dhikr',
+                          'ha': 'Duk Cikin Gaba',
+                        }),
                         '${_userProfile?.totalZikrs ?? 0}',
                         Icons.trending_up,
                         Colors.green,
                       ),
                       const SizedBox(width: 12),
                       _buildStatCard(
-                        'Streak',
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Streak',
+                          'en': 'Streak',
+                          'ar': 'السلسلة',
+                          'id': 'Streak',
+                          'ur': 'سلسلہ',
+                          'bn': 'স্ট্রিক',
+                          'ms': 'Streak',
+                          'fa': 'سلسله',
+                          'fr': 'Série',
+                          'zh': '连续',
+                          'ja': '連続',
+                          'ru': 'Серия',
+                          'de': 'Serie',
+                          'sw': 'Mfululizo',
+                          'ha': 'Saita',
+                        }),
                         '$_currentStreak',
                         Icons.local_fire_department,
                         Colors.orange,
@@ -1047,14 +1181,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     children: [
                       _buildStatCard(
-                        'Haftalık',
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Haftalık',
+                          'en': 'Weekly',
+                          'ar': 'أسبوعي',
+                          'id': 'Mingguan',
+                          'ur': 'ہفتہ وار',
+                          'bn': 'সাপ্তাহিক',
+                          'ms': 'Mingguan',
+                          'fa': 'هفتگی',
+                          'fr': 'Hebdomadaire',
+                          'zh': '每周',
+                          'ja': '週間',
+                          'ru': 'Еженедельно',
+                          'de': 'Wöchentlich',
+                          'sw': 'Kila Wiki',
+                          'ha': 'Makon Sati',
+                        }),
                         '$_weeklyZikrs',
                         Icons.calendar_view_week,
                         Colors.blue,
                       ),
                       const SizedBox(width: 12),
                       _buildStatCard(
-                        'Günlük Ort.',
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Günlük Ort.',
+                          'en': 'Daily Avg.',
+                          'ar': 'المتوسط اليومي',
+                          'id': 'Rata-rata Harian',
+                          'ur': 'روزانہ اوسط',
+                          'bn': 'দৈনিক গড়',
+                          'ms': 'Purata Harian',
+                          'fa': 'میانگین روزانه',
+                          'fr': 'Moyenne Journalière',
+                          'zh': '日均',
+                          'ja': '日平均',
+                          'ru': 'Среднее Дневное',
+                          'de': 'Tagesdurchschnitt',
+                          'sw': 'Wastani wa Siku',
+                          'ha': 'Matsakaicin Tsakila',
+                        }),
                         _calculateDailyAverage(),
                         Icons.trending_up,
                         Colors.blue,
@@ -1078,7 +1244,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Profil Ayarları',
+                          DynamicLocalizationHelper.getText({
+                            'tr': 'Profil Ayarları',
+                            'en': 'Profile Settings',
+                            'ar': 'إعدادات الملف الشخصي',
+                            'id': 'Pengaturan Profil',
+                            'ur': 'پروفائل سیٹنگز',
+                            'bn': 'প্রোফাইল সেটিংস',
+                            'ms': 'Tetapan Profil',
+                            'fa': 'تنظیمات پروفایل',
+                            'fr': 'Paramètres du Profil',
+                            'zh': '个人资料设置',
+                            'ja': 'プロフィール設定',
+                            'ru': 'Настройки Профиля',
+                            'de': 'Profil-Einstellungen',
+                            'sw': 'Mipangilio ya Wasifu',
+                            'ha': 'Saitunan Bayanan',
+                          }),
                           style: GoogleFonts.notoSans(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -1107,7 +1289,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Kazanılan Kupalar',
+                          DynamicLocalizationHelper.getText({
+                            'tr': 'Kazanılan Kupalar',
+                            'en': 'Earned Trophies',
+                            'ar': 'الجوائز المكتسبة',
+                            'id': 'Piala yang Dimenangkan',
+                            'ur': 'کمائے ہوئے ٹرافیاں',
+                            'bn': 'অর্জিত ট্রফি',
+                            'ms': 'Piala Diperoleh',
+                            'fa': 'جام های کسب شده',
+                            'fr': 'Trophées Gagnées',
+                            'zh': '获得的奖杯',
+                            'ja': '獲得したトロフィー',
+                            'ru': 'Завоёванные Трофеи',
+                            'de': 'Verdiente Trophäen',
+                            'sw': 'Tuzo Zilizopolewa',
+                            'ha': 'Kofunan da Ka Samu',
+                          }),
                           style: GoogleFonts.notoSans(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

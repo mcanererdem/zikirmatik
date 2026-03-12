@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/zikr_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
+import '../models/zikr_model.dart';
 
 class ZikrSelectionDialog extends StatelessWidget {
   final List<ZikrModel> defaultZikrs;
@@ -83,7 +85,11 @@ class ZikrSelectionDialog extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  localizations.selectZikr,
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Zikir Seç',
+                    'en': 'Select Dhikr',
+                    'ar': 'اختر الذكر',
+                  }),
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -107,7 +113,11 @@ class ZikrSelectionDialog extends StatelessWidget {
                     if (customZikrs.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       Text(
-                        localizations.customZikrs,
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Özel Zikirler',
+                          'en': 'Custom Dhikrs',
+                          'ar': 'أذكار مخصصة',
+                        }),
                         style: TextStyle(
                           fontSize: 14,
                           color: themeConfig.accentColor.withOpacity(0.8),
@@ -276,7 +286,11 @@ class ZikrSelectionDialog extends StatelessWidget {
                 const Icon(Icons.add_rounded, color: Colors.white, size: 24),
                 const SizedBox(width: 8),
                 Text(
-                  localizations.addZikr,
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Zikir Ekle',
+                    'en': 'Add Dhikr',
+                    'ar': 'إضافة ذكر',
+                  }),
                   style: TextStyle(
                     color: themeConfig.textColor,
                     fontSize: 16,
