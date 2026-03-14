@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:app_settings/app_settings.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:math';
 import '../models/theme_model.dart';
@@ -32,6 +33,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   UserProfile? _userProfile;
+  /// Yükleme başarısız olunca yerel dosya yolu (Supabase dışı fallback).
+  String? _localAvatarPath;
   bool _isLoading = true;
   Map<String, bool> _unlockedCups = {
     'bronze': false,
@@ -57,35 +60,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final prefs = await SharedPreferences.getInstance();
       final weeklyZikrs = prefs.getInt('weekly_zikrs_${widget.currentUserId}') ?? 0;
       final currentStreak = prefs.getInt('current_streak_${widget.currentUserId}') ?? 0;
-      
-      // Kupa durumlarını kontrol et
-      final bronzeUnlocked = prefs.getBool('bronze_kupa_unlocked_${widget.currentUserId}') ?? false;
-      final silverUnlocked = prefs.getBool('silver_kupa_unlocked_${widget.currentUserId}') ?? false;
-      final goldUnlocked = prefs.getBool('gold_kupa_unlocked_${widget.currentUserId}') ?? false;
-      final diamondUnlocked = prefs.getBool('diamond_kupa_unlocked_${widget.currentUserId}') ?? false;
-      final platinumUnlocked = prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false;
-      
-      // Supabase'den profil yoksa local storage'dan avatar URL'ini al
-      String? avatarUrl = userProfile?.avatarUrl;
-      if (avatarUrl == null) {
-        avatarUrl = prefs.getString('avatar_url_${widget.currentUserId}');
-        // Eğer local storage'da avatar varsa, yeni profil objesi oluştur
-        if (avatarUrl != null && userProfile != null) {
-          userProfile = UserProfile(
-            userId: widget.currentUserId,
-            username: userProfile!.username,
-            displayName: userProfile!.displayName,
-            avatarUrl: avatarUrl,
-            totalZikrs: userProfile!.totalZikrs,
-            lastZikrDate: userProfile!.lastZikrDate,
-            createdAt: userProfile!.createdAt,
-            updatedAt: userProfile!.updatedAt,
+
+      bool bronzeUnlocked = prefs.getBool('bronze_kupa_unlocked_${widget.currentUserId}') ?? false;
+      bool silverUnlocked = prefs.getBool('silver_kupa_unlocked_${widget.currentUserId}') ?? false;
+      bool goldUnlocked = prefs.getBool('gold_kupa_unlocked_${widget.currentUserId}') ?? false;
+      bool diamondUnlocked = prefs.getBool('diamond_kupa_unlocked_${widget.currentUserId}') ?? false;
+      bool platinumUnlocked = prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false;
+      try {
+        final achievements = await _supabaseService.getUserAchievements(widget.currentUserId);
+        for (final a in achievements) {
+          final id = a['achievement_id'] as String?;
+          if (id == 'bronze_kupa') bronzeUnlocked = true;
+          if (id == 'silver_kupa') silverUnlocked = true;
+          if (id == 'gold_kupa') goldUnlocked = true;
+          if (id == 'diamond_kupa') diamondUnlocked = true;
+          if (id == 'platinum_kupa') platinumUnlocked = true;
+        }
+        await prefs.setBool('bronze_kupa_unlocked_${widget.currentUserId}', bronzeUnlocked);
+        await prefs.setBool('silver_kupa_unlocked_${widget.currentUserId}', silverUnlocked);
+        await prefs.setBool('gold_kupa_unlocked_${widget.currentUserId}', goldUnlocked);
+        await prefs.setBool('diamond_kupa_unlocked_${widget.currentUserId}', diamondUnlocked);
+        await prefs.setBool('platinum_kupa_unlocked_${widget.currentUserId}', platinumUnlocked);
+      } catch (_) {}
+
+      String? avatarUrl = userProfile?.avatarUrl ?? prefs.getString('avatar_url_${widget.currentUserId}');
+      final localUsername = prefs.getString('username_${widget.currentUserId}');
+      final localDisplayName = prefs.getString('display_name_${widget.currentUserId}');
+      final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      final localAvatarPath = prefs.getString('avatar_path_${widget.currentUserId}');
+
+      if (userProfile == null) {
+        final initialUsername = localUsername ?? _generateRandomUsername();
+        if (localUsername == null) {
+          await prefs.setString('username_${widget.currentUserId}', initialUsername);
+        }
+        userProfile = UserProfile(
+          userId: widget.currentUserId,
+          username: initialUsername,
+          displayName: localDisplayName ?? 'Zikir Kullanıcısı',
+          avatarUrl: avatarUrl,
+          totalZikrs: totalZikrs,
+          lastZikrDate: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+      } else {
+        if (localUsername != null || localDisplayName != null || avatarUrl != null) {
+          userProfile = userProfile.copyWith(
+            username: localUsername ?? userProfile.username,
+            displayName: localDisplayName ?? userProfile.displayName,
+            avatarUrl: avatarUrl ?? userProfile.avatarUrl,
           );
         }
       }
-      
+
       setState(() {
         _userProfile = userProfile;
+        _localAvatarPath = localAvatarPath;
         _weeklyZikrs = weeklyZikrs;
         _currentStreak = currentStreak;
         _unlockedCups = {
@@ -106,7 +137,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  static const String _randomUsernameChars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  String _generateRandomUsername() {
+    final r = Random();
+    final part = List.generate(8, (_) => _randomUsernameChars[r.nextInt(_randomUsernameChars.length)]).join();
+    return 'user_$part';
+  }
+
   Widget _buildAvatar() {
+    ImageProvider? backgroundImage;
+    if (_localAvatarPath != null) {
+      final f = File(_localAvatarPath!);
+      if (f.existsSync()) backgroundImage = FileImage(f);
+    }
+    if (backgroundImage == null && _userProfile?.avatarUrl != null && _userProfile!.avatarUrl!.isNotEmpty) {
+      backgroundImage = NetworkImage(_userProfile!.avatarUrl!);
+    }
     return GestureDetector(
       onTap: _pickAndUploadAvatar,
       child: Stack(
@@ -114,10 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           CircleAvatar(
             radius: 40,
             backgroundColor: widget.themeConfig.accentColor,
-            backgroundImage: _userProfile?.avatarUrl != null 
-                ? NetworkImage(_userProfile!.avatarUrl!)
-                : null,
-            child: _userProfile?.avatarUrl == null
+            backgroundImage: backgroundImage,
+            child: backgroundImage == null
                 ? Icon(
                     Icons.person,
                     size: 40,
@@ -178,10 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         
         if (avatarUrl != null) {
           print('✅ Avatar successfully uploaded: $avatarUrl');
-          
-          // Kullanıcı profilini güncelle
           await _updateUserProfile(avatarUrl);
-          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -198,8 +239,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           }
         } else {
-          print('❌ Avatar upload failed');
-          _showErrorSnackBar('Profil fotoğrafı yüklenemedi!');
+          print('❌ Avatar upload failed; saving locally.');
+          await _saveAvatarLocally(image!);
         }
       } else {
         print('📸 No image selected');
@@ -267,6 +308,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  /// Bulut yükleme başarısız olunca seçilen fotoğrafı uygulama dizinine kopyalar ve ekranda gösterir.
+  Future<void> _saveAvatarLocally(XFile image) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final path = '${dir.path}/avatar_${widget.currentUserId.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')}.jpg';
+      final file = File(path);
+      final bytes = await image.readAsBytes();
+      await file.writeAsBytes(bytes);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('avatar_path_${widget.currentUserId}', path);
+      if (mounted) {
+        setState(() => _localAvatarPath = path);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(DynamicLocalizationHelper.getText({
+              'tr': 'Profil fotoğrafı yerel olarak kaydedildi.',
+              'en': 'Profile photo saved locally.',
+            })),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Local avatar save error: $e');
+      if (mounted) _showErrorSnackBar('Profil fotoğrafı yüklenemedi!');
+    }
   }
 
   void _showErrorSnackBar(String message) {
@@ -415,45 +485,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  String _getCupDisplayName(String type) {
+    final names = {
+      'bronze': {'tr': 'Bronz Kupa', 'en': 'Bronze Cup', 'ar': 'كأس برونزي', 'id': 'Piala Perunggu', 'ur': 'کانسی ٹرافی', 'bn': 'ব্রোঞ্জ কাপ', 'ms': 'Piala Gangsa', 'fa': 'جام برنزی', 'fr': 'Coupe de bronze', 'zh': '铜杯', 'ja': '銅杯', 'ru': 'Бронзовая чаша', 'de': 'Bronzepokal', 'sw': 'Kombe la Shaba', 'ha': 'Kofin Bronze'},
+      'silver': {'tr': 'Gümüş Kupa', 'en': 'Silver Cup', 'ar': 'كأس فضي', 'id': 'Piala Perak', 'ur': 'سلور کپ', 'bn': 'রৌপ্য কাপ', 'ms': 'Piala Perak', 'fa': 'جام نقره', 'fr': 'Coupe d\'argent', 'zh': '银杯', 'ja': '銀杯', 'ru': 'Серебряная чаша', 'de': 'Silberpokal', 'sw': 'Kombe la Fedha', 'ha': 'Kofin Azurfa'},
+      'gold': {'tr': 'Altın Kupa', 'en': 'Gold Cup', 'ar': 'كأس ذهبي', 'id': 'Piala Emas', 'ur': 'گولڈ کپ', 'bn': 'স্বর্ণ কাপ', 'ms': 'Piala Emas', 'fa': 'جام طلا', 'fr': 'Coupe d\'or', 'zh': '金杯', 'ja': '金杯', 'ru': 'Золотая чаша', 'de': 'Goldpokal', 'sw': 'Kombe la Dhahabu', 'ha': 'Kofin Zinariya'},
+      'diamond': {'tr': 'Elmas Kupa', 'en': 'Diamond Cup', 'ar': 'كأس ماسي', 'id': 'Piala Berlian', 'ur': 'ڈائمنڈ کپ', 'bn': 'হীরা কাপ', 'ms': 'Piala Berlian', 'fa': 'جام الماس', 'fr': 'Coupe diamant', 'zh': '钻石杯', 'ja': 'ダイヤモンド杯', 'ru': 'Бриллиантовая чаша', 'de': 'Diamantpokal', 'sw': 'Kombe la Almasi', 'ha': 'Kofin Lu\'u'},
+      'platinum': {'tr': 'Platin Kupa', 'en': 'Platinum Cup', 'ar': 'كأس بلاتيني', 'id': 'Piala Platinum', 'ur': 'پلاٹینم کپ', 'bn': 'প্ল্যাটিনাম কাপ', 'ms': 'Piala Platinum', 'fa': 'جام پلاتین', 'fr': 'Coupe platine', 'zh': '白金杯', 'ja': 'プラチナ杯', 'ru': 'Платиновая чаша', 'de': 'Platinpokal', 'sw': 'Kombe la Platini', 'ha': 'Kofin Platinum'},
+    };
+    return DynamicLocalizationHelper.getText(names[type] ?? {'tr': type});
+  }
+
   Widget _buildCupGrid() {
     final totalZikrs = _userProfile?.totalZikrs ?? 0;
     final cups = [
       {
-        'name': 'Bronze', 
-        'icon': Icons.emoji_events, 
-        'color': Colors.brown, 
+        'name': _getCupDisplayName('bronze'),
+        'icon': Icons.emoji_events,
+        'color': Colors.brown,
         'unlocked': _unlockedCups['bronze'] ?? false,
         'required': 100,
         'nextRequired': 500
       },
       {
-        'name': 'Silver', 
-        'icon': Icons.emoji_events, 
-        'color': Colors.grey, 
+        'name': _getCupDisplayName('silver'),
+        'icon': Icons.emoji_events,
+        'color': Colors.grey,
         'unlocked': _unlockedCups['silver'] ?? false,
         'required': 500,
         'nextRequired': 1000
       },
       {
-        'name': 'Gold', 
-        'icon': Icons.emoji_events, 
-        'color': Colors.amber, 
+        'name': _getCupDisplayName('gold'),
+        'icon': Icons.emoji_events,
+        'color': Colors.amber,
         'unlocked': _unlockedCups['gold'] ?? false,
         'required': 1000,
         'nextRequired': 5000
       },
       {
-        'name': 'Diamond', 
-        'icon': Icons.emoji_events, 
-        'color': Colors.blue, 
+        'name': _getCupDisplayName('diamond'),
+        'icon': Icons.emoji_events,
+        'color': Colors.blue,
         'unlocked': _unlockedCups['diamond'] ?? false,
         'required': 5000,
         'nextRequired': 10000
       },
       {
-        'name': 'Platinum', 
-        'icon': Icons.emoji_events, 
-        'color': Colors.purple, 
+        'name': _getCupDisplayName('platinum'),
+        'icon': Icons.emoji_events,
+        'color': Colors.purple,
         'unlocked': _unlockedCups['platinum'] ?? false,
         'required': 10000,
         'nextRequired': null
@@ -884,58 +965,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _updateUsername(String username) async {
+    if (_userProfile == null) return;
+    final updatedProfile = _userProfile!.copyWith(username: username);
     try {
-      if (_userProfile != null) {
-        final updatedProfile = _userProfile!.copyWith(username: username);
-        await _supabaseService.updateUserProfile(updatedProfile);
-        
-        setState(() {
-          _userProfile = updatedProfile;
-        });
-        
+      await _supabaseService.updateUserProfile(updatedProfile);
+      setState(() => _userProfile = updatedProfile);
+      _saveProfileToLocal(updatedProfile);
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Kullanıcı adı güncellendi!'),
-            backgroundColor: Colors.green,
-          ),
+          SnackBar(content: Text('Kullanıcı adı güncellendi!'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       print('Error updating username: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Kullanıcı adı güncellenemedi.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _saveProfileToLocal(updatedProfile);
+      setState(() => _userProfile = updatedProfile);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Kullanıcı adı yerel olarak kaydedildi.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _updateDisplayName(String displayName) async {
+    if (_userProfile == null) return;
+    final updatedProfile = _userProfile!.copyWith(displayName: displayName);
     try {
-      if (_userProfile != null) {
-        final updatedProfile = _userProfile!.copyWith(displayName: displayName);
-        await _supabaseService.updateUserProfile(updatedProfile);
-        
-        setState(() {
-          _userProfile = updatedProfile;
-        });
-        
+      await _supabaseService.updateUserProfile(updatedProfile);
+      setState(() => _userProfile = updatedProfile);
+      _saveProfileToLocal(updatedProfile);
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Görünen adı güncellendi!'),
-            backgroundColor: Colors.green,
-          ),
+          SnackBar(content: Text('Görünen adı güncellendi!'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       print('Error updating display name: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Görünen adı güncellenemedi.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _saveProfileToLocal(updatedProfile);
+      setState(() => _userProfile = updatedProfile);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Görünen ad yerel olarak kaydedildi.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveProfileToLocal(UserProfile profile) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username_${widget.currentUserId}', profile.username);
+    await prefs.setString('display_name_${widget.currentUserId}', profile.displayName ?? '');
+    if (profile.avatarUrl != null) {
+      await prefs.setString('avatar_url_${widget.currentUserId}', profile.avatarUrl!);
     }
   }
 
@@ -1068,16 +1156,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: Colors.white,
+            color: widget.themeConfig.textColor,
           ),
         ),
       ),
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(Colors.white),
+                valueColor: AlwaysStoppedAnimation(widget.themeConfig.textColor),
               ),
             )
           : SingleChildScrollView(
@@ -1105,7 +1193,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 style: GoogleFonts.notoSans(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: widget.themeConfig.textColor,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -1113,7 +1201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _userProfile?.username ?? 'user',
                                 style: GoogleFonts.notoSans(
                                   fontSize: 14,
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: widget.themeConfig.textColor.withValues(alpha: 0.85),
                                 ),
                               ),
                             ],

@@ -3,8 +3,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
 import '../services/settings_service.dart';
 
 class NotificationSettingsDialog extends StatefulWidget {
@@ -74,17 +76,96 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
       await _settingsService.saveMorningNotificationEnabled(_morningNotification);
       await _settingsService.saveEveningNotificationEnabled(_eveningNotification);
 
-      // Bildirimleri yeniden planla
+      // Bildirimleri yeniden planla (izin varsa)
       if (_isNotificationEnabled) {
-        await _scheduleNotifications();
+        final granted = await _requestNotificationPermissionWithRationale(context);
+        if (granted) {
+          final androidImpl = _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+          if (androidImpl != null) {
+            await androidImpl.requestExactAlarmsPermission();
+          }
+          await _scheduleNotifications();
+        } else {
+          await _settingsService.saveReminderEnabled(false);
+          setState(() => _isNotificationEnabled = false);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Bildirimler için izin gerekli. Ayarlardan açabilirsiniz.',
+                    'en': 'Notification permission required. You can enable it in Settings.',
+                    'ar': 'الإشعارات تتطلب إذناً. يمكنك تفعيله من الإعدادات.',
+                    'id': 'Izin notifikasi diperlukan. Aktifkan di Pengaturan.',
+                    'fa': 'برای اعلان‌ها اجازه لازم است. از تنظیمات فعال کنید.',
+                    'zh': '需要通知权限。可在设置中开启。',
+                    'ja': '通知の許可が必要です。設定で有効にできます。',
+                    'ru': 'Нужно разрешение на уведомления. Включите в настройках.',
+                    'de': 'Benachrichtigungsberechtigung nötig. In Einstellungen aktivieren.',
+                  }),
+                ),
+              ),
+            );
+          }
+        }
       } else {
         await _cancelAllNotifications();
       }
-      
+
       print('Notification settings saved successfully');
     } catch (e) {
       print('Error saving notification settings: $e');
     }
+  }
+
+  /// Android 13+ POST_NOTIFICATIONS isteği; gerekirse rationale gösterir.
+  Future<bool> _requestNotificationPermissionWithRationale(BuildContext context) async {
+    var status = await Permission.notification.status;
+    if (status.isGranted) return true;
+    if (status.isDenied) {
+      final shouldOpen = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Bildirim izni',
+              'en': 'Notification permission',
+              'ar': 'إذن الإشعارات',
+              'id': 'Izin notifikasi',
+              'zh': '通知权限',
+              'ja': '通知の許可',
+              'ru': 'Разрешение уведомлений',
+              'de': 'Benachrichtigungsberechtigung',
+            }),
+          ),
+          content: Text(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Zikir hatırlatıcılarının çalışması için bildirim izni gereklidir. İzin verilsin mi?',
+              'en': 'Notification permission is needed for dhikr reminders. Allow?',
+              'ar': 'مطلوب إذن الإشعارات لتذكيرات الذكر. السماح؟',
+              'id': 'Izin notifikasi diperlukan untuk pengingat zikir. Izinkan?',
+              'zh': '需要通知权限以发送记念提醒。是否允许？',
+              'ja': 'ジクルリマインダーには通知の許可が必要です。許可しますか？',
+              'ru': 'Для напоминаний о зикре нужно разрешение. Разрешить?',
+              'de': 'Für Zikir-Erinnerungen ist die Benachrichtigungsberechtigung nötig. Erlauben?',
+            }),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(MaterialLocalizations.of(ctx).okButtonLabel),
+            ),
+          ],
+        ),
+      );
+      if (shouldOpen != true) return false;
+    }
+    status = await Permission.notification.request();
+    return status.isGranted;
   }
 
   Future<void> _scheduleNotifications() async {
@@ -368,6 +449,18 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               ),
             ),
             
+            // İpucu: Bildirimlerin zamanında gelmesi
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Bildirimlerin zamanında gelmesi için uygulamayı pil optimizasyonundan muaf tutmanız gerekebilir (Ayarlar > Uygulamalar > Tasbih Counter > Pil).',
+                  'en': 'For notifications to arrive on time, you may need to disable battery optimization for this app (Settings > Apps > Tasbih Counter > Battery).',
+                }),
+                style: GoogleFonts.notoSans(fontSize: 12, color: widget.themeConfig.textColor.withValues(alpha: 0.8)),
+              ),
+            ),
+            const SizedBox(height: 12),
             // Bottom buttons
             Padding(
               padding: const EdgeInsets.all(24),

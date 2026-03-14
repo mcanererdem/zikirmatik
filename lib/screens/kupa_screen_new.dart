@@ -60,21 +60,26 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
   Future<void> _refreshData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final totalZikrs = widget.currentZikrCount > 0 
-          ? widget.currentZikrCount 
+      final totalZikrs = widget.currentZikrCount > 0
+          ? widget.currentZikrCount
           : prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
-      
-      // Dil bilgisini yükle
+
+      // Daha önce kazanılmış kupaları yükle (bildirim sadece yeni kazanılanlarda gösterilsin)
+      final previouslyUnlocked = {
+        'bronze_kupa': prefs.getBool('bronze_kupa_unlocked_${widget.currentUserId}') ?? false,
+        'silver_kupa': prefs.getBool('silver_kupa_unlocked_${widget.currentUserId}') ?? false,
+        'gold_kupa': prefs.getBool('gold_kupa_unlocked_${widget.currentUserId}') ?? false,
+        'diamond_kupa': prefs.getBool('diamond_kupa_unlocked_${widget.currentUserId}') ?? false,
+        'platinum_kupa': prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false,
+      };
+
       final currentLanguage = prefs.getString('language') ?? 'tr';
-      
-      print('🔄 Kupa screen refreshing with zikr count: $totalZikrs');
-      print('🌐 Kupa screen language: $currentLanguage');
-      
+
       setState(() {
         _totalZikrs = totalZikrs;
-        _currentLanguage = currentLanguage; // Dil güncelle
-        
-        // Kupaları yeniden hesapla
+        _currentLanguage = currentLanguage;
+        _unlockedCups = Map<String, bool>.from(previouslyUnlocked);
+
         _allCups = [
           {
             'id': 'bronze_kupa',
@@ -124,14 +129,11 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         ];
       });
       
-      // Sonraki kupa bilgisini hesapla
       _calculateNextCup();
-      
-      print('🏆 Unlocked cups: ${_allCups.where((cup) => cup['unlocked']).length}');
-      print('🎯 Next cup: $_nextCupName (need $_nextCupRequirement)');
-      
-      // Kupa kazanma bildirimlerini kontrol et
+
+      // Yeni kazanılan kupalar için bildirim; kazanıldığında prefs'e yaz
       _checkForNewUnlocks();
+      _persistUnlockedCups(prefs);
       
     } catch (e) {
       print('Error refreshing kupa screen: $e');
@@ -343,14 +345,11 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
   }
 
   void _checkForNewUnlocks() {
-    // Sadece yeni kazanılan kupaları kontrol et
     for (var cup in _allCups) {
       if (cup['unlocked'] == true) {
         final wasUnlocked = _unlockedCups[cup['id']] ?? false;
         if (!wasUnlocked) {
-          // Yeni kupa kazanıldı!
           _unlockedCups[cup['id']] = true;
-          // Sadece ilk defa kazanılırsa bildirim göster
           if (mounted && !_hasShownNotification) {
             _showCupUnlockedNotification(cup);
             _hasShownNotification = true;
@@ -358,6 +357,15 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         }
       }
     }
+  }
+
+  Future<void> _persistUnlockedCups(SharedPreferences prefs) async {
+    final uid = widget.currentUserId;
+    await prefs.setBool('bronze_kupa_unlocked_$uid', _unlockedCups['bronze_kupa'] ?? false);
+    await prefs.setBool('silver_kupa_unlocked_$uid', _unlockedCups['silver_kupa'] ?? false);
+    await prefs.setBool('gold_kupa_unlocked_$uid', _unlockedCups['gold_kupa'] ?? false);
+    await prefs.setBool('diamond_kupa_unlocked_$uid', _unlockedCups['diamond_kupa'] ?? false);
+    await prefs.setBool('platinum_kupa_unlocked_$uid', _unlockedCups['platinum_kupa'] ?? false);
   }
 
   void _showCupUnlockedNotification(Map<String, dynamic> cup) {
@@ -657,8 +665,10 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: widget.themeConfig.primaryColor,
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: widget.themeConfig.backgroundGradient,
         ),

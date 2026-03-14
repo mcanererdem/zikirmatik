@@ -1,6 +1,11 @@
 -- Zikirmatik Supabase Database Schema
 -- Execute these queries in Supabase SQL Editor
 
+-- achievements tablosu daha önce id UUID ile oluşturulmuşsa INSERT hata verir.
+-- Aşağıdaki DROP ile achievements (ve bağımlı user_achievements) silinir, sonra doğru yapıyla yeniden oluşturulur.
+DROP TABLE IF EXISTS user_achievements CASCADE;
+DROP TABLE IF EXISTS achievements CASCADE;
+
 -- 1. users table
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,6 +100,8 @@ ALTER TABLE leaderboard_monthly ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid()::text = id::text);
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid()::text = id::text);
 CREATE POLICY "Users can insert own profile" ON users FOR INSERT WITH CHECK (auth.uid()::text = id::text);
+-- Leaderboard için herkes users tablosunu okuyabilir (isim, avatar, total_zikrs)
+CREATE POLICY "Public can read users for leaderboard" ON users FOR SELECT USING (true);
 
 CREATE POLICY "Users can view own achievements" ON user_achievements FOR SELECT USING (auth.uid()::text = user_id::text);
 CREATE POLICY "Users can insert own achievements" ON user_achievements FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
@@ -116,3 +123,21 @@ CREATE POLICY "Public can read daily leaderboard" ON leaderboard_daily FOR SELEC
 CREATE POLICY "Public can read weekly leaderboard" ON leaderboard_weekly FOR SELECT USING (true);
 CREATE POLICY "Public can read monthly leaderboard" ON leaderboard_monthly FOR SELECT USING (true);
 CREATE POLICY "Public can read achievements" ON achievements FOR SELECT USING (true);
+
+-- ---------------------------------------------------------------------------
+-- Storage: avatars bucket (profil fotoğrafı)
+-- Dashboard > Storage'da "avatars" bucket'ı oluşturun; File size limit: 1 MB.
+-- Aşağıdaki politikalar bucket oluşturulduktan sonra çalıştırılır.
+-- ---------------------------------------------------------------------------
+CREATE POLICY "Allow public uploads to avatars"
+ON storage.objects FOR INSERT TO public
+WITH CHECK (bucket_id = 'avatars');
+
+CREATE POLICY "Allow public read avatars"
+ON storage.objects FOR SELECT TO public
+USING (bucket_id = 'avatars');
+
+CREATE POLICY "Allow public update avatars"
+ON storage.objects FOR UPDATE TO public
+USING (bucket_id = 'avatars')
+WITH CHECK (bucket_id = 'avatars');

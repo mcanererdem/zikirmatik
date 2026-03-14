@@ -35,6 +35,9 @@ ios/Flutter/flutter_export_environment.sh
 ios/GoogleService-Info.plist
 
 # Sensitive files
+.env
+.env.*
+!.env.example
 *.keystore
 *.jks
 *.p12

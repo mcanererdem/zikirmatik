@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show Platform;
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
@@ -40,6 +41,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         backgroundColor: widget.themeConfig.primaryColor,
         elevation: 0,
         foregroundColor: widget.themeConfig.textColor,
+        iconTheme: IconThemeData(color: widget.themeConfig.textColor),
         title: Text(
           DynamicLocalizationHelper.getText({
             'tr': 'İçe/Dışa Aktar',
@@ -71,11 +73,17 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: widget.themeConfig.backgroundGradient,
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -172,6 +180,8 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                 ),
               ),
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -298,6 +308,40 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                         fontSize: 16,
                       ),
                     ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _isExporting ? null : _exportToDownloads,
+              icon: const Icon(Icons.folder_outlined, size: 20),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: widget.themeConfig.accentColor,
+                side: BorderSide(color: widget.themeConfig.accentColor),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              label: Text(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'İndirilenler\'e kaydet',
+                  'en': 'Save to Downloads',
+                  'ar': 'حفظ في التنزيلات',
+                  'id': 'Simpan ke Unduhan',
+                  'zh': '保存到下载',
+                  'ja': 'ダウンロードに保存',
+                  'ru': 'Сохранить в Загрузки',
+                  'de': 'In Downloads speichern',
+                  'fr': 'Enregistrer dans Téléchargements',
+                }),
+                style: GoogleFonts.notoSans(
+                  color: widget.themeConfig.accentColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
             ),
           ),
         ],
@@ -484,18 +528,15 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       await file.writeAsString(jsonEncode(exportData));
       print('✅ Export file created: ${file.path}');
 
-      await Share.shareFiles(
-        [file.path],
-        subject: 'Zikirmatik backup',
-        text: DynamicLocalizationHelper.getText({
-          'tr': 'Zikirmatik yedek dosyam. İndirilenler\'e veya istediğiniz yere kaydedebilirsiniz.',
-          'en': 'My Zikirmatik backup. You can save it to Downloads or anywhere you like.',
-          'zh': 'Zikirmatik 备份文件，可保存到“下载”或任意位置。',
-          'ja': 'Zikirmatikのバックアップです。ダウンロードなどに保存できます。',
-          'ru': 'Резервная копия Zikirmatik. Сохраните в «Загрузки» или в любое место.',
-          'de': 'Meine Zikirmatik-Sicherung. In Downloads oder anderswo speichern.',
-        }),
-      );
+      final shareText = DynamicLocalizationHelper.getText({
+        'tr': 'Zikirmatik yedek dosyam. İndirilenler\'e veya istediğiniz yere kaydedebilirsiniz.',
+        'en': 'My Zikirmatik backup. You can save it to Downloads or anywhere you like.',
+        'zh': 'Zikirmatik 备份文件，可保存到“下载”或任意位置。',
+        'ja': 'Zikirmatikのバックアップです。ダウンロードなどに保存できます。',
+        'ru': 'Резервная копия Zikirmatik. Сохраните в «Загрузки» или в любое место.',
+        'de': 'Meine Zikirmatik-Sicherung. In Downloads oder anderswo speichern.',
+      });
+      await Share.shareXFiles([XFile(file.path)], text: shareText);
 
       if (mounted) {
         setState(() {
@@ -515,6 +556,88 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           _isExporting = false;
         });
       }
+    }
+  }
+
+  Future<void> _exportToDownloads() async {
+    setState(() {
+      _isExporting = true;
+      _statusMessage = '';
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final exportData = {
+        'userId': widget.currentUserId,
+        'exportDate': DateTime.now().toIso8601String(),
+        'appVersion': '1.0.0',
+        'data': {
+          'zikirCounts': {
+            'total_zikrs': prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0,
+            'current_count': prefs.getInt('current_count') ?? 0,
+            'last_zikr_date': prefs.getString('last_zikr_date_${widget.currentUserId}'),
+          },
+          'achievements': {
+            'bronze_kupa_unlocked': prefs.getBool('bronze_kupa_unlocked_${widget.currentUserId}') ?? false,
+            'silver_kupa_unlocked': prefs.getBool('silver_kupa_unlocked_${widget.currentUserId}') ?? false,
+            'gold_kupa_unlocked': prefs.getBool('gold_kupa_unlocked_${widget.currentUserId}') ?? false,
+            'diamond_kupa_unlocked': prefs.getBool('diamond_kupa_unlocked_${widget.currentUserId}') ?? false,
+            'platinum_kupa_unlocked': prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false,
+          },
+          'settings': {
+            'theme': prefs.getString('theme_id') ?? prefs.getString('theme') ?? 'dark_blue',
+            'language': prefs.getString('language_code') ?? prefs.getString('language') ?? 'tr',
+            'vibration': prefs.getBool('vibration_enabled') ?? prefs.getBool('vibration') ?? true,
+            'sound': prefs.getBool('sound_enabled') ?? prefs.getBool('sound') ?? true,
+            'confetti': prefs.getBool('confetti_enabled') ?? prefs.getBool('confetti') ?? true,
+            'reminder': prefs.getBool('reminder_enabled') ?? false,
+            'tts': prefs.getBool('tts_enabled') ?? false,
+          },
+        },
+      };
+      final fileName = 'zikirmatik_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final bytes = Uint8List.fromList(utf8.encode(jsonEncode(exportData)));
+      final path = await FilePicker.platform.saveFile(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        bytes: bytes,
+        fileName: fileName,
+      );
+      if (mounted) {
+        setState(() {
+          _statusMessage = path != null && path.isNotEmpty
+              ? '✅ ${DynamicLocalizationHelper.getText({'tr': 'Dosya kaydedildi.', 'en': 'File saved.', 'ar': 'تم حفظ الملف.', 'id': 'File disimpan.', 'zh': '文件已保存。', 'ja': 'ファイルを保存しました。', 'ru': 'Файл сохранён.', 'de': 'Datei gespeichert.', 'fr': 'Fichier enregistré.'})}'
+              : '';
+        });
+        if (path != null && path.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Yedek İndirilenler\'e (veya seçtiğiniz konuma) kaydedildi.',
+                  'en': 'Backup saved to Downloads (or your chosen location).',
+                  'ar': 'تم حفظ النسخة الاحتياطية في التنزيلات.',
+                  'id': 'Cadangan disimpan ke Unduhan.',
+                  'zh': '备份已保存到下载。',
+                  'ja': 'バックアップをダウンロードに保存しました。',
+                  'ru': 'Резервная копия сохранена в Загрузки.',
+                  'de': 'Sicherung in Downloads gespeichert.',
+                  'fr': 'Sauvegarde enregistrée dans Téléchargements.',
+                }),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Export to Downloads error: $e');
+      if (mounted) {
+        setState(() {
+          _statusMessage = '❌ ${DynamicLocalizationHelper.getText({'tr': 'Kaydetme hatası', 'en': 'Save error', 'ar': 'خطأ في الحفظ', 'id': 'Kesalahan menyimpan', 'zh': '保存错误', 'ja': '保存エラー', 'ru': 'Ошибка сохранения', 'de': 'Speicherfehler', 'fr': 'Erreur d\'enregistrement'})}: $e';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
     }
   }
 

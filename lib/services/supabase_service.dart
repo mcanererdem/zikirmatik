@@ -1,9 +1,18 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 import 'package:uuid/uuid.dart';
 import '../models/user_profile_model.dart';
 
+/// Supabase bağlantı ve kullanım:
+/// - Bağlantı: [initialize()] uygulama açılışında (main.dart) bir kez çağrılır.
+/// - Kullanıcı oluşturma: Ayrı bir "kayıt" ekranı yok; cihazda oluşturulan [userId]
+///   ile ilk [updateUserProfile] veya [updateUserZikrCount] çağrısında users tablosuna
+///   upsert ile satır eklenir/güncellenir (yani ilk senkronizasyonda kullanıcı oluşur).
+/// - Sıklık: Her zikir artışında [updateUserZikrCount], profil değişince [updateUserProfile],
+///   kupa açılınca [unlockAchievement]; leaderboard güncellemesi isteğe bağlı (ayarlardan kapatılabilir).
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
   factory SupabaseService() => _instance;
@@ -13,13 +22,27 @@ class SupabaseService {
   late final SupabaseClient _supabase;
   bool _isInitialized = false;
 
+  static const String _supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: '',
+  );
+  static const String _supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: '',
+  );
+
   Future<void> initialize() async {
     if (_isInitialized) return;
-
+    if (_supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty) {
+      throw Exception(
+        'Supabase credentials not set. Build with:\n'
+        '--dart-define=SUPABASE_URL=YOUR_URL --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY'
+      );
+    }
     try {
       await Supabase.initialize(
-        url: 'https://tkhdemvsbzjiofgpnbcn.supabase.co',
-        anonKey: 'sb_publishable_JTYcd8QOx7ZW5SEFyClFcA_uM7qB6Ax',
+        url: _supabaseUrl,
+        anonKey: _supabaseAnonKey,
       );
       _supabase = Supabase.instance.client;
       _isInitialized = true;
@@ -58,6 +81,10 @@ class SupabaseService {
   // Kullanıcı profili işlemleri
   Future<UserProfile?> getUserProfile(String userId) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, returning null user profile.');
+        return null;
+      }
       final uuid = toUuid(userId);
       final response = await _supabase
           .from('users')
@@ -77,6 +104,10 @@ class SupabaseService {
 
   Future<UserProfile> updateUserProfile(UserProfile profile) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, skipping remote updateUserProfile.');
+        return profile;
+      }
       final uuid = toUuid(profile.userId);
       final response = await _supabase
           .from('users')
@@ -99,8 +130,13 @@ class SupabaseService {
     }
   }
 
-  Future<void> updateUserZikrCount(String userId, int zikrCount) async {
+  /// [updateLeaderboard] false ise kullanıcı sıralamada görünmez (ayarlardan kapatılmış).
+  Future<void> updateUserZikrCount(String userId, int zikrCount, {bool updateLeaderboard = true}) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, skipping updateUserZikrCount.');
+        return;
+      }
       final uuid = toUuid(userId);
       await _supabase
           .from('users')
@@ -110,9 +146,10 @@ class SupabaseService {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', uuid);
-      
-      // Update daily leaderboard
-      await _updateDailyLeaderboard(uuid, zikrCount);
+
+      if (updateLeaderboard) {
+        await _updateDailyLeaderboard(uuid, zikrCount);
+      }
     } catch (e) {
       print('Error updating zikr count: $e');
     }
@@ -137,6 +174,10 @@ class SupabaseService {
 
   Future<void> unlockAchievement(String userId, String achievementId) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, skipping unlockAchievement.');
+        return;
+      }
       final uuid = toUuid(userId);
       await _supabase
           .from('user_achievements')
@@ -214,29 +255,38 @@ class SupabaseService {
       
       final response = await _supabase
           .from('leaderboard_daily')
-          .select('daily_count, users!inner(username, display_name, avatar_url)')
+          .select('user_id, daily_count, users!inner(username, display_name, avatar_url)')
           .eq('date', todayStr)
           .order('daily_count', ascending: false)
           .limit(limit);
       
-      return List<Map<String, dynamic>>.from(response);
+      final rows = List<Map<String, dynamic>>.from(response);
+      return rows.map((row) {
+        final users = row['users'];
+        final userMap = users is Map ? Map<String, dynamic>.from(users) : <String, dynamic>{};
+        return {
+          'user_id': row['user_id'],
+          'total_zikrs': row['daily_count'] ?? 0,
+          'username': userMap['username'] ?? '',
+          'display_name': userMap['display_name'],
+          'avatar_url': userMap['avatar_url'],
+        };
+      }).toList();
     } catch (e) {
       print('Error getting daily leaderboard: $e');
-      // Fallback: users tablosundan genel leaderboard
       try {
         final response = await _supabase
             .from('users')
-            .select('username, display_name, avatar_url, total_zikrs')
+            .select('id, username, display_name, avatar_url, total_zikrs')
             .order('total_zikrs', ascending: false)
             .limit(limit);
-        
         final users = List<Map<String, dynamic>>.from(response);
-        // Formatı leaderboard formatına çevir
         return users.map((user) => {
-          'daily_count': user['total_zikrs'],
+          'user_id': user['id'],
           'username': user['username'],
           'display_name': user['display_name'],
           'avatar_url': user['avatar_url'],
+          'total_zikrs': user['total_zikrs'] ?? 0,
         }).toList();
       } catch (fallbackError) {
         print('Fallback leaderboard also failed: $fallbackError');
@@ -308,53 +358,77 @@ class SupabaseService {
       return await getDailyLeaderboard(limit: limit);
     } catch (e) {
       print('Error getting leaderboard: $e');
-      // Fallback: users tablosundan genel leaderboard
-      try {
-        final response = await _supabase
-            .from('users')
-            .select('username, display_name, avatar_url, total_zikrs')
-            .order('total_zikrs', ascending: false)
-            .limit(limit);
-        
-        final users = List<Map<String, dynamic>>.from(response);
-        // Formatı leaderboard formatına çevir
-        return users.map((user) => {
-          'user_id': user['id'],
-          'username': user['username'],
-          'display_name': user['display_name'],
-          'avatar_url': user['avatar_url'],
-          'total_zikrs': user['total_zikrs'],
-        }).toList();
-      } catch (fallbackError) {
-        print('Fallback leaderboard also failed: $fallbackError');
-        return [];
-      }
+      return [];
     }
   }
 
-  // Avatar upload işlemi
+  /// Tüm zamanlar sıralaması: users tablosuna göre total_zikrs
+  Future<List<Map<String, dynamic>>> getAllTimeLeaderboard({int limit = 50}) async {
+    try {
+      if (!_isInitialized) return [];
+      final response = await _supabase
+          .from('users')
+          .select('id, username, display_name, avatar_url, total_zikrs')
+          .order('total_zikrs', ascending: false)
+          .limit(limit);
+      final users = List<Map<String, dynamic>>.from(response);
+      return users.map((user) => {
+        'user_id': user['id'],
+        'username': user['username'] ?? '',
+        'display_name': user['display_name'],
+        'avatar_url': user['avatar_url'],
+        'total_zikrs': user['total_zikrs'] ?? 0,
+      }).toList();
+    } catch (e) {
+      print('Error getting all-time leaderboard: $e');
+      return [];
+    }
+  }
+
+  /// Profil fotoğrafı için boyut küçültme: max 512px, JPEG kalite 82, ~200KB altı hedeflenir.
+  Uint8List? _resizeAvatarBytes(Uint8List bytes) {
+    try {
+      final decoded = img.decodeImage(bytes);
+      if (decoded == null) return null;
+      const int maxSize = 512;
+      img.Image resized = decoded;
+      if (decoded.width > maxSize || decoded.height > maxSize) {
+        resized = img.copyResize(decoded, width: maxSize, height: maxSize, interpolation: img.Interpolation.linear);
+      }
+      return Uint8List.fromList(img.encodeJpg(resized, quality: 82));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Avatar upload işlemi (yüklemeden önce küçültme uygulanır)
   Future<String?> uploadAvatar(XFile imageFile) async {
     try {
+      if (!_isInitialized) {
+        throw Exception('Supabase yapılandırılmamış. Profil fotoğrafı sadece yerel kaydedilebilir.');
+      }
       print('📸 Starting avatar upload...');
-      
-      // Resim dosyasını kontrol et
+
       if (imageFile.path.isEmpty) {
         print('❌ Empty file path');
         throw Exception('Resim dosyası seçilemedi. Lütfen tekrar deneyin.');
       }
-      
+
       final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final fileBytes = await imageFile.readAsBytes();
-      
-      print('📤 Uploading file: $fileName, size: ${fileBytes.length} bytes');
-      
-      // Dosya boyutunu kontrol et (max 5MB)
-      if (fileBytes.length > 5 * 1024 * 1024) {
-        print('❌ File too large: ${fileBytes.length} bytes');
-        throw Exception('Resim dosyası çok büyük. Lütfen 5MB\'dan küçük bir resim seçin.');
+      Uint8List rawBytes = await imageFile.readAsBytes();
+
+      if (rawBytes.length > 10 * 1024 * 1024) {
+        print('❌ File too large: ${rawBytes.length} bytes');
+        throw Exception('Resim dosyası çok büyük. Lütfen 10MB\'dan küçük bir resim seçin.');
       }
-      
-      // Supabase Storage'a yükle
+
+      Uint8List fileBytes = _resizeAvatarBytes(rawBytes) ?? rawBytes;
+      if (fileBytes.length > 2 * 1024 * 1024) {
+        throw Exception('Resim çok büyük. Lütfen daha küçük bir resim seçin.');
+      }
+
+      print('📤 Uploading file: $fileName, size: ${fileBytes.length} bytes');
+
       final uploadResponse = await _supabase.storage
           .from('avatars')
           .uploadBinary(
@@ -376,24 +450,30 @@ class SupabaseService {
       print('✅ Public URL: $publicUrl');
       return publicUrl;
       
-    } catch (e) {
+    } catch (e, stack) {
       print('❌ Avatar upload error: $e');
-      
-      // Hata mesajını daha kullanıcı dostu yap
+      print('Stack: $stack');
+      final isLateError = e.toString().contains('LateInitializationError');
+      final isNotConfigured = e.toString().contains('yapılandırılmamış') || e.toString().contains('not set');
       String errorMessage = 'Profil fotoğrafı yüklenemedi. ';
-      
-      if (e.toString().contains('network') || e.toString().contains('connection')) {
+      if (isLateError || isNotConfigured) {
+        errorMessage += 'Bulut depolama kullanılamıyor; sadece yerel kayıt yapılacak.';
+      } else if (e.toString().contains('network') || e.toString().contains('connection')) {
         errorMessage += 'İnternet bağlantınızı kontrol edin.';
       } else if (e.toString().contains('timeout')) {
         errorMessage += 'İşlem zaman aşımına uğradı. Lütfen tekrar deneyin.';
       } else if (e.toString().contains('permission') || e.toString().contains('unauthorized')) {
-        errorMessage += 'Yetki hatası. Lütfen tekrar giriş yapın.';
+        errorMessage += 'Yetki hatası. Lütfen tekrar deneyin.';
       } else if (e.toString().contains('storage') || e.toString().contains('bucket')) {
         errorMessage += 'Depolama hatası. Lütfen daha sonra tekrar deneyin.';
+      } else if (e.toString().toLowerCase().contains('row') ||
+          e.toString().toLowerCase().contains('rls') ||
+          e.toString().toLowerCase().contains('policy') ||
+          e.toString().toLowerCase().contains('violates')) {
+        errorMessage += 'Depolama izin ayarları (RLS) Supabase Storage için kontrol edilmeli.';
       } else {
-        errorMessage += 'Bilinmeyen bir hata oluştu: $e';
+        errorMessage += 'Hata: ${e.toString().length > 80 ? e.toString().substring(0, 80) + '...' : e}';
       }
-      
       throw Exception(errorMessage);
     }
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -88,6 +89,27 @@ class AdService {
         },
       ),
     );
+  }
+
+  /// Reklamı yüklemeyi dene; [timeout] süresi içinde yüklenmezse false döner.
+  Future<bool> loadRewardedAdWithTimeout({Duration timeout = const Duration(seconds: 15)}) async {
+    if (_isRewardedAdLoaded && _rewardedAd != null) return true;
+    final completer = Completer<bool>();
+    void complete(bool value) {
+      if (!completer.isCompleted) completer.complete(value);
+    }
+    final timer = Timer(timeout, () => complete(false));
+    loadRewardedAd(
+      onAdLoaded: () {
+        timer.cancel();
+        complete(true);
+      },
+      onAdFailedToLoad: (_) {
+        timer.cancel();
+        complete(false);
+      },
+    );
+    return completer.future;
   }
 
   void showRewardedAd({

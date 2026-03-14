@@ -82,32 +82,33 @@ class ThemeConfig {
 
 class AppThemes {
   static final List<ThemeConfig> themes = [
-    // 1. Ocean Blue (Açık/Koyu)
+    // 1. Midnight (Mavi gece – sadece mavi tonlar)
     ThemeConfig(
       id: 'ocean_blue',
-      nameTr: 'Okyanus Mavi',
-      nameEn: 'Ocean Blue',
-      nameAr: 'أزرق المحيط',
-      nameId: 'Biru Lautan',
-      nameUr: 'اوقین بلو',
-      nameBn: 'মহাসাগর নীল',
-      nameMs: 'Biru Lautan',
-      nameFa: 'آبی اقیانوس',
-      nameFr: 'Bleu Océan',
-      nameZh: '海洋蓝',
-      nameJa: 'オーシャンブルー',
-      nameRu: 'Океанский Синий',
-      nameDe: 'Ozeanblau',
-      nameSw: 'Buluu ya Bahari',
-      nameHa: 'Bule Ruwa',
+      nameTr: 'Gece Yarısı',
+      nameEn: 'Midnight Blue',
+      nameAr: 'منتصف الليل',
+      nameId: 'Tengah Malam',
+      nameUr: 'نصف شب',
+      nameBn: 'মধ্যরাত্রি',
+      nameMs: 'Tengah Malam',
+      nameFa: 'نیمه‌شب',
+      nameFr: 'Minuit',
+      nameZh: '午夜',
+      nameJa: 'ミッドナイト',
+      nameRu: 'Полночь',
+      nameDe: 'Mitternacht',
+      nameSw: 'Usiku wa Manane',
+      nameHa: 'Tsakar Dare',
       mode: AppThemeMode.oceanBlue,
+      // LIGHT görünüm: daha aydınlık lacivertler
       backgroundGradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF0D1929), // Çok koyu lacivert
-          Color(0xFF1A2332), // Koyu lacivert
-          Color(0xFF2C3E50), // Orta lacivert
+          Color(0xFF0F172A),
+          Color(0xFF1E3A5F),
+          Color(0xFF2563EB).withOpacity(0.4),
         ],
       ),
       darkBackgroundGradient: LinearGradient(
@@ -119,10 +120,11 @@ class AppThemes {
           Color(0xFF141E2E), // Koyu lacivert
         ],
       ),
+      // LIGHT butonlar: bir tık daha parlak mavi
       buttonGradient: LinearGradient(
         colors: [
-          Color(0xFF1E3A8A), // Koyu mavi
-          Color(0xFF2563EB), // Orta mavi
+          Color(0xFF2563EB), // Parlak mavi
+          Color(0xFF38BDF8), // Açık camgöbeği mavi
         ],
       ),
       darkButtonGradient: LinearGradient(
@@ -144,11 +146,11 @@ class AppThemes {
       textColor: Color(0xFFF3F4F6), // Beyaza yakın gri
       darkTextColor: Color(0xFFE5E7EB), // Beyaz
     ),
-    // 2. Emerald Green (Açık/Koyu)
+    // 2. Emerald (Yeşil – zümrüt/orman)
     ThemeConfig(
       id: 'emerald_green',
-      nameTr: 'Zümrüt Yeşil',
-      nameEn: 'Emerald Green',
+      nameTr: 'Zümrüt Ormanı',
+      nameEn: 'Emerald Forest',
       nameAr: 'أخضر الزمرد',
       nameId: 'Hijau Zamrud',
       nameUr: 'زمردی سبز',
@@ -203,14 +205,14 @@ class AppThemes {
       darkAccentColor: Color(0xFF6EE7B7), // Parlak yeşil
       primaryColor: Color(0xFF059669), // Orta yeşil
       darkPrimaryColor: Color(0xFF065F46), // Koyu yeşil
-      textColor: Color(0xFF064E3B), // Koyu yeşil
-      darkTextColor: Color(0xFFD1FAE5), // Beyaza yakın yeşil
+      textColor: Color(0xFF064E3B), // Koyu yeşil (açık arka planda)
+      darkTextColor: Color(0xFFD1FAE5), // Beyaza yakın yeşil (koyu arka planda)
     ),
-    // 3. Rose Pink (Pembe Tonları)
+    // 3. Rose (Pembe – gül)
     ThemeConfig(
       id: 'rose_pink',
-      nameTr: 'Gül Pembe',
-      nameEn: 'Rose Pink',
+      nameTr: 'Gül Bahçesi',
+      nameEn: 'Rose Garden',
       nameAr: 'وردي الورد',
       nameId: 'Pink Mawar',
       nameUr: 'گلابی گلاب',
@@ -268,11 +270,11 @@ class AppThemes {
       textColor: Color(0xFF831843), // Koyu pembe
       darkTextColor: Color(0xFFFDF2F8), // Beyaza yakın pembe
     ),
-    // 4. Pure Dark (Siyah/Sade)
+      // 4. Pure Dark (Nötr siyah/gri – mavi yok)
     ThemeConfig(
       id: 'pure_dark',
-      nameTr: 'Saf Siyah',
-      nameEn: 'Pure Dark',
+      nameTr: 'Koyu',
+      nameEn: 'Dark',
       nameAr: 'أسود نقي',
       nameId: 'Gelap Murni',
       nameUr: 'خالصا سیاہ',
@@ -287,13 +289,14 @@ class AppThemes {
       nameSw: 'Mweusi Mwema',
       nameHa: 'Babu Mai Tsarki',
       mode: AppThemeMode.darkMode,
+      // LIGHT: nötr koyu gri (mavi ton yok – Midnight’tan ayrı)
       backgroundGradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF1A1A1A), // Çok koyu gri
-          Color(0xFF2D2D2D), // Koyu gri
-          Color(0xFF404040), // Orta gri
+          Color(0xFF1C1C1E),
+          Color(0xFF2C2C2E),
+          Color(0xFF3A3A3C),
         ],
       ),
       darkBackgroundGradient: LinearGradient(
@@ -327,14 +330,36 @@ class AppThemes {
       darkAccentColor: Color(0xFF9CA3AF), // Parlak gri
       primaryColor: Color(0xFF4B5563), // Orta gri
       darkPrimaryColor: Color(0xFF374151), // Koyu gri
-      textColor: Color(0xFF1F2937), // Koyu gri
+      textColor: Color(0xFFE5E7EB), // Açık gri – koyu arka planda okunaklı
       darkTextColor: Color(0xFFF9FAFB), // Beyaza yakın gri
     ),
   ];
 
   static ThemeConfig getTheme(String themeId) {
+    // Eski tema id'lerini yeni isimlere eşle
+    String normalizedId;
+    switch (themeId) {
+      case 'dark_blue':
+      case 'light_blue':
+        normalizedId = 'ocean_blue';
+        break;
+      case 'dark_green':
+      case 'light_green':
+        normalizedId = 'emerald_green';
+        break;
+      case 'dark_purple':
+      case 'light_purple':
+        normalizedId = 'rose_pink';
+        break;
+      case 'dark_mode':
+        normalizedId = 'pure_dark';
+        break;
+      default:
+        normalizedId = themeId;
+    }
+
     return themes.firstWhere(
-      (theme) => theme.id == themeId,
+      (theme) => theme.id == normalizedId,
       orElse: () => themes[0],
     );
   }

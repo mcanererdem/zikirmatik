@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
@@ -29,23 +28,24 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
         backgroundColor: widget.themeConfig.primaryColor,
         elevation: 0,
         foregroundColor: widget.themeConfig.textColor,
+        iconTheme: IconThemeData(color: widget.themeConfig.textColor),
         title: Text(
           DynamicLocalizationHelper.getText({
-            'tr': 'Bize Destek Ol',
-            'en': 'Support Us',
-            'ar': 'ادعمنا',
-            'id': 'Dukung Kami',
-            'ur': 'ہمیں سپورٹ کریں',
-            'bn': 'আমাদের সমর্থন করুন',
-            'ms': 'Sokong Kami',
-            'fa': 'از ما حمایت کنید',
-            'fr': 'Soutenez-nous',
-            'zh': '支持我们',
-            'ja': '私たちをサポート',
-            'ru': 'Поддержите нас',
-            'de': 'Unterstützen Sie uns',
-            'sw': 'Tusaidie',
-            'ha': 'Tallafa Mu',
+            'tr': 'Bize Ulaşın',
+            'en': 'Contact Us',
+            'ar': 'تواصل معنا',
+            'id': 'Hubungi Kami',
+            'ur': 'ہم سے رابطہ کریں',
+            'bn': 'আমাদের সাথে যোগাযোগ করুন',
+            'ms': 'Hubungi Kami',
+            'fa': 'با ما تماس بگیرید',
+            'fr': 'Nous contacter',
+            'zh': '联系我们',
+            'ja': 'お問い合わせ',
+            'ru': 'Связаться с нами',
+            'de': 'Kontakt',
+            'sw': 'Wasiliana Nasi',
+            'ha': 'Tuntube Mu',
           }),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
@@ -60,102 +60,113 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    widget.themeConfig.accentColor.withOpacity(0.2),
-                    widget.themeConfig.accentColor.withOpacity(0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: widget.themeConfig.accentColor.withOpacity(0.3),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.support_agent,
-                    color: widget.themeConfig.accentColor,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    DynamicLocalizationHelper.getText({
-                      'tr': 'Yardıma mı ihtiyacınız var?',
-                      'en': 'Need help?',
-                      'ar': 'هل تحتاج مساعدة؟',
-                      'id': 'Butuh bantuan?',
-                      'ur': 'کیا آپ کو مدد چاہیے؟',
-                      'bn': 'সাহায্য দরকার?',
-                      'ms': 'Perlukan bantuan?',
-                      'fa': 'نیاز به کمک دارید؟',
-                      'fr': 'Besoin d\'aide ?',
-                      'zh': '需要帮助？',
-                      'ja': 'お困りですか？',
-                      'ru': 'Нужна помощь?',
-                      'de': 'Brauchen Sie Hilfe?',
-                      'sw': 'Unahitaji msaada?',
-                      'ha': 'Kuna buƙatar taimako?',
-                    }),
-                    style: GoogleFonts.notoSans(
-                      color: widget.themeConfig.textColor,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: widget.themeConfig.backgroundGradient,
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        widget.themeConfig.accentColor.withOpacity(0.2),
+                        widget.themeConfig.accentColor.withOpacity(0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: widget.themeConfig.accentColor.withOpacity(0.3),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    DynamicLocalizationHelper.getText({
-                      'tr': 'Sorunlarınızı yanıtlamak ve geri bildirimlerinizi değerlendirmek için buradayız.',
-                      'en': 'We are here to answer your questions and review your feedback.',
-                      'ar': 'نحن هنا للإجابة على أسئلتك وتقييم ملاحظاتك.',
-                      'id': 'Kami di sini untuk menjawab pertanyaan dan meninjau masukan Anda.',
-                      'ur': 'ہم آپ کے سوالات کے جوابات اور آپ کی رائے کا جائزہ لینے کے لیے یہاں ہیں۔',
-                      'bn': 'আপনার প্রশ্নের উত্তর এবং মতামত মূল্যায়নের জন্য আমরা এখানে আছি।',
-                      'ms': 'Kami di sini untuk menjawab soalan dan menilai maklum balas anda.',
-                      'fa': 'ما اینجا هستیم تا به سوالات شما پاسخ دهیم و بازخورد شما را بررسی کنیم.',
-                      'fr': 'Nous sommes là pour répondre à vos questions et évaluer vos retours.',
-                      'zh': '我们在此解答您的问题并查看您的反馈。',
-                      'ja': 'ご質問への回答とフィードバックの確認のため、こちらにいます。',
-                      'ru': 'Мы здесь, чтобы ответить на ваши вопросы и учесть отзывы.',
-                      'de': 'Wir sind da, um Ihre Fragen zu beantworten und Ihr Feedback auszuwerten.',
-                      'sw': 'Tuko hapa kujibu maswali yako na kukagua maoni yako.',
-                      'ha': "Muna nan don amsa tambayoyinku da kimanta ra'ayoyinku.",
-                    }),
-                    style: GoogleFonts.notoSans(
-                      color: widget.themeConfig.textColor.withOpacity(0.8),
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.contact_support,
+                        color: widget.themeConfig.accentColor,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Sorularınız veya geri bildiriminiz mi var?',
+                          'en': 'Need help?',
+                          'ar': 'هل تحتاج مساعدة؟',
+                          'id': 'Butuh bantuan?',
+                          'ur': 'کیا آپ کو مدد چاہیے؟',
+                          'bn': 'সাহায্য দরকার?',
+                          'ms': 'Perlukan bantuan?',
+                          'fa': 'نیاز به کمک دارید؟',
+                          'fr': 'Besoin d\'aide ?',
+                          'zh': '需要帮助？',
+                          'ja': 'お困りですか？',
+                          'ru': 'Нужна помощь?',
+                          'de': 'Brauchen Sie Hilfe?',
+                          'sw': 'Unahitaji msaada?',
+                          'ha': 'Kuna buƙatar taimako?',
+                        }),
+                        style: GoogleFonts.notoSans(
+                          color: widget.themeConfig.textColor,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Sorunlarınızı yanıtlamak ve geri bildirimlerinizi değerlendirmek için buradayız.',
+                          'en': 'We are here to answer your questions and review your feedback.',
+                          'ar': 'نحن هنا للإجابة على أسئلتك وتقييم ملاحظاتك.',
+                          'id': 'Kami di sini untuk menjawab pertanyaan dan meninjau masukan Anda.',
+                          'ur': 'ہم آپ کے سوالات کے جوابات اور آپ کی رائے کا جائزہ لینے کے لیے یہاں ہیں۔',
+                          'bn': 'আপনার প্রশ্নের উত্তর এবং মতামত মূল্যায়নের জন্য আমরা এখানে আছি।',
+                          'ms': 'Kami di sini untuk menjawab soalan dan menilai maklum balas anda.',
+                          'fa': 'ما اینجا هستیم تا به سوالات شما پاسخ دهیم و بازخورد شما را بررسی کنیم.',
+                          'fr': 'Nous sommes là pour répondre à vos questions et évaluer vos retours.',
+                          'zh': '我们在此解答您的问题并查看您的反馈。',
+                          'ja': 'ご質問への回答とフィードバックの確認のため、こちらにいます。',
+                          'ru': 'Мы здесь, чтобы ответить на ваши вопросы и учесть отзывы.',
+                          'de': 'Wir sind da, um Ihre Fragen zu beantworten und Ihr Feedback auszuwerten.',
+                          'sw': 'Tuko hapa kujibu maswali yako na kukagua maoni yako.',
+                          'ha': 'Muna nan don amsa tambayoyinku da kimanta ra\'ayoyinku.',
+                        }),
+                        style: GoogleFonts.notoSans(
+                          color: widget.themeConfig.textColor.withOpacity(0.8),
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 24),
+
+                _buildContactMethods(),
+
+                const SizedBox(height: 24),
+
+                _buildRateAppCard(),
+
+                const SizedBox(height: 30),
+
+                _buildFAQ(),
+                
+                const SizedBox(height: 30),
+                
+                // Geri Bildirim
+                _buildFeedback(),
+              ],
             ),
-
-            const SizedBox(height: 30),
-
-            _buildContactMethods(),
-            
-            const SizedBox(height: 30),
-            
-            // Sıkça Sorulan Sorular
-            _buildFAQ(),
-            
-            const SizedBox(height: 30),
-            
-            // Geri Bildirim
-            _buildFeedback(),
-          ],
+          ),
         ),
       ),
     );
@@ -321,6 +332,126 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
     );
   }
 
+  Widget _buildRateAppCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            widget.themeConfig.accentColor.withOpacity(0.2),
+            widget.themeConfig.accentColor.withOpacity(0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.themeConfig.accentColor.withOpacity(0.4),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.star_rounded, color: widget.themeConfig.accentColor, size: 40),
+          const SizedBox(height: 12),
+          Text(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Uygulamayı Değerlendirin',
+              'en': 'Rate the App',
+              'ar': 'قيّم التطبيق',
+              'id': 'Beri Rating Aplikasi',
+              'ur': 'ایپ کا جائزہ لیں',
+              'bn': 'অ্যাপ রেটিং দিন',
+              'ms': 'Nilai Aplikasi',
+              'fa': 'به برنامه امتیاز دهید',
+              'fr': 'Évaluer l\'application',
+              'zh': '为应用评分',
+              'ja': 'アプリを評価',
+              'ru': 'Оценить приложение',
+              'de': 'App bewerten',
+              'sw': 'Kadiria programu',
+              'ha': 'Kimanta app',
+            }),
+            style: GoogleFonts.notoSans(
+              color: widget.themeConfig.textColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Deneyiminizi puanlamak bize çok yardımcı olur.',
+              'en': 'Your rating helps us a lot.',
+              'ar': 'تقييمك يساعدنا كثيراً.',
+              'id': 'Rating Anda sangat membantu kami.',
+              'ur': 'آپ کی درجہ بندی ہماری بہت مدد کرتی ہے۔',
+              'bn': 'আপনার রেটিং আমাদের অনেক সাহায্য করে।',
+              'ms': 'Penilaian anda sangat membantu kami.',
+              'fa': 'امتیاز شما به ما کمک زیادی می‌کند.',
+              'fr': 'Votre note nous aide beaucoup.',
+              'zh': '您的评分对我们很有帮助。',
+              'ja': '評価は私たちの励みになります。',
+              'ru': 'Ваша оценка нам очень помогает.',
+              'de': 'Ihre Bewertung hilft uns sehr.',
+              'sw': 'Ukadirio wako unatusaidia sana.',
+              'ha': 'Kimantawar ku tana taimaka mana sosai.',
+            }),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.notoSans(
+              color: widget.themeConfig.textColor.withOpacity(0.85),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _launchStoreRate,
+              icon: Icon(Icons.star, color: widget.themeConfig.primaryColor, size: 22),
+              label: Text(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Store\'da Değerlendir',
+                  'en': 'Rate on Store',
+                  'ar': 'قيّم في المتجر',
+                  'id': 'Beri Rating di Store',
+                  'ur': 'اسٹور پر جائزہ لیں',
+                  'bn': 'স্টোরে রেটিং দিন',
+                  'ms': 'Nilai di Store',
+                  'fa': 'در فروشگاه امتیاز دهید',
+                  'fr': 'Noter sur le store',
+                  'zh': '在商店评分',
+                  'ja': 'ストアで評価',
+                  'ru': 'Оценить в магазине',
+                  'de': 'Im Store bewerten',
+                  'sw': 'Kadiria dukani',
+                  'ha': 'Kimanta a kantin sayarwa',
+                }),
+                style: GoogleFonts.notoSans(
+                  color: widget.themeConfig.primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: widget.themeConfig.accentColor,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const String _storeUrl = 'https://play.google.com/store/apps/details?id=com.mcanererdem.zikirmatik';
+
+  Future<void> _launchStoreRate() async {
+    final Uri uri = Uri.parse(_storeUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Widget _buildFAQ() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -393,7 +524,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               'ru': 'Данные хранятся на устройстве. Рекомендуем сделать резервную копию через Импорт/Экспорт перед удалением.',
               'de': 'Ihre Daten werden auf dem Gerät gespeichert. Wir empfehlen vor dem Deinstallieren ein Backup über Import/Export.',
               'sw': 'Data yako inahifadhiwa kwenye kifaa chako. Tunapendekeza uhifadhi kwa kutumia Ingiza/Hamisha kabla ya kufuta.',
-              'ha': "Bayananka yana adana a na'urarka. Muna ba da shawarar yin backup ta Import/Export kafin in sauke.",
+              'ha': 'Bayananka yana adana a na\'urarka. Muna ba da shawarar yin backup ta Import/Export kafin in sauke.',
             }),
           ),
 

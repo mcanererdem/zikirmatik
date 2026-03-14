@@ -3,14 +3,15 @@ import 'package:vibration/vibration.dart';
 
 class FeedbackManager {
   bool _isVibrating = false;
+  bool? _hasVibratorCache;
 
   Future<void> vibrateLight() async {
     if (_isVibrating) return; // Ard arda titreşimi engelle
     
     try {
       _isVibrating = true;
-      final hasVibrator = await Vibration.hasVibrator();
-      if (hasVibrator == true) {
+      _hasVibratorCache ??= await Vibration.hasVibrator() ?? false;
+      if (_hasVibratorCache == true) {
         Vibration.vibrate(duration: 30); // Süre azaltıldı
       } else {
         HapticFeedback.lightImpact();
@@ -29,8 +30,8 @@ class FeedbackManager {
 
   Future<void> vibrateSuccess() async {
     try {
-      final hasVibrator = await Vibration.hasVibrator();
-      if (hasVibrator == true) {
+      _hasVibratorCache ??= await Vibration.hasVibrator() ?? false;
+      if (_hasVibratorCache == true) {
         Vibration.vibrate(duration: 80); // Süre azaltıldı
         await Future.delayed(const Duration(milliseconds: 80)); // Gecikme azaltıldı
         Vibration.vibrate(duration: 80);

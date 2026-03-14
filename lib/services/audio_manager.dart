@@ -15,6 +15,8 @@ class AudioManager {
       final player = AudioPlayer();
       await player.setReleaseMode(ReleaseMode.stop);
       await player.setVolume(1.0);
+      // Sesi baştan preload et, gecikmeyi azalt
+      await player.setSource(AssetSource('sounds/click.mp3'));
       _audioPlayers.add(player);
     }
     _isInitialized = true;
@@ -29,11 +31,7 @@ class AudioManager {
       
       // Önceki sesi anında durdur
       await player.stop();
-      
-      // Asset'i önceden yükle (gecikmeyi azalt)
-      await player.setSource(AssetSource('sounds/click.mp3'));
-      
-      // Anında çal
+      // Kaynağı zaten initialize'da ayarladık; doğrudan çal
       await player.resume();
       
       _currentPlayerIndex = (_currentPlayerIndex + 1) % _maxPlayers;

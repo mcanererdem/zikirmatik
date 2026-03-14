@@ -222,10 +222,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final reminderEnabled = await _settingsService.getReminderEnabled();
     await _settingsService.cleanExpiredGoals();
     
-    // Animasyon hızını yükle
+    // Tema modu: theme_mode (system/light/dark) — Dark seçili kalır
+    final themeMode = await _settingsService.getThemeMode();
+    final platformBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final isSystemDark = platformBrightness == Brightness.dark;
+    final isDarkMode = themeMode == 'dark' || (themeMode == 'system' && isSystemDark);
+
     final prefs = await SharedPreferences.getInstance();
     final animationSpeed = prefs.getInt('animation_speed') ?? 0;
-    final darkModeEnabled = prefs.getBool('dark_mode_enabled') ?? false;
     final currentLanguage = prefs.getString('language') ?? 'tr';
     
     print('🏠 HomePage _loadSettings:');
@@ -237,9 +241,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     await DynamicLocalizationHelper.setLanguage(currentLanguage);
 
     setState(() {
-      // Sistem dark mode kontrolü ve tema seçimi
-      _currentTheme = AppThemes.getThemeForMode(themeId, darkModeEnabled);
-      print('🎨 Theme loaded: $themeId (dark mode: $darkModeEnabled)');
+      // Sistem / sadece koyu moda göre tema seçimi
+      _currentTheme = AppThemes.getThemeForMode(themeId, isDarkMode);
+      print('🎨 Theme loaded: $themeId (dark: $isDarkMode, themeMode: $themeMode)');
       _currentLanguage = currentLanguage; // SharedPreferences'ten gelen dil
       _localizations = AppLocalizations(currentLanguage);
       print('🌐 Language loaded: $currentLanguage');
@@ -404,9 +408,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     
     print('Zikir count saved locally: ${totalZikrs + 1}');
     
-    // Supabase'e senkronize et
+    // Supabase'e senkronize et (leaderboard açıksa sıralamaya dahil edilir)
     try {
-      await _supabaseService.updateUserZikrCount(_currentUserId, totalZikrs + 1);
+      final showInLeaderboard = await _settingsService.getShowInLeaderboard();
+      await _supabaseService.updateUserZikrCount(
+        _currentUserId,
+        totalZikrs + 1,
+        updateLeaderboard: showInLeaderboard,
+      );
       print('Zikir count synced to Supabase: ${totalZikrs + 1}');
     } catch (e) {
       print('Error syncing to Supabase: $e');
@@ -611,11 +620,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         updatedAt: now,
       );
 
-      // Leaderboard'a ekle
-      await _supabaseService.updateDailyLeaderboard(_currentUserId, totalZikrs);
-      await _supabaseService.updateWeeklyLeaderboard(_currentUserId, totalZikrs);
-      await _supabaseService.updateMonthlyLeaderboard(_currentUserId, totalZikrs);
-
+      // Leaderboard'a ekle (kullanıcı sıralamada görünsün istiyorsa)
+      final showInLeaderboard = await _settingsService.getShowInLeaderboard();
+      if (showInLeaderboard) {
+        await _supabaseService.updateDailyLeaderboard(_currentUserId, totalZikrs);
+        await _supabaseService.updateWeeklyLeaderboard(_currentUserId, totalZikrs);
+        await _supabaseService.updateMonthlyLeaderboard(_currentUserId, totalZikrs);
+      }
       print('✅ Auto-sync to leaderboard: $username ($totalZikrs zikrs)');
     } catch (e) {
       print('❌ Error auto-syncing to leaderboard: $e');
@@ -989,14 +1000,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           localizations: _localizations,
           currentUserId: _currentUserId,
           onSettingsChanged: () {
-            print('🔄 Settings changed callback triggered');
             _loadSettings();
             setState(() {});
           },
           onLanguageChanged: widget.onLanguageChanged,
+          onThemeModeChanged: (mode) {
+            widget.onThemeModeChanged?.call(
+              mode == 'dark' ? ThemeMode.dark : mode == 'light' ? ThemeMode.light : ThemeMode.system,
+            );
+          },
         ),
       ),
-    );
+    ).then((_) {
+      if (mounted) {
+        _loadSettings();
+        setState(() {});
+      }
+    });
   }
 
   void _toggleVibration() {
@@ -1252,9 +1272,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                           setState(() {});
                         },
                         onLanguageChanged: widget.onLanguageChanged,
+                        onThemeModeChanged: (mode) {
+                          widget.onThemeModeChanged?.call(
+                            mode == 'dark' ? ThemeMode.dark : mode == 'light' ? ThemeMode.light : ThemeMode.system,
+                          );
+                        },
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    if (mounted) {
+                      _loadSettings();
+                      setState(() {});
+                    }
+                  });
                 },
                 child: Container(
                   padding: const EdgeInsets.all(10),

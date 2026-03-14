@@ -23,6 +23,7 @@ class SettingsService {
   static const String _reminderEnabledKey = 'reminder_enabled';
   static const String _currentCountKey = 'current_count';
   static const String _themeModeKey = 'theme_mode';
+  static const String _showInLeaderboardKey = 'show_in_leaderboard';
   static const String _lastActivityDateKey = 'last_activity_date';
   static const String _streakCountKey = 'streak_count';
   static const String _goalsKey = 'goals';
@@ -290,6 +291,16 @@ class SettingsService {
   Future<String> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_themeModeKey) ?? 'system';
+  }
+
+  Future<void> saveShowInLeaderboard(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_showInLeaderboardKey, value);
+  }
+
+  Future<bool> getShowInLeaderboard() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_showInLeaderboardKey) ?? false;
   }
 
   // Streak

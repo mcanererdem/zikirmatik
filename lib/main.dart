@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
@@ -49,7 +50,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HomeWidget.registerInteractivityCallback(backgroundCallback);
 
-  // Bildirim servisi başlat
+  tz.initializeTimeZones();
+  try {
+    final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
+  } catch (_) {}
+
   final notificationService = NotificationService();
   await notificationService.initialize();
 

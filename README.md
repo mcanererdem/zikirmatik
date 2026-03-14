@@ -135,13 +135,10 @@ zikirmatik/
 │   ├── icons/                    # App icon
 │   └── sounds/                   # Sound effects
 ├── supabase_schema.sql          # Database schema
-├── console_settings.md          # Console configuration guide
 └── pubspec.yaml                  # Project dependencies
 ```
 
 ## Console Configuration 🎯
-
-For detailed console commands and settings, see: **[CONSOLE_SETTINGS.md](CONSOLE_SETTINGS.md)**
 
 ### Quick Console Commands
 ```bash
@@ -163,8 +160,13 @@ adb shell am start -n com.mcanererdem.zikirmatik/.MainActivity --es reminder_tim
 ### Database Setup
 1. Create a new project at [supabase.com](https://supabase.com)
 2. Run the SQL commands from `supabase_schema.sql`
-3. Update the URL and anon key in `lib/services/supabase_service.dart`
-4. Enable Row Level Security (RLS) for data protection
+3. Enable Row Level Security (RLS) for data protection
+4. **Credentials:** URL and anon (publishable) key are not in the repo. Pass them at build/run time:
+   ```bash
+   flutter run --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co --dart-define=SUPABASE_ANON_KEY=your_anon_key
+   flutter build apk --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
+   ```
+   See `.env.example` for variable names. Store the database password only in a password manager (for direct Postgres access); the app does not use it.
 
 ### Tables Created
 - `users` - User profiles and statistics
@@ -188,7 +190,6 @@ Detailed guides for uploading to Google Play Store:
 
 - **[STORE_LISTING.md](STORE_LISTING.md)** — Google Play Store listing info, descriptions, screenshots
 - **[PRIVACY_POLICY.md](PRIVACY_POLICY.md)** — Privacy policy and data handling
-- **[CONSOLE_SETTINGS.md](CONSOLE_SETTINGS.md)** — Console configuration guide
 
 ### Release Build
 

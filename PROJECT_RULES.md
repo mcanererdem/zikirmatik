@@ -33,14 +33,13 @@ Cursor ve geliştirme sırasında dikkat edilecek kurallar. Bu dosyayı `.cursor
 
 - **Ayarlar:** `SettingsService` ile SharedPreferences üzerinden okuma/yazma yapılıyor.
 - **Dil:** Hem `SettingsService.getLanguage/saveLanguage` hem `DynamicLocalizationHelper.setLanguage/getText` kullanılıyor; dil değişince ikisi de güncellenmeli.
-- **Yeni servis:** Doğrudan singleton/global instance yerine ileride dependency injection (IMPROVEMENT_PLAN) düşünülebilir; şimdilik mevcut pattern korunabilir.
+- **Yeni servis:** Doğrudan singleton/global instance yerine ileride dependency injection düşünülebilir; şimdilik mevcut pattern korunabilir.
 
 ---
 
 ## Genel
 
-- **Yeni özellik:** Önce TODO.md veya PROJECT_STATUS.md’ye madde ekleyin; hangi ekran/servisten açılacağı net olsun.
+- **Yeni özellik:** Önce TODO.md’ye madde ekleyin; hangi ekran/servisten açılacağı net olsun.
 - **Android/test sonrası hata:** Cihazda test edip hata bulursanız TODO.md'de Todo veya In Progress'e madde ekleyin.
 - **Supabase/Profil/İzinler:** Supabase (profil, leaderboard) entegrasyonu ve profil resmi seçme akışı elden geçirilmeli; depolama/medya izinleri kontrol edilsin. Export paylaş menüsü ile kullanıcıya sunulur; ayarlar theme_id, language_code, vibration_enabled ile uyumlu.
 - **Silinecek dosya:** Silmeden önce projede referans aranmalı (grep ile import ve sınıf kullanımı); referans kaldırıldıktan sonra dosya silinmeli.
-- **Test:** Kritik servisler ve ekranlar için unit/widget test eklenmesi IMPROVEMENT_PLAN’da; yeni kod yazarken test edilebilir parçalar tercih edilsin.

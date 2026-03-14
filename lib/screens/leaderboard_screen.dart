@@ -70,24 +70,33 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Future<void> _loadLeaderboard() async {
     try {
+      final currentUuid = _supabaseService.toUuid(widget.currentUserId);
       print('=== LEADERBOARD DEBUG ===');
-      print('Loading leaderboard from Supabase...');
+      print('Loading leaderboard from Supabase (period: $_selectedPeriod)...');
       print('Current User ID: ${widget.currentUserId}');
       
-      // SupabaseService üzerinden leaderboard verilerini çek
-      List<Map<String, dynamic>> leaderboardData = await _supabaseService.getLeaderboard(limit: 50);
+      List<Map<String, dynamic>> leaderboardData;
+      switch (_selectedPeriod) {
+        case 'all':
+          leaderboardData = await _supabaseService.getAllTimeLeaderboard(limit: 50);
+          break;
+        case 'daily':
+        case 'weekly':
+        case 'monthly':
+        default:
+          leaderboardData = await _supabaseService.getLeaderboard(limit: 50);
+          break;
+      }
       
       print('Supabase returned ${leaderboardData.length} users');
       
-      // Local storage'dan mevcut kullanıcının zikir sayısını oku
       final prefs = await SharedPreferences.getInstance();
       final currentUserZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
       
       print('Current user local zikrs: $currentUserZikrs');
       
-      // Mevcut kullanıcıyı ekle (eğer listede yoksa)
       final existingUserIndex = leaderboardData.indexWhere(
-        (user) => user['user_id'] == widget.currentUserId,
+        (user) => user['user_id'] == widget.currentUserId || user['user_id'] == currentUuid,
       );
       
       Map<String, dynamic> currentUserProfile;
@@ -109,8 +118,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       // Sıralamayı yeniden hesapla
       leaderboardData.sort((a, b) => (b['total_zikrs'] as int).compareTo(a['total_zikrs'] as int));
       
-      // Mevcut kullanıcının sıralamasını bul
-      final userRank = leaderboardData.indexWhere((user) => user['user_id'] == widget.currentUserId) + 1;
+      final userRank = leaderboardData.indexWhere((user) => user['user_id'] == widget.currentUserId || user['user_id'] == currentUuid) + 1;
       currentUserProfile['rank'] = userRank;
       
       setState(() {
@@ -203,42 +211,44 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: widget.themeConfig.primaryColor,
         elevation: 0,
-        // Refresh butonu kaldırıldı
+        iconTheme: IconThemeData(color: widget.themeConfig.textColor),
       ),
-      body: Column(
-        children: [
-          // Period selector
-          _buildPeriodSelector(),
-          
-          // Content
-          Expanded(
-            child: _isLoading
-                ? Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation(widget.themeConfig.accentColor),
-                    ),
-                  )
-                : Column(
-                    children: [
-                      if (_currentUserProfile != null) _buildCurrentUserCard(),
-                      Expanded(
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.1),
-                            end: Offset.zero,
-                          ).animate(_slideAnimationController),
-                          child: FadeTransition(
-                            opacity: _fadeAnimation,
-                            child: _buildLeaderboardList(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: widget.themeConfig.backgroundGradient,
+        ),
+        child: Column(
+          children: [
+            _buildPeriodSelector(),
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(widget.themeConfig.accentColor),
+                      ),
+                    )
+                  : Column(
+                      children: [
+                        if (_currentUserProfile != null) _buildCurrentUserCard(),
+                        Expanded(
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.1),
+                              end: Offset.zero,
+                            ).animate(_slideAnimationController),
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildLeaderboardList(),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -248,7 +258,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
@@ -540,7 +550,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       itemBuilder: (context, index) {
         final user = _leaderboard[index];
         final rank = index + 1;
-        final isCurrentUser = user['user_id'] == widget.currentUserId;
+        final isCurrentUser = user['user_id'] == widget.currentUserId ||
+            user['user_id'] == _supabaseService.toUuid(widget.currentUserId);
         
         return _buildLeaderboardItem(user, rank, isCurrentUser);
       },

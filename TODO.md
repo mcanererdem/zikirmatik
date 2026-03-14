@@ -1,14 +1,12 @@
 # Zikirmatik – Yapılacaklar (Kanban)
 
-Tek kaynak: tüm görevler bu dosyada. Cursor'da `@TODO.md` ile referans ver.
+Tek kaynak: tüm görevler bu dosyada. Cursor'da `@TODO.md` ile referans ver. Proje bağlamı ve bilinen sorunlar için `@PROJECT_CONTEXT.md`.
 
 ---
 
 ## Done
 
 - [x] MaterialApp'e `locale: Locale(_currentLanguage)` eklendi
-- [x] PROJECT_STATUS.md oluşturuldu
-- [x] CURSOR_AND_PROJECT_GUIDE.md oluşturuldu
 - [x] TODO.md (bu dosya) oluşturuldu
 - [x] PROJECT_RULES.md oluşturuldu (localization, ekran kullanımı, tema, servis kuralları)
 - [x] Eski dosyalar silindi: settings_screen_old, kupa_screen, support_screen, localizations_broken
@@ -16,6 +14,12 @@ Tek kaynak: tüm görevler bu dosyada. Cursor'da `@TODO.md` ile referans ver.
 - [x] Import/Export durum mesajları lokalize edildi
 - [x] Export konumu: Paylaş menüsü ile kullanıcı dosyayı İndirilenler'e veya istediği yere kaydedebiliyor (Share.shareFiles)
 - [x] Export/Import ayar anahtarları SettingsService ile eşleştirildi (theme_id, language_code, vibration_enabled vb.)
+- [x] Profil fotoğrafı: bulut yükleme başarısızsa yerel kayıt ve gösterim (avatar_path_, _localAvatarPath)
+- [x] Kupalar: Supabase getUserAchievements ile senkron, profil açılışında prefs güncellenir
+- [x] Ayarlar tema: Koyu tema id pure_dark; dark_mode → pure_dark eşlemesi theme_model'de
+- [x] Success dialog: success_title/success_message lokalize, transparan kaldırıldı; ayarlar tema bölümü yazı rengi themeConfig.textColor
+- [x] Bildirimler: cihaz timezone (flutter_timezone) main'de ayarlanıyor; Android exact alarm isteği; pil ipucu
+- [x] PROJECT_CONTEXT.md oluşturuldu (proje bağlamı, bilinen sorunlar, prompt ipuçları)
 
 ---
 
@@ -28,18 +32,17 @@ Tek kaynak: tüm görevler bu dosyada. Cursor'da `@TODO.md` ile referans ver.
 
 ## Todo
 
-- [ ] Supabase entegrasyonunu elden geçir: profil ve leaderboard düzgün çalışmıyor; mantık ve senkronizasyon gözden geçirilsin
-- [ ] Profil ekranında resim seçme (avatar yükleme) sorunlarını gider
+- [x] Supabase Storage: avatars politikaları `supabase_schema.sql` içinde (tek dosyada kurulum)
 - [ ] Gerekli izinler: depolama/medya (export, profil resmi) ve Supabase için kontrol edilsin
 - [ ] AboutScreen vs AboutScreenNew kararı ver; gereksiz dosyayı kaldır
 - [ ] dialog_manager çakışmasını çöz (lib/utils vs lib/widgets); tek dosya bırak
 - [ ] SupabaseService'e deleteUser metodu ekle (profile_screen TODO)
-- [ ] Android cihazda test; hata çıkarsa buraya madde ekle veya In Progress'e taşı
 
 ---
 
 ## Backlog
 
+- [ ] Paylaşım: oyun achievement gibi görsel kart (kupa + istatistik) oluşturup paylaş (ör. screenshot/render to image)
 - [ ] CounterLogic refactor
 - [ ] WidgetService platform bağımsız hale getir
 - [ ] Error handling standardizasyonu
