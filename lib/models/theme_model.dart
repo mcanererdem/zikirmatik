@@ -273,7 +273,7 @@ class AppThemes {
       // 4. Pure Dark (Nötr siyah/gri – mavi yok)
     ThemeConfig(
       id: 'pure_dark',
-      nameTr: 'Koyu',
+      nameTr: 'Gece',
       nameEn: 'Dark',
       nameAr: 'أسود نقي',
       nameId: 'Gelap Murni',

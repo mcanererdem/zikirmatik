@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -8,6 +6,7 @@ import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
 import '../services/settings_service.dart';
+import '../services/notification_service.dart';
 
 class NotificationSettingsDialog extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -32,7 +31,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
   bool _eveningNotification = true;
   
   final SettingsService _settingsService = SettingsService();
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
@@ -80,11 +79,14 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
       if (_isNotificationEnabled) {
         final granted = await _requestNotificationPermissionWithRationale(context);
         if (granted) {
-          final androidImpl = _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-          if (androidImpl != null) {
-            await androidImpl.requestExactAlarmsPermission();
-          }
-          await _scheduleNotifications();
+          await _notificationService.requestExactAlarmsPermission();
+          await _notificationService.scheduleReminderNotifications(
+            selectedDays: _selectedDays,
+            morningTime: _morningTime,
+            eveningTime: _eveningTime,
+            morningEnabled: _morningNotification,
+            eveningEnabled: _eveningNotification,
+          );
         } else {
           await _settingsService.saveReminderEnabled(false);
           setState(() => _isNotificationEnabled = false);
@@ -109,7 +111,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
           }
         }
       } else {
-        await _cancelAllNotifications();
+        await _notificationService.cancelReminderNotifications();
       }
 
       print('Notification settings saved successfully');
@@ -166,125 +168,6 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
     }
     status = await Permission.notification.request();
     return status.isGranted;
-  }
-
-  Future<void> _scheduleNotifications() async {
-    await _cancelAllNotifications();
-
-    if (_selectedDays.isEmpty) {
-      print('No days selected, skipping notification scheduling');
-      return;
-    }
-
-    print('Scheduling notifications for days: $_selectedDays');
-    
-    for (String day in _selectedDays) {
-      final dayIndex = _getDayIndex(day);
-      
-      // Sabah bildirimi
-      if (_morningNotification) {
-        final morningDate = _getNextOccurrence(DateTime.now(), dayIndex)
-            .copyWith(hour: _morningTime.hour, minute: _morningTime.minute);
-        print('Scheduling morning notification for $day at $morningDate');
-        await _scheduleNotification(
-        id: 1000 + dayIndex,
-        title: 'Sabah Zikri',
-        body: 'Zikir vakti geldi!',
-        scheduledDate: morningDate,
-      );
-      }
-      
-      // Akşam bildirimi
-      if (_eveningNotification) {
-        final eveningDate = _getNextOccurrence(DateTime.now(), dayIndex)
-            .copyWith(hour: _eveningTime.hour, minute: _eveningTime.minute);
-        print('Scheduling evening notification for $day at $eveningDate');
-        await _scheduleNotification(
-        id: 2000 + dayIndex,
-        title: 'Akşam Zikri',
-        body: 'Zikir vakti geldi!',
-        scheduledDate: eveningDate,
-      );
-      }
-    }
-  }
-
-  Future<void> _scheduleNotification({
-    required int id,
-    required String title,
-    required String body,
-    required DateTime scheduledDate,
-  }) async {
-    try {
-      print('Scheduling notification: $title at $scheduledDate');
-      
-      final tz.TZDateTime scheduledDateTZ = tz.TZDateTime.from(scheduledDate, tz.local);
-      print('Timezone converted date: $scheduledDateTZ');
-      
-      await _notificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduledDateTZ,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'zikirmatik_channel',
-            'Zikirmatik Bildirimleri',
-            channelDescription: 'Zikir hatırlatıcı bildirimleri',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-      );
-      
-      print('Notification scheduled successfully');
-    } catch (e) {
-      print('Error scheduling notification: $e');
-    }
-  }
-
-  DateTime _getNextOccurrence(DateTime scheduledDate, int day) {
-    final currentDay = scheduledDate.weekday;
-    int daysUntilTarget = day - currentDay;
-    
-    if (daysUntilTarget <= 0) {
-      daysUntilTarget += 7;
-    }
-    
-    return scheduledDate.add(Duration(days: daysUntilTarget));
-  }
-
-  int _getDayIndex(String day) {
-    switch (day) {
-      case 'Monday':
-        return DateTime.monday;
-      case 'Tuesday':
-        return DateTime.tuesday;
-      case 'Wednesday':
-        return DateTime.wednesday;
-      case 'Thursday':
-        return DateTime.thursday;
-      case 'Friday':
-        return DateTime.friday;
-      case 'Saturday':
-        return DateTime.saturday;
-      case 'Sunday':
-        return DateTime.sunday;
-      default:
-        return DateTime.monday;
-    }
-  }
-
-  Future<void> _cancelAllNotifications() async {
-    await _notificationsPlugin.cancelAll();
   }
 
   Future<void> _selectTime({required bool isMorning}) async {
@@ -449,6 +332,40 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               ),
             ),
             
+            // Test bildirimi butonu
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await _notificationService.requestExactAlarmsPermission();
+                  await _notificationService.scheduleTestNotificationInSeconds(10);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          DynamicLocalizationHelper.getText({
+                            'tr': '10 saniye sonra test bildirimi gelecek. Uygulamayı kapatıp bekleyin.',
+                            'en': 'Test notification in 10 seconds. Minimize app and wait.',
+                          }),
+                        ),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.notifications_active, size: 20),
+                label: Text(
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Bildirimi test et (10 sn)',
+                    'en': 'Test notification (10 sec)',
+                  }),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: widget.themeConfig.accentColor,
+                  side: BorderSide(color: widget.themeConfig.accentColor),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             // İpucu: Bildirimlerin zamanında gelmesi
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),

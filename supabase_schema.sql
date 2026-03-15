@@ -96,11 +96,35 @@ ALTER TABLE leaderboard_daily ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leaderboard_weekly ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leaderboard_monthly ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
+-- RLS Policies (önce varsa kaldır, sonra oluştur – schema tekrar çalıştırılabilir)
+DROP POLICY IF EXISTS "Users can view own profile" ON users;
+DROP POLICY IF EXISTS "Users can update own profile" ON users;
+DROP POLICY IF EXISTS "Users can insert own profile" ON users;
+DROP POLICY IF EXISTS "Public can read users for leaderboard" ON users;
+
+DROP POLICY IF EXISTS "Users can view own achievements" ON user_achievements;
+DROP POLICY IF EXISTS "Users can insert own achievements" ON user_achievements;
+
+DROP POLICY IF EXISTS "Users can view own leaderboard data" ON leaderboard_daily;
+DROP POLICY IF EXISTS "Users can update own leaderboard data" ON leaderboard_daily;
+DROP POLICY IF EXISTS "Users can insert own leaderboard data" ON leaderboard_daily;
+DROP POLICY IF EXISTS "Public can read daily leaderboard" ON leaderboard_daily;
+
+DROP POLICY IF EXISTS "Users can view own weekly leaderboard data" ON leaderboard_weekly;
+DROP POLICY IF EXISTS "Users can update own weekly leaderboard data" ON leaderboard_weekly;
+DROP POLICY IF EXISTS "Users can insert own weekly leaderboard data" ON leaderboard_weekly;
+DROP POLICY IF EXISTS "Public can read weekly leaderboard" ON leaderboard_weekly;
+
+DROP POLICY IF EXISTS "Users can view own monthly leaderboard data" ON leaderboard_monthly;
+DROP POLICY IF EXISTS "Users can update own monthly leaderboard data" ON leaderboard_monthly;
+DROP POLICY IF EXISTS "Users can insert own monthly leaderboard data" ON leaderboard_monthly;
+DROP POLICY IF EXISTS "Public can read monthly leaderboard" ON leaderboard_monthly;
+
+DROP POLICY IF EXISTS "Public can read achievements" ON achievements;
+
 CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid()::text = id::text);
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid()::text = id::text);
 CREATE POLICY "Users can insert own profile" ON users FOR INSERT WITH CHECK (auth.uid()::text = id::text);
--- Leaderboard için herkes users tablosunu okuyabilir (isim, avatar, total_zikrs)
 CREATE POLICY "Public can read users for leaderboard" ON users FOR SELECT USING (true);
 
 CREATE POLICY "Users can view own achievements" ON user_achievements FOR SELECT USING (auth.uid()::text = user_id::text);
@@ -118,17 +142,44 @@ CREATE POLICY "Users can view own monthly leaderboard data" ON leaderboard_month
 CREATE POLICY "Users can update own monthly leaderboard data" ON leaderboard_monthly FOR UPDATE USING (auth.uid()::text = user_id::text);
 CREATE POLICY "Users can insert own monthly leaderboard data" ON leaderboard_monthly FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 
--- Public read policies for leaderboard views
 CREATE POLICY "Public can read daily leaderboard" ON leaderboard_daily FOR SELECT USING (true);
 CREATE POLICY "Public can read weekly leaderboard" ON leaderboard_weekly FOR SELECT USING (true);
 CREATE POLICY "Public can read monthly leaderboard" ON leaderboard_monthly FOR SELECT USING (true);
 CREATE POLICY "Public can read achievements" ON achievements FOR SELECT USING (true);
 
 -- ---------------------------------------------------------------------------
+-- Leaderboard RPC: Tüm kullanıcıları RLS bypass ile döndürür (anon/authenticated her zaman tüm listeyi görsün)
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION get_leaderboard_all_time(lim int DEFAULT 50)
+RETURNS TABLE (
+  id uuid,
+  username text,
+  display_name text,
+  avatar_url text,
+  total_zikrs int
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT u.id, u.username, u.display_name, u.avatar_url, COALESCE(u.total_zikrs, 0)::int
+  FROM users u
+  ORDER BY u.total_zikrs DESC NULLS LAST
+  LIMIT lim;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_leaderboard_all_time(int) TO anon;
+GRANT EXECUTE ON FUNCTION get_leaderboard_all_time(int) TO authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: avatars bucket (profil fotoğrafı)
 -- Dashboard > Storage'da "avatars" bucket'ı oluşturun; File size limit: 1 MB.
--- Aşağıdaki politikalar bucket oluşturulduktan sonra çalıştırılır.
 -- ---------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Allow public uploads to avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public read avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public update avatars" ON storage.objects;
+
 CREATE POLICY "Allow public uploads to avatars"
 ON storage.objects FOR INSERT TO public
 WITH CHECK (bucket_id = 'avatars');

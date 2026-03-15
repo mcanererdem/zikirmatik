@@ -408,15 +408,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     
     print('Zikir count saved locally: ${totalZikrs + 1}');
     
-    // Supabase'e senkronize et (leaderboard açıksa sıralamaya dahil edilir)
+    // Supabase'e senkronize et (günlük/haftalık/aylık periyot sayıları ile)
     try {
       final showInLeaderboard = await _settingsService.getShowInLeaderboard();
+      final dailyCount = await _settingsService.getDailyCount(DateTime.now());
+      final weeklyCount = await _settingsService.getWeeklyCount();
+      final monthlyCount = await _settingsService.getMonthlyCount();
       await _supabaseService.updateUserZikrCount(
         _currentUserId,
         totalZikrs + 1,
         updateLeaderboard: showInLeaderboard,
+        dailyCount: dailyCount,
+        weeklyCount: weeklyCount,
+        monthlyCount: monthlyCount,
       );
-      print('Zikir count synced to Supabase: ${totalZikrs + 1}');
+      print('Zikir count synced to Supabase: ${totalZikrs + 1} (daily: $dailyCount, weekly: $weeklyCount, monthly: $monthlyCount)');
     } catch (e) {
       print('Error syncing to Supabase: $e');
     }

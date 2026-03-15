@@ -402,7 +402,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       child: Column(
         children: [
           _buildToggleSetting(
-            'Sadece Koyu Tema',
+            'Sadece karanlık tema',
             _isDarkModeOnly,
             Icons.dark_mode,
             _toggleDarkModeOnly,

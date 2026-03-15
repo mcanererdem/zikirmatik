@@ -68,26 +68,40 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     super.dispose();
   }
 
-  Future<void> _loadLeaderboard() async {
+  Future<void> _refreshLeaderboard() async {
+    setState(() => _isLoading = true);
+    _slideAnimationController.reset();
+    _fadeAnimationController.reset();
+    await _loadLeaderboard();
+  }
+
+  Future<void> _loadLeaderboard({String? period}) async {
+    final effectivePeriod = period ?? _selectedPeriod;
     try {
       final currentUuid = _supabaseService.toUuid(widget.currentUserId);
       print('=== LEADERBOARD DEBUG ===');
-      print('Loading leaderboard from Supabase (period: $_selectedPeriod)...');
+      print('Loading leaderboard from Supabase (period: $effectivePeriod)...');
       print('Current User ID: ${widget.currentUserId}');
       
       List<Map<String, dynamic>> leaderboardData;
-      switch (_selectedPeriod) {
+      switch (effectivePeriod) {
         case 'all':
           leaderboardData = await _supabaseService.getAllTimeLeaderboard(limit: 50);
           break;
         case 'daily':
-        case 'weekly':
-        case 'monthly':
-        default:
-          leaderboardData = await _supabaseService.getLeaderboard(limit: 50);
+          leaderboardData = await _supabaseService.getDailyLeaderboard(limit: 50);
           break;
+        case 'weekly':
+          leaderboardData = await _supabaseService.getWeeklyLeaderboard(limit: 50);
+          break;
+        case 'monthly':
+          leaderboardData = await _supabaseService.getMonthlyLeaderboard(limit: 50);
+          break;
+        default:
+          leaderboardData = await _supabaseService.getDailyLeaderboard(limit: 50);
       }
-      
+      // Not: "Tüm Zamanlar"da tek kişi görünüyorsa Supabase'de users tablosu için
+      // "Public can read users for leaderboard" RLS politikasının tanımlı olduğundan emin olun (supabase_schema.sql).
       print('Supabase returned ${leaderboardData.length} users');
       
       final prefs = await SharedPreferences.getInstance();
@@ -121,16 +135,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       final userRank = leaderboardData.indexWhere((user) => user['user_id'] == widget.currentUserId || user['user_id'] == currentUuid) + 1;
       currentUserProfile['rank'] = userRank;
       
+      final listForDisplay = List<Map<String, dynamic>>.from(leaderboardData);
       setState(() {
-        _leaderboardData = leaderboardData;
-        _leaderboard = leaderboardData;
+        _leaderboardData = listForDisplay;
+        _leaderboard = listForDisplay;
         _currentUserProfile = currentUserProfile;
         _currentUserRank = userRank;
         _isLoading = false;
       });
-      
+
+      _slideAnimationController.forward();
+      _fadeAnimationController.forward();
+
       print('=== LEADERBOARD DEBUG RESULTS ===');
-      print('Total users in leaderboard: ${leaderboardData.length}');
+      print('Total users in leaderboard: ${listForDisplay.length}');
       print('Current user zikrs: $currentUserZikrs');
       print('Current user rank: $userRank');
       print('Current user in list: ${existingUserIndex != -1 ? "YES" : "NO"}');
@@ -214,6 +232,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         backgroundColor: widget.themeConfig.primaryColor,
         elevation: 0,
         iconTheme: IconThemeData(color: widget.themeConfig.textColor),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: widget.themeConfig.textColor),
+            onPressed: _isLoading ? null : () => _refreshLeaderboard(),
+            tooltip: DynamicLocalizationHelper.getText({
+              'tr': 'Yenile',
+              'en': 'Refresh',
+              'ar': 'تحديث',
+              'id': 'Segarkan',
+              'zh': '刷新',
+              'ja': '更新',
+              'ru': 'Обновить',
+              'de': 'Aktualisieren',
+            }),
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -222,6 +256,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         child: Column(
           children: [
             _buildPeriodSelector(),
+            _buildPeriodLabel(),
             Expanded(
               child: _isLoading
                   ? Center(
@@ -348,16 +383,53 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
+  Widget _buildPeriodLabel() {
+    final now = DateTime.now();
+    String rangeText;
+    switch (_selectedPeriod) {
+      case 'all':
+        rangeText = DynamicLocalizationHelper.getText({'tr': 'Tüm zamanlar', 'en': 'All time'});
+        break;
+      case 'daily':
+        rangeText = '${DynamicLocalizationHelper.getText({'tr': 'Bugün', 'en': 'Today'})}: ${now.day}.${now.month}.${now.year}';
+        break;
+      case 'weekly':
+        final weekStart = now.subtract(Duration(days: now.weekday - 1));
+        final weekEnd = weekStart.add(const Duration(days: 6));
+        rangeText = '${DynamicLocalizationHelper.getText({'tr': 'Bu hafta', 'en': 'This week'})}: ${weekStart.day}.${weekStart.month}-${weekEnd.day}.${weekEnd.month}';
+        break;
+      case 'monthly':
+        final monthStart = DateTime(now.year, now.month, 1);
+        final monthEnd = DateTime(now.year, now.month + 1, 0);
+        rangeText = '${DynamicLocalizationHelper.getText({'tr': 'Bu ay', 'en': 'This month'})}: ${monthStart.day}.${monthStart.month}-${monthEnd.day}.${monthEnd.month}.${now.year}';
+        break;
+      default:
+        rangeText = '';
+    }
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 8),
+      child: Text(
+        rangeText,
+        style: GoogleFonts.notoSans(
+          fontSize: 12,
+          color: widget.themeConfig.textColor.withOpacity(0.7),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPeriodChip(String label, String value) {
     final isSelected = _selectedPeriod == value;
     
     return Expanded(
       child: GestureDetector(
         onTap: () {
+          if (_selectedPeriod == value) return;
           setState(() {
             _selectedPeriod = value;
+            _isLoading = true;
           });
-          _loadLeaderboard();
+          _loadLeaderboard(period: value);
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -544,17 +616,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       );
     }
 
-    return ListView.builder(
+    print('_buildLeaderboardList: building ${_leaderboard.length} items');
+    final children = <Widget>[];
+    for (int index = 0; index < _leaderboard.length; index++) {
+      final user = _leaderboard[index];
+      final rank = index + 1;
+      final userId = user['user_id'] is String ? user['user_id'] as String : user['user_id']?.toString() ?? '';
+      final isCurrentUser = userId == widget.currentUserId ||
+          userId == _supabaseService.toUuid(widget.currentUserId);
+      children.add(_buildLeaderboardItem(user, rank, isCurrentUser));
+    }
+
+    return ListView(
+      key: ValueKey<int>(_leaderboard.length),
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: _leaderboard.length,
-      itemBuilder: (context, index) {
-        final user = _leaderboard[index];
-        final rank = index + 1;
-        final isCurrentUser = user['user_id'] == widget.currentUserId ||
-            user['user_id'] == _supabaseService.toUuid(widget.currentUserId);
-        
-        return _buildLeaderboardItem(user, rank, isCurrentUser);
-      },
+      children: children,
     );
   }
 

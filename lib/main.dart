@@ -59,6 +59,31 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
 
+  // Hatırlatıcılar açıksa (reboot / güncelleme sonrası) yeniden planla
+  final settingsService = SettingsService();
+  final remEnabled = await settingsService.getReminderEnabled();
+  if (remEnabled) {
+    try {
+      final days = await settingsService.getNotificationDays();
+      final morningTime = await settingsService.getMorningNotificationTime();
+      final eveningTime = await settingsService.getEveningNotificationTime();
+      final morningOn = await settingsService.getMorningNotificationEnabled();
+      final eveningOn = await settingsService.getEveningNotificationEnabled();
+      if (days.isNotEmpty) {
+        await notificationService.requestExactAlarmsPermission();
+        await notificationService.scheduleReminderNotifications(
+          selectedDays: days,
+          morningTime: morningTime,
+          eveningTime: eveningTime,
+          morningEnabled: morningOn,
+          eveningEnabled: eveningOn,
+        );
+      }
+    } catch (e) {
+      debugPrint('Hatırlatıcı yeniden planlama: $e');
+    }
+  }
+
   // Dynamic localization helper'ı başlat
   await DynamicLocalizationHelper.initialize();
 
@@ -71,7 +96,6 @@ void main() async {
   );
 
   // İlk açılışta dil kontrolü ve ayarlama
-  final settingsService = SettingsService();
   final savedLanguage = await settingsService.getLanguage();
   
   // Eğer dil hiç ayarlanmamışsa (ilk açılış), cihaz diline göre ayarla

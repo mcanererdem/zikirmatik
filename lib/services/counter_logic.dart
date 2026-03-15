@@ -13,6 +13,8 @@ class CounterLogic {
     final today = DateTime.now();
     final todayCount = await _settingsService.getDailyCount(today);
     await _settingsService.saveDailyCount(today, todayCount + 1);
+    await _settingsService.incrementWeeklyCount();
+    await _settingsService.incrementMonthlyCount();
     await _settingsService.incrementTotalCount(1);
     
     if (selectedZikrId != null) {

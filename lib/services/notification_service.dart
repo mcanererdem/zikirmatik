@@ -56,7 +56,7 @@ class NotificationService {
     bool? granted = await androidImpl?.requestNotificationsPermission();
     print('Bildirim izni verildi: $granted');
     
-    // Bildirim kanalını oluştur
+    // Bildirim kanallarını oluştur (hatırlatıcılar bu kanalı kullanır)
     const androidChannel = AndroidNotificationChannel(
       'daily_reminders',
       'Günlük Hatırlatıcılar',
@@ -64,15 +64,28 @@ class NotificationService {
       importance: Importance.high,
       sound: RawResourceAndroidNotificationSound('notification'),
     );
-    
     await androidImpl?.createNotificationChannel(androidChannel);
-    print('Bildirim kanalı oluşturuldu: daily_reminders');
+    const zikrChannel = AndroidNotificationChannel(
+      'zikirmatik_channel',
+      'Zikirmatik Bildirimleri',
+      description: 'Zikir hatırlatıcı bildirimleri',
+      importance: Importance.high,
+      playSound: true,
+    );
+    await androidImpl?.createNotificationChannel(zikrChannel);
+    print('Bildirim kanalları oluşturuldu');
     
     // Ayarları yükle
     await _loadSettings();
     
     _isInitialized = true;
     print('Bildirim servisi başlatıldı');
+  }
+
+  /// Android 12+ tam saat bildirimleri için exact alarm izni (ayarlar diyaloğundan çağrılır)
+  Future<void> requestExactAlarmsPermission() async {
+    final androidImpl = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.requestExactAlarmsPermission();
   }
 
   Future<void> _loadSettings() async {
@@ -276,6 +289,36 @@ class NotificationService {
     }
   }
 
+  /// 10 saniye (veya verilen süre) sonra tek bir test bildirimi planlar. Uygulama kapalıyken de gelir.
+  static const int testScheduledId = 998;
+
+  Future<void> scheduleTestNotificationInSeconds(int seconds) async {
+    try {
+      await _notifications.cancel(testScheduledId);
+      final scheduledTime = DateTime.now().add(Duration(seconds: seconds));
+      await _notifications.zonedSchedule(
+        testScheduledId,
+        'Zikirmatik Test',
+        'Bildirimler çalışıyor! ($seconds sn sonra)',
+        tz.TZDateTime.from(scheduledTime, tz.local),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'zikirmatik_channel',
+            'Zikirmatik Bildirimleri',
+            channelDescription: 'Zikir hatırlatıcı bildirimleri',
+            icon: '@mipmap/ic_launcher',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+      print('Test bildirimi $seconds saniye sonra planlandı');
+    } catch (e) {
+      print('Test bildirimi planlama hatası: $e');
+    }
+  }
+
   // Tüm bildirimleri iptal et
   Future<void> cancelAllNotifications() async {
     try {
@@ -283,6 +326,105 @@ class NotificationService {
     } catch (e) {
       print('Bildirimleri iptal etme hatası: $e');
     }
+  }
+
+  /// Sadece kullandığımız hatırlatıcı ID'lerini iptal et (sabah 1001–1007, akşam 2001–2007)
+  Future<void> cancelReminderNotifications() async {
+    try {
+      const morningIds = [1001, 1002, 1003, 1004, 1005, 1006, 1007];
+      const eveningIds = [2001, 2002, 2003, 2004, 2005, 2006, 2007];
+      for (final id in [...morningIds, ...eveningIds]) {
+        await _notifications.cancel(id);
+      }
+    } catch (e) {
+      print('Hatırlatıcı iptal hatası: $e');
+    }
+  }
+
+  /// Ayarlar diyaloğundan çağrılır: sabah/akşam saatleri ve günlere göre hatırlatıcı planla
+  Future<void> scheduleReminderNotifications({
+    required List<String> selectedDays,
+    required TimeOfDay morningTime,
+    required TimeOfDay eveningTime,
+    required bool morningEnabled,
+    required bool eveningEnabled,
+  }) async {
+    try {
+      await cancelReminderNotifications();
+      if (selectedDays.isEmpty) {
+        print('Hatırlatıcı: gün seçilmedi, planlama atlandı');
+        return;
+      }
+      for (String day in selectedDays) {
+        final dayIndex = _dayNameToWeekday(day);
+        if (morningEnabled) {
+          final dt = _nextWeekdayWithTime(DateTime.now(), dayIndex, morningTime.hour, morningTime.minute);
+          await _notifications.zonedSchedule(
+            1000 + dayIndex,
+            'Sabah Zikri',
+            'Zikir vakti geldi!',
+            tz.TZDateTime.from(dt, tz.local),
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'zikirmatik_channel',
+                'Zikirmatik Bildirimleri',
+                channelDescription: 'Zikir hatırlatıcı bildirimleri',
+                importance: Importance.high,
+                priority: Priority.high,
+                icon: '@mipmap/ic_launcher',
+              ),
+            ),
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+          );
+        }
+        if (eveningEnabled) {
+          final dt = _nextWeekdayWithTime(DateTime.now(), dayIndex, eveningTime.hour, eveningTime.minute);
+          await _notifications.zonedSchedule(
+            2000 + dayIndex,
+            'Akşam Zikri',
+            'Zikir vakti geldi!',
+            tz.TZDateTime.from(dt, tz.local),
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'zikirmatik_channel',
+                'Zikirmatik Bildirimleri',
+                channelDescription: 'Zikir hatırlatıcı bildirimleri',
+                importance: Importance.high,
+                priority: Priority.high,
+                icon: '@mipmap/ic_launcher',
+              ),
+            ),
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+          );
+        }
+      }
+      final pending = await _notifications.pendingNotificationRequests();
+      print('Hatırlatıcı planlandı. Bekleyen: ${pending.length}');
+    } catch (e) {
+      print('Hatırlatıcı planlama hatası: $e');
+    }
+  }
+
+  int _dayNameToWeekday(String day) {
+    switch (day) {
+      case 'Monday': return DateTime.monday;
+      case 'Tuesday': return DateTime.tuesday;
+      case 'Wednesday': return DateTime.wednesday;
+      case 'Thursday': return DateTime.thursday;
+      case 'Friday': return DateTime.friday;
+      case 'Saturday': return DateTime.saturday;
+      case 'Sunday': return DateTime.sunday;
+      default: return DateTime.monday;
+    }
+  }
+
+  DateTime _nextWeekdayWithTime(DateTime from, int weekday, int hour, int minute) {
+    int daysUntil = (weekday - from.weekday + 7) % 7;
+    if (daysUntil == 0) daysUntil = 7;
+    final next = from.add(Duration(days: daysUntil));
+    return DateTime(next.year, next.month, next.day, hour, minute);
   }
 
   // Günlük hatırlatıcı bildirimi

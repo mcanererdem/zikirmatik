@@ -65,6 +65,13 @@ class SupabaseService {
     return _uuid.v4();
   }
 
+  /// Supabase'den gelen id (UUID/String) her zaman string'e çevirir; liste karışmasını önler.
+  String _idToString(dynamic id) {
+    if (id == null) return '';
+    if (id is String) return id;
+    return id.toString();
+  }
+
   // String'i UUID'ye çevirme metodu (public)
   String toUuid(String input) {
     // Eğer input zaten UUID formatındaysa, doğrudan döndür
@@ -131,7 +138,14 @@ class SupabaseService {
   }
 
   /// [updateLeaderboard] false ise kullanıcı sıralamada görünmez (ayarlardan kapatılmış).
-  Future<void> updateUserZikrCount(String userId, int zikrCount, {bool updateLeaderboard = true}) async {
+  Future<void> updateUserZikrCount(
+    String userId,
+    int zikrCount, {
+    bool updateLeaderboard = true,
+    int? dailyCount,
+    int? weeklyCount,
+    int? monthlyCount,
+  }) async {
     try {
       if (!_isInitialized) {
         print('Supabase not initialized, skipping updateUserZikrCount.');
@@ -148,7 +162,9 @@ class SupabaseService {
           .eq('id', uuid);
 
       if (updateLeaderboard) {
-        await _updateDailyLeaderboard(uuid, zikrCount);
+        await updateDailyLeaderboard(userId, dailyCount ?? zikrCount);
+        await updateWeeklyLeaderboard(userId, weeklyCount ?? zikrCount);
+        await updateMonthlyLeaderboard(userId, monthlyCount ?? zikrCount);
       }
     } catch (e) {
       print('Error updating zikr count: $e');
@@ -233,13 +249,12 @@ class SupabaseService {
   Future<void> updateMonthlyLeaderboard(String userId, int zikrCount) async {
     try {
       final now = DateTime.now();
-      final monthStr = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-      
+      final monthStart = '${now.year}-${now.month.toString().padLeft(2, '0')}-01';
       await _supabase
           .from('leaderboard_monthly')
           .upsert({
             'user_id': userId,
-            'month': monthStr,
+            'month_start': monthStart,
             'monthly_count': zikrCount,
             'updated_at': DateTime.now().toIso8601String(),
           });
@@ -250,6 +265,7 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getDailyLeaderboard({int limit = 50}) async {
     try {
+      await _ensureAnonForLeaderboard();
       final today = DateTime.now();
       final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
       
@@ -261,11 +277,12 @@ class SupabaseService {
           .limit(limit);
       
       final rows = List<Map<String, dynamic>>.from(response);
+      print('Leaderboard fetch: daily ($todayStr) returned ${rows.length} users');
       return rows.map((row) {
         final users = row['users'];
         final userMap = users is Map ? Map<String, dynamic>.from(users) : <String, dynamic>{};
         return {
-          'user_id': row['user_id'],
+          'user_id': _idToString(row['user_id']),
           'total_zikrs': row['daily_count'] ?? 0,
           'username': userMap['username'] ?? '',
           'display_name': userMap['display_name'],
@@ -282,7 +299,7 @@ class SupabaseService {
             .limit(limit);
         final users = List<Map<String, dynamic>>.from(response);
         return users.map((user) => {
-          'user_id': user['id'],
+          'user_id': _idToString(user['id']),
           'username': user['username'],
           'display_name': user['display_name'],
           'avatar_url': user['avatar_url'],
@@ -297,18 +314,29 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getWeeklyLeaderboard({int limit = 50}) async {
     try {
+      await _ensureAnonForLeaderboard();
       final now = DateTime.now();
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final weekStartStr = '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
-      
       final response = await _supabase
           .from('leaderboard_weekly')
-          .select('weekly_count, users!inner(username, display_name, avatar_url)')
+          .select('user_id, weekly_count, users!inner(username, display_name, avatar_url)')
           .eq('week_start', weekStartStr)
           .order('weekly_count', ascending: false)
           .limit(limit);
-      
-      return List<Map<String, dynamic>>.from(response);
+      final rows = List<Map<String, dynamic>>.from(response);
+      print('Leaderboard fetch: weekly ($weekStartStr) returned ${rows.length} users');
+      return rows.map((row) {
+        final users = row['users'];
+        final userMap = users is Map ? Map<String, dynamic>.from(users) : <String, dynamic>{};
+        return {
+          'user_id': _idToString(row['user_id']),
+          'total_zikrs': row['weekly_count'] ?? 0,
+          'username': userMap['username'] ?? '',
+          'display_name': userMap['display_name'],
+          'avatar_url': userMap['avatar_url'],
+        };
+      }).toList();
     } catch (e) {
       print('Error getting weekly leaderboard: $e');
       return [];
@@ -317,18 +345,29 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getMonthlyLeaderboard({int limit = 50}) async {
     try {
+      await _ensureAnonForLeaderboard();
       final now = DateTime.now();
       final monthStart = DateTime(now.year, now.month, 1);
       final monthStartStr = '${monthStart.year}-${monthStart.month.toString().padLeft(2, '0')}-${monthStart.day.toString().padLeft(2, '0')}';
-      
       final response = await _supabase
           .from('leaderboard_monthly')
-          .select('monthly_count, users!inner(username, display_name, avatar_url)')
+          .select('user_id, monthly_count, users!inner(username, display_name, avatar_url)')
           .eq('month_start', monthStartStr)
           .order('monthly_count', ascending: false)
           .limit(limit);
-      
-      return List<Map<String, dynamic>>.from(response);
+      final rows = List<Map<String, dynamic>>.from(response);
+      print('Leaderboard fetch: monthly ($monthStartStr) returned ${rows.length} users');
+      return rows.map((row) {
+        final users = row['users'];
+        final userMap = users is Map ? Map<String, dynamic>.from(users) : <String, dynamic>{};
+        return {
+          'user_id': _idToString(row['user_id']),
+          'total_zikrs': row['monthly_count'] ?? 0,
+          'username': userMap['username'] ?? '',
+          'display_name': userMap['display_name'],
+          'avatar_url': userMap['avatar_url'],
+        };
+      }).toList();
     } catch (e) {
       print('Error getting monthly leaderboard: $e');
       return [];
@@ -362,23 +401,55 @@ class SupabaseService {
     }
   }
 
-  /// Tüm zamanlar sıralaması: users tablosuna göre total_zikrs
-  Future<List<Map<String, dynamic>>> getAllTimeLeaderboard({int limit = 50}) async {
+  /// Leaderboard istekleri anon ile gitsin; oturum varsa RLS sadece kendi satırını döndürebilir (tek kişi). Önce oturumu kapatıyoruz.
+  Future<void> _ensureAnonForLeaderboard() async {
     try {
-      if (!_isInitialized) return [];
+      final session = _supabase.auth.currentSession;
+      if (session != null) {
+        await _supabase.auth.signOut();
+        await Future.delayed(const Duration(milliseconds: 150));
+        print('Leaderboard: Oturum kapatıldı, istek anon ile gidecek (tüm kullanıcılar görünsün).');
+      }
+    } catch (_) {}
+  }
+
+  /// Tüm zamanlar sıralaması: Önce RPC (tüm kullanıcılar), yoksa/hatada tablo SELECT
+  Future<List<Map<String, dynamic>>> getAllTimeLeaderboard({int limit = 50}) async {
+    if (!_isInitialized) return [];
+
+    try {
+      final response = await _supabase.rpc('get_leaderboard_all_time', params: {'lim': limit});
+      final users = List<Map<String, dynamic>>.from(response as List);
+      if (users.isNotEmpty) {
+        print('Leaderboard fetch: RPC returned ${users.length} users');
+        return users.map((user) => {
+            'user_id': _idToString(user['id']),
+            'username': user['username'] ?? '',
+            'display_name': user['display_name'],
+            'avatar_url': user['avatar_url'],
+            'total_zikrs': user['total_zikrs'] ?? 0,
+          }).toList();
+      }
+    } catch (e) {
+      print('Leaderboard RPC failed ($e), fallback to users table');
+    }
+
+    await _ensureAnonForLeaderboard();
+    try {
       final response = await _supabase
           .from('users')
           .select('id, username, display_name, avatar_url, total_zikrs')
           .order('total_zikrs', ascending: false)
           .limit(limit);
       final users = List<Map<String, dynamic>>.from(response);
+      print('Leaderboard fetch: table returned ${users.length} users');
       return users.map((user) => {
-        'user_id': user['id'],
-        'username': user['username'] ?? '',
-        'display_name': user['display_name'],
-        'avatar_url': user['avatar_url'],
-        'total_zikrs': user['total_zikrs'] ?? 0,
-      }).toList();
+          'user_id': _idToString(user['id']),
+          'username': user['username'] ?? '',
+          'display_name': user['display_name'],
+          'avatar_url': user['avatar_url'],
+          'total_zikrs': user['total_zikrs'] ?? 0,
+        }).toList();
     } catch (e) {
       print('Error getting all-time leaderboard: $e');
       return [];
@@ -478,45 +549,4 @@ class SupabaseService {
     }
   }
 
-  // Kullanıcı profilini güncelleaderboard
-  Future<void> _updateDailyLeaderboard(String userId, int zikrCount) async {
-    try {
-      final uuid = toUuid(userId);
-      final today = DateTime.now();
-      final todayStart = DateTime(today.year, today.month, today.day);
-      
-      // Check if today's entry exists
-      final existingEntry = await _supabase
-          .from('leaderboard_daily')
-          .select()
-          .eq('user_id', uuid)
-          .eq('date', todayStart.toIso8601String())
-          .maybeSingle();
-      
-      if (existingEntry != null) {
-        // Update existing entry
-        await _supabase
-            .from('leaderboard_daily')
-            .update({
-              'zikr_count': zikrCount,
-              'updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('user_id', uuid)
-            .eq('date', todayStart.toIso8601String());
-      } else {
-        // Create new entry
-        await _supabase
-            .from('leaderboard_daily')
-            .insert({
-              'user_id': uuid,
-              'date': todayStart.toIso8601String(),
-              'zikr_count': zikrCount,
-              'created_at': DateTime.now().toIso8601String(),
-              'updated_at': DateTime.now().toIso8601String(),
-            });
-      }
-    } catch (e) {
-      print('Error updating daily leaderboard: $e');
-    }
-  }
 }

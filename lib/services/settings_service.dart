@@ -117,6 +117,45 @@ class SettingsService {
     return prefs.getInt(key) ?? 0;
   }
 
+  static String _weekStartKey(DateTime date) {
+    final weekStart = date.subtract(Duration(days: date.weekday - 1));
+    return 'weekly_${weekStart.year}_${weekStart.month}_${weekStart.day}';
+  }
+
+  static String _monthKey(DateTime date) => 'monthly_${date.year}_${date.month}';
+
+  Future<int> getWeeklyCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_weekStartKey(DateTime.now())) ?? 0;
+  }
+
+  Future<void> saveWeeklyCount(DateTime date, int count) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_weekStartKey(date), count);
+  }
+
+  Future<int> getMonthlyCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_monthKey(DateTime.now())) ?? 0;
+  }
+
+  Future<void> saveMonthlyCount(DateTime date, int count) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_monthKey(date), count);
+  }
+
+  Future<void> incrementWeeklyCount() async {
+    final now = DateTime.now();
+    final n = await getWeeklyCount();
+    await saveWeeklyCount(now, n + 1);
+  }
+
+  Future<void> incrementMonthlyCount() async {
+    final now = DateTime.now();
+    final n = await getMonthlyCount();
+    await saveMonthlyCount(now, n + 1);
+  }
+
   Future<void> incrementTotalCount(int amount) async {
     final prefs = await SharedPreferences.getInstance();
     final current = prefs.getInt(_totalCountKey) ?? 0;

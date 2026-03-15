@@ -61,11 +61,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final weeklyZikrs = prefs.getInt('weekly_zikrs_${widget.currentUserId}') ?? 0;
       final currentStreak = prefs.getInt('current_streak_${widget.currentUserId}') ?? 0;
 
-      bool bronzeUnlocked = prefs.getBool('bronze_kupa_unlocked_${widget.currentUserId}') ?? false;
-      bool silverUnlocked = prefs.getBool('silver_kupa_unlocked_${widget.currentUserId}') ?? false;
-      bool goldUnlocked = prefs.getBool('gold_kupa_unlocked_${widget.currentUserId}') ?? false;
-      bool diamondUnlocked = prefs.getBool('diamond_kupa_unlocked_${widget.currentUserId}') ?? false;
-      bool platinumUnlocked = prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false;
+      // Kupalar: yerel toplam zikir + Supabase achievement birleşik kaynak (bilgi uyumlu olsun)
+      final localTotalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      bool bronzeUnlocked = localTotalZikrs >= 100;
+      bool silverUnlocked = localTotalZikrs >= 500;
+      bool goldUnlocked = localTotalZikrs >= 1000;
+      bool diamondUnlocked = localTotalZikrs >= 5000;
+      bool platinumUnlocked = localTotalZikrs >= 10000;
       try {
         final achievements = await _supabaseService.getUserAchievements(widget.currentUserId);
         for (final a in achievements) {
@@ -97,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         userProfile = UserProfile(
           userId: widget.currentUserId,
           username: initialUsername,
-          displayName: localDisplayName ?? 'Zikir Kullanıcısı',
+          displayName: localDisplayName ?? 'Kullanıcı',
           avatarUrl: avatarUrl,
           totalZikrs: totalZikrs,
           lastZikrDate: null,
@@ -105,6 +107,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           updatedAt: DateTime.now(),
         );
       } else {
+        // Yerel toplam zikir öncelikli (kazanılan kupalar ile uyum)
+        userProfile = userProfile.copyWith(totalZikrs: totalZikrs);
         if (localUsername != null || localDisplayName != null || avatarUrl != null) {
           userProfile = userProfile.copyWith(
             username: localUsername ?? userProfile.username,
@@ -497,6 +501,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildCupGrid() {
+    // Kazanılan kupalar: yerel toplam zikir ile uyumlu (profil = kullanıcının kazandıkları)
     final totalZikrs = _userProfile?.totalZikrs ?? 0;
     final cups = [
       {
@@ -921,8 +926,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(color: widget.themeConfig.textColor),
           decoration: InputDecoration(
             labelText: DynamicLocalizationHelper.getText({
-              'tr': 'Görünen Adı',
-              'en': 'Display Name',
+              'tr': 'Takma ad (liste ve liderlikte görünür)',
+              'en': 'Display name (shown on leaderboard)',
+              'ar': 'الاسم المعروض',
+              'id': 'Nama Tampilan',
+            }),
+            hintText: DynamicLocalizationHelper.getText({
+              'tr': 'Örn. ZikirSever',
+              'en': 'e.g. DhikrFan',
               'ar': 'الاسم المعروض',
               'id': 'Nama Tampilan',
             }),
@@ -1189,7 +1200,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _userProfile?.displayName ?? 'ZikirUser123',
+                                (_userProfile?.displayName != null && _userProfile!.displayName!.isNotEmpty)
+                                    ? _userProfile!.displayName!
+                                    : (_userProfile?.username ?? 'user'),
                                 style: GoogleFonts.notoSans(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -1376,28 +1389,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          children: [
+                            Text(
+                              DynamicLocalizationHelper.getText({
+                                'tr': 'Kazandığım Kupalar',
+                                'en': 'My Earned Trophies',
+                                'ar': 'كؤوسي المكتسبة',
+                                'id': 'Piala yang Saya Menang',
+                                'ur': 'میری کمائے ہوئے ٹرافیاں',
+                                'bn': 'আমার অর্জিত ট্রফি',
+                                'ms': 'Piala Saya Diperoleh',
+                                'fa': 'جام های کسب شده من',
+                                'fr': 'Mes trophées gagnés',
+                                'zh': '我获得的奖杯',
+                                'ja': '獲得したトロフィー',
+                                'ru': 'Мои трофеи',
+                                'de': 'Meine Trophäen',
+                                'sw': 'Tuzo Zangu',
+                                'ha': 'Kofuna da Na Samu',
+                              }),
+                              style: GoogleFonts.notoSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: widget.themeConfig.textColor,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '(${(_unlockedCups.values.where((v) => v).length)}/5)',
+                              style: GoogleFonts.notoSans(
+                                fontSize: 14,
+                                color: widget.themeConfig.textColor.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
                         Text(
-                          DynamicLocalizationHelper.getText({
-                            'tr': 'Kazanılan Kupalar',
-                            'en': 'Earned Trophies',
-                            'ar': 'الجوائز المكتسبة',
-                            'id': 'Piala yang Dimenangkan',
-                            'ur': 'کمائے ہوئے ٹرافیاں',
-                            'bn': 'অর্জিত ট্রফি',
-                            'ms': 'Piala Diperoleh',
-                            'fa': 'جام های کسب شده',
-                            'fr': 'Trophées Gagnées',
-                            'zh': '获得的奖杯',
-                            'ja': '獲得したトロフィー',
-                            'ru': 'Завоёванные Трофеи',
-                            'de': 'Verdiente Trophäen',
-                            'sw': 'Tuzo Zilizopolewa',
-                            'ha': 'Kofunan da Ka Samu',
-                          }),
+                          (_unlockedCups.values.any((v) => v))
+                              ? '${_unlockedCups.values.where((v) => v).length} ${DynamicLocalizationHelper.getText({'tr': 'kupa kazanıldı', 'en': 'trophies earned'})}'
+                              : DynamicLocalizationHelper.getText({
+                                  'tr': 'Henüz kupa kazanılmadı (0)',
+                                  'en': 'No trophies earned yet (0)',
+                                  'ar': 'لم يتم الفوز بعد (0)',
+                                  'id': 'Belum ada piala (0)',
+                                  'fa': 'هنوز جامی کسب نشده (0)',
+                                  'zh': '暂无奖杯 (0)',
+                                  'ja': 'まだトロフィーなし (0)',
+                                  'ru': 'Пока нет трофеев (0)',
+                                  'de': 'Noch keine Trophäen (0)',
+                                }),
                           style: GoogleFonts.notoSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: widget.themeConfig.textColor,
+                            fontSize: 13,
+                            color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                           ),
                         ),
                         const SizedBox(height: 16),

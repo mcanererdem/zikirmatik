@@ -109,18 +109,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              RepaintBoundary(child: _buildHeader()),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(16),
+                  cacheExtent: 200,
+                  addRepaintBoundaries: true,
                   children: [
-                    _buildThemeSection(),
-                    _buildLanguageSection(),
-                    _buildNotificationSection(),
-                    _buildSoundSection(),
-                    _buildAdvancedSection(),
-                    _buildSupportUsSection(),
-                    _buildMoreSection(),
+                    RepaintBoundary(child: _buildThemeSection()),
+                    RepaintBoundary(child: _buildLanguageSection()),
+                    RepaintBoundary(child: _buildNotificationSection()),
+                    RepaintBoundary(child: _buildSoundSection()),
+                    RepaintBoundary(child: _buildAdvancedSection()),
+                    RepaintBoundary(child: _buildSupportUsSection()),
+                    RepaintBoundary(child: _buildMoreSection()),
                   ],
                 ),
               ),
@@ -157,6 +159,155 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  static const Map<String, Map<String, String>> _themeNames = {
+    'ocean_blue': {'tr': 'Gece Yarısı', 'en': 'Midnight Blue', 'ar': 'منتصف الليل', 'id': 'Tengah Malam', 'ur': 'نصف شب', 'bn': 'মধ্যরাত্রি', 'ms': 'Tengah Malam', 'fa': 'نیمه‌شب', 'fr': 'Minuit', 'zh': '午夜', 'ja': 'ミッドナイト', 'ru': 'Полночь', 'de': 'Mitternacht', 'sw': 'Usiku wa Manane', 'ha': 'Tsakar Dare'},
+    'emerald_green': {'tr': 'Zümrüt Ormanı', 'en': 'Emerald Forest', 'ar': 'أخضر الزمرد', 'id': 'Hijau Zamrud', 'ur': 'زمردی سبز', 'bn': 'পান্না সবুজ', 'ms': 'Hijau Zamrud', 'fa': 'سبز زمردی', 'fr': 'Vert Émeraude', 'zh': '翠绿色', 'ja': 'エメラルドグリーン', 'ru': 'Изумрудный', 'de': 'Smaragdgrün', 'sw': 'Kijani', 'ha': 'Green Emerald'},
+    'rose_pink': {'tr': 'Gül Bahçesi', 'en': 'Rose Garden', 'ar': 'وردي الورد', 'id': 'Pink Mawar', 'ur': 'گلاب', 'bn': 'গোলাপ', 'ms': 'Pink Mawar', 'fa': 'رز', 'fr': 'Jardin de roses', 'zh': '玫瑰园', 'ja': 'ローズ', 'ru': 'Розовый сад', 'de': 'Rosengarten', 'sw': 'Waridi', 'ha': 'Fure'},
+    'pure_dark': {'tr': 'Gece', 'en': 'Dark', 'ar': 'داكن', 'id': 'Gelap', 'ur': 'گہرا', 'bn': 'ডার্ক', 'ms': 'Gelap', 'fa': 'تیره', 'fr': 'Sombre', 'zh': '深色', 'ja': 'ダーク', 'ru': 'Тёмный', 'de': 'Dunkel', 'sw': 'Giza', 'ha': 'Duhu'},
+  };
+
+  String _getThemeDisplayName(String themeId) {
+    final names = _themeNames[themeId];
+    if (names == null) return themeId;
+    return DynamicLocalizationHelper.getText(names);
+  }
+
+  Future<void> _showThemePickerSheet() async {
+    final textColor = widget.themeConfig.textColor;
+    final selectedId = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: widget.themeConfig.backgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, -4))],
+        ),
+        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(ctx).padding.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: textColor.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              DynamicLocalizationHelper.getText({'tr': 'Tema seçin', 'en': 'Choose theme', 'ar': 'اختر السمة', 'id': 'Pilih tema', 'fr': 'Choisir le thème', 'zh': '选择主题', 'ja': 'テーマを選択', 'ru': 'Выберите тему', 'de': 'Design wählen'}),
+              style: GoogleFonts.notoSans(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.35,
+              children: [
+                _buildThemeCardForSheet('ocean_blue', ctx),
+                _buildThemeCardForSheet('emerald_green', ctx),
+                _buildThemeCardForSheet('rose_pink', ctx),
+                _buildThemeCardForSheet('pure_dark', ctx),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selectedId != null && mounted) _changeTheme(selectedId);
+  }
+
+  Widget _buildThemeCardForSheet(String themeId, BuildContext sheetContext) {
+    final name = _getThemeDisplayName(themeId);
+    final isSelected = _currentTheme.id == themeId;
+    final theme = AppThemes.getThemeForMode(themeId, _isDarkMode);
+    final gradient = theme.backgroundGradient;
+    return GestureDetector(
+      onTap: () => Navigator.of(sheetContext).pop(themeId),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: theme.primaryColor.withValues(alpha: isSelected ? 0.35 : 0.15),
+              blurRadius: isSelected ? 14 : 8,
+              offset: const Offset(0, 4),
+              spreadRadius: isSelected ? 1 : 0,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(gradient: gradient),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.65)],
+                      ),
+                    ),
+                    child: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.notoSans(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        shadows: [Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 4, offset: const Offset(0, 1))],
+                      ),
+                    ),
+                  ),
+                ),
+                if (isSelected)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6, offset: const Offset(0, 2))],
+                      ),
+                      child: Icon(Icons.check_rounded, size: 18, color: theme.primaryColor),
+                    ),
+                  ),
+                if (isSelected)
+                  Positioned.fill(
+                    child: Container(
+                      margin: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(17),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 2.5),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildThemeSection() {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -176,94 +327,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child:               _buildThemeOption('ocean_blue', DynamicLocalizationHelper.getText({
-                  'tr': 'Gece Yarısı',
-                  'en': 'Midnight Blue',
-                  'ar': 'منتصف الليل',
-                  'id': 'Tengah Malam',
-                  'ur': 'نصف شب',
-                  'bn': 'মধ্যরাত্রি',
-                  'ms': 'Tengah Malam',
-                  'fa': 'نیمه‌شب',
-                  'fr': 'Minuit',
-                  'zh': '午夜',
-                  'ja': 'ミッドナイト',
-                  'ru': 'Полночь',
-                  'de': 'Mitternacht',
-                  'sw': 'Usiku wa Manane',
-                  'ha': 'Tsakar Dare',
-                })),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: _showThemePickerSheet,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      gradient: AppThemes.getThemeForMode(_currentTheme.id, _isDarkMode).backgroundGradient,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _currentTheme.primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: _currentTheme.id == 'pure_dark'
+                        ? null
+                        : Icon(Icons.palette_outlined, color: Colors.white.withValues(alpha: 0.9), size: 26),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _getThemeDisplayName(_currentTheme.id),
+                          style: GoogleFonts.notoSans(
+                            color: widget.themeConfig.textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DynamicLocalizationHelper.getText({'tr': 'Dokunun ve tema seçin', 'en': 'Tap to choose theme', 'ar': 'انقر لاختيار السمة', 'id': 'Ketuk untuk memilih tema', 'fr': 'Appuyez pour choisir', 'zh': '点击选择主题', 'ja': 'タップしてテーマを選択', 'ru': 'Нажмите для выбора', 'de': 'Tippen zum Auswählen'}),
+                          style: GoogleFonts.notoSans(color: widget.themeConfig.textColor.withValues(alpha: 0.65), fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: widget.themeConfig.textColor.withValues(alpha: 0.6), size: 28),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child:               _buildThemeOption('emerald_green', DynamicLocalizationHelper.getText({
-                  'tr': 'Zümrüt Ormanı',
-                  'en': 'Emerald Forest',
-                  'ar': AppThemes.getTheme('emerald_green').nameAr,
-                  'id': AppThemes.getTheme('emerald_green').nameId,
-                  'ur': AppThemes.getTheme('emerald_green').nameUr,
-                  'bn': AppThemes.getTheme('emerald_green').nameBn,
-                  'ms': AppThemes.getTheme('emerald_green').nameMs,
-                  'fa': AppThemes.getTheme('emerald_green').nameFa,
-                  'fr': AppThemes.getTheme('emerald_green').nameFr,
-                  'zh': AppThemes.getTheme('emerald_green').nameZh,
-                  'ja': AppThemes.getTheme('emerald_green').nameJa,
-                  'ru': AppThemes.getTheme('emerald_green').nameRu,
-                  'de': AppThemes.getTheme('emerald_green').nameDe,
-                  'sw': AppThemes.getTheme('emerald_green').nameSw,
-                  'ha': AppThemes.getTheme('emerald_green').nameHa,
-                })),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child:               _buildThemeOption('rose_pink', DynamicLocalizationHelper.getText({
-                  'tr': 'Gül Bahçesi',
-                  'en': 'Rose Garden',
-                  'ar': AppThemes.getTheme('rose_pink').nameAr,
-                  'id': AppThemes.getTheme('rose_pink').nameId,
-                  'ur': AppThemes.getTheme('rose_pink').nameUr,
-                  'bn': AppThemes.getTheme('rose_pink').nameBn,
-                  'ms': AppThemes.getTheme('rose_pink').nameMs,
-                  'fa': AppThemes.getTheme('rose_pink').nameFa,
-                  'fr': AppThemes.getTheme('rose_pink').nameFr,
-                  'zh': AppThemes.getTheme('rose_pink').nameZh,
-                  'ja': AppThemes.getTheme('rose_pink').nameJa,
-                  'ru': AppThemes.getTheme('rose_pink').nameRu,
-                  'de': AppThemes.getTheme('rose_pink').nameDe,
-                  'sw': AppThemes.getTheme('rose_pink').nameSw,
-                  'ha': AppThemes.getTheme('rose_pink').nameHa,
-                })),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildThemeOption('pure_dark', DynamicLocalizationHelper.getText({
-                  'tr': 'Koyu',
-                  'en': 'Dark',
-                  'ar': 'داكن',
-                  'id': 'Gelap',
-                  'ur': 'گہرا',
-                  'bn': 'ডার্ক',
-                  'ms': 'Gelap',
-                  'fa': 'تیره',
-                  'fr': 'Sombre',
-                  'zh': '深色',
-                  'ja': 'ダーク',
-                  'ru': 'Тёмный',
-                  'de': 'Dunkel',
-                  'sw': 'Giza',
-                  'ha': 'Duhu',
-                })),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          Text(
+            DynamicLocalizationHelper.getText({'tr': 'Görünüm', 'en': 'Appearance', 'ar': 'مظهر', 'id': 'Tampilan', 'fr': 'Apparence', 'zh': '外观', 'ja': '表示', 'ru': 'Вид', 'de': 'Darstellung'}),
+            style: GoogleFonts.notoSans(
+              color: widget.themeConfig.textColor.withValues(alpha: 0.85),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
-              _buildThemeModeChip(
+              Expanded(child: _buildThemeModeChip(
                 'system',
                 DynamicLocalizationHelper.getText({
                   'tr': 'Sistem',
@@ -282,9 +410,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   'sw': 'Mfumo',
                   'ha': 'Tsari',
                 }),
-              ),
+              )),
               const SizedBox(width: 8),
-              _buildThemeModeChip(
+              Expanded(child: _buildThemeModeChip(
                 'light',
                 DynamicLocalizationHelper.getText({
                   'tr': 'Açık',
@@ -303,16 +431,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   'sw': 'Nuru',
                   'ha': 'Haske',
                 }),
-              ),
+              )),
               const SizedBox(width: 8),
-              _buildThemeModeChip(
+              Expanded(child: _buildThemeModeChip(
                 'dark',
                 DynamicLocalizationHelper.getText({
-                  'tr': 'Koyu Mod',
-                  'en': 'Dark Mode',
+                  'tr': 'Koyu',
+                  'en': 'Dark',
                   'ar': 'الوضع الداكن',
                   'id': 'Mode Gelap',
-                  'ur': 'ڈারک موڈ',
+                  'ur': 'ڈارک موڈ',
                   'bn': 'ডার্ক মোড',
                   'ms': 'Mod Gelap',
                   'fa': 'حالت تیره',
@@ -324,7 +452,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   'sw': 'Hali ya giza',
                   'ha': 'Yanayin duhu',
                 }),
-              ),
+              )),
             ],
           ),
         ],
@@ -332,7 +460,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+
+  static const Map<String, String> _languageNames = {
+    'tr': '🇹🇷 Türkçe',
+    'en': '🇬🇧 English',
+    'ar': '🇸🇦 العربية',
+    'id': '🇮🇩 Bahasa Indonesia',
+    'ur': '🇵🇰 اردو',
+    'bn': '🇧🇩 বাংলা',
+    'ms': '🇲🇾 Bahasa Melayu',
+    'fa': '🇮🇷 فارسی',
+    'fr': '🇫🇷 Français',
+    'zh': '🇨🇳 中文',
+    'ja': '🇯🇵 日本語',
+    'ru': '🇷🇺 Русский',
+    'de': '🇩🇪 Deutsch',
+    'sw': '🇰🇪 Swahili',
+    'ha': '🇳🇬 Hausa',
+  };
+
+  Future<void> _showLanguagePickerSheet() async {
+    final textColor = widget.themeConfig.textColor;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: widget.themeConfig.backgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, -4))],
+        ),
+        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(ctx).padding.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: textColor.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.localizations.language,
+              style: GoogleFonts.notoSans(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildLanguageOption('tr', '🇹🇷 Türkçe', onTap: () { Navigator.pop(ctx); _changeLanguage('tr'); }),
+                    _buildLanguageOption('en', '🇬🇧 English', onTap: () { Navigator.pop(ctx); _changeLanguage('en'); }),
+                    _buildLanguageOption('ar', '🇸🇦 العربية', onTap: () { Navigator.pop(ctx); _changeLanguage('ar'); }),
+                    _buildLanguageOption('id', '🇮🇩 Bahasa Indonesia', onTap: () { Navigator.pop(ctx); _changeLanguage('id'); }),
+                    _buildLanguageOption('ur', '🇵🇰 اردو', onTap: () { Navigator.pop(ctx); _changeLanguage('ur'); }),
+                    _buildLanguageOption('bn', '🇧🇩 বাংলা', onTap: () { Navigator.pop(ctx); _changeLanguage('bn'); }),
+                    _buildLanguageOption('ms', '🇲🇾 Bahasa Melayu', onTap: () { Navigator.pop(ctx); _changeLanguage('ms'); }),
+                    _buildLanguageOption('fa', '🇮🇷 فارسی', onTap: () { Navigator.pop(ctx); _changeLanguage('fa'); }),
+                    _buildLanguageOption('fr', '🇫🇷 Français', onTap: () { Navigator.pop(ctx); _changeLanguage('fr'); }),
+                    _buildLanguageOption('zh', '🇨🇳 中文', onTap: () { Navigator.pop(ctx); _changeLanguage('zh'); }),
+                    _buildLanguageOption('ja', '🇯🇵 日本語', onTap: () { Navigator.pop(ctx); _changeLanguage('ja'); }),
+                    _buildLanguageOption('ru', '🇷🇺 Русский', onTap: () { Navigator.pop(ctx); _changeLanguage('ru'); }),
+                    _buildLanguageOption('de', '🇩🇪 Deutsch', onTap: () { Navigator.pop(ctx); _changeLanguage('de'); }),
+                    _buildLanguageOption('sw', '🇰🇪 Swahili', onTap: () { Navigator.pop(ctx); _changeLanguage('sw'); }),
+                    _buildLanguageOption('ha', '🇳🇬 Hausa', onTap: () { Navigator.pop(ctx); _changeLanguage('ha'); }),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLanguageSection() {
+    final currentName = _languageNames[_currentLanguage] ?? _currentLanguage;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -351,57 +560,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildLanguageOption('tr', '🇹🇷 Türkçe'),
-              _buildLanguageOption('en', '🇬🇧 English'),
-              _buildLanguageOption('ar', '🇸🇦 العربية'),
-              _buildLanguageOption('id', '🇮🇩 Bahasa Indonesia'),
-              _buildLanguageOption('ur', '🇵🇰 اردو'),
-              _buildLanguageOption('bn', '🇧🇩 বাংলা'),
-              _buildLanguageOption('ms', '🇲🇾 Bahasa Melayu'),
-              _buildLanguageOption('fa', '🇮🇷 فارسی'),
-              _buildLanguageOption('fr', '🇫🇷 Français'),
-              _buildLanguageOption('zh', '🇨🇳 中文'),
-              _buildLanguageOption('ja', '🇯🇵 日本語'),
-              _buildLanguageOption('ru', '🇷🇺 Русский'),
-              _buildLanguageOption('de', '🇩🇪 Deutsch'),
-              _buildLanguageOption('sw', '🇰🇪 Swahili'),
-              _buildLanguageOption('ha', '🇳🇬 Hausa'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildThemeOption(String themeId, String name) {
-    final isSelected = _currentTheme.id == themeId;
-    final textColor = widget.themeConfig.textColor;
-    final borderColor = textColor.withValues(alpha: isSelected ? 0.9 : 0.4);
-    return GestureDetector(
-      onTap: () => _changeTheme(themeId),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        decoration: BoxDecoration(
-          color: textColor.withValues(alpha: isSelected ? 0.2 : 0.08),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1.2),
-        ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            name,
-            style: GoogleFonts.notoSans(
-              color: textColor,
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: _showLanguagePickerSheet,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: widget.themeConfig.textColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _currentLanguage.toUpperCase(),
+                        style: GoogleFonts.notoSans(
+                          color: widget.themeConfig.textColor.withValues(alpha: 0.9),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentName,
+                          style: GoogleFonts.notoSans(
+                            color: widget.themeConfig.textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DynamicLocalizationHelper.getText({'tr': 'Dokunun ve dil seçin', 'en': 'Tap to choose language', 'ar': 'انقر لاختيار اللغة', 'id': 'Ketuk untuk memilih bahasa', 'fr': 'Appuyez pour choisir la langue', 'zh': '点击选择语言', 'ja': 'タップして言語を選択', 'ru': 'Нажмите для выбора языка', 'de': 'Tippen zum Sprachwechsel'}),
+                          style: GoogleFonts.notoSans(color: widget.themeConfig.textColor.withValues(alpha: 0.65), fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: widget.themeConfig.textColor.withValues(alpha: 0.6), size: 28),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -410,26 +621,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isSelected = _themeModeSelection == mode;
     final textColor = widget.themeConfig.textColor;
     final borderColor = textColor.withValues(alpha: isSelected ? 0.9 : 0.4);
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _changeThemeMode(mode),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: textColor.withValues(alpha: isSelected ? 0.2 : 0.08),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: borderColor, width: 1.2),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.notoSans(
-                color: textColor,
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              ),
+    return GestureDetector(
+      onTap: () => _changeThemeMode(mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: textColor.withValues(alpha: isSelected ? 0.2 : 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1.2),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.notoSans(
+              color: textColor,
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             ),
           ),
         ),
@@ -437,10 +646,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildLanguageOption(String code, String name) {
+  Widget _buildLanguageOption(String code, String name, {VoidCallback? onTap}) {
     final isSelected = _currentLanguage == code;
     return GestureDetector(
-      onTap: () => _changeLanguage(code),
+      onTap: onTap ?? () => _changeLanguage(code),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
