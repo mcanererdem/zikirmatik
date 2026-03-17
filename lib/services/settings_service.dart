@@ -244,6 +244,7 @@ class SettingsService {
     await prefs.setBool(_reminderEnabledKey, enabled);
   }
 
+  /// Hatırlatıcı (bildirim) — varsayılan: kapalı (pasif).
   Future<bool> getReminderEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_reminderEnabledKey) ?? false;
@@ -337,6 +338,7 @@ class SettingsService {
     await prefs.setBool(_showInLeaderboardKey, value);
   }
 
+  /// Liderlik tablosunda görünme — varsayılan: kapalı (pasif).
   Future<bool> getShowInLeaderboard() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_showInLeaderboardKey) ?? false;

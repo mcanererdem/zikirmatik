@@ -210,12 +210,12 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final dialogHeight = screenHeight * 0.85;
+    final dialogHeight = screenHeight * 0.9; // biraz daha yüksek
     
     return Dialog(
       backgroundColor: widget.themeConfig.primaryColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
         constraints: BoxConstraints(
           maxHeight: dialogHeight,
@@ -233,9 +233,9 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
+            // Header (biraz daha kompakt)
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Row(
                 children: [
                   Icon(
@@ -273,10 +273,10 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               ),
             ),
             
-            // Content
+            // Content (mevcut kaydırma alanı)
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,9 +378,9 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               ),
             ),
             const SizedBox(height: 12),
-            // Bottom buttons
+            // Bottom buttons (daha az dikey padding)
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               child: Row(
                 children: [
                   Expanded(

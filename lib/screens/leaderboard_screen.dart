@@ -34,8 +34,27 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   late AnimationController _fadeAnimationController;
   late Animation<double> _fadeAnimation;
   String _selectedPeriod = 'all'; // all, daily, weekly, monthly
-  
+  bool _showOfflineBanner = false;
+  bool _offlineBannerAlreadyShown = false; // Sadece ilk ağ hatasında bir kez göster
+
   final SupabaseService _supabaseService = SupabaseService();
+
+  /// Önbellek: sayfa her açıldığında yeniden indirmemek için (dönem -> liste).
+  static final Map<String, List<Map<String, dynamic>>> _leaderboardCache = {};
+  static const Duration _cacheMaxAge = Duration(minutes: 5);
+  static final Map<String, DateTime> _leaderboardCacheTime = {};
+
+  static bool _isNetworkError(dynamic e) {
+    final s = e.toString().toLowerCase();
+    return s.contains('socketexception') ||
+        s.contains('host lookup') ||
+        s.contains('no address associated') ||
+        s.contains('connection') ||
+        s.contains('network') ||
+        s.contains('failed host lookup') ||
+        s.contains('connection refused') ||
+        s.contains('timed out');
+  }
 
   @override
   void initState() {
@@ -69,20 +88,81 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Future<void> _refreshLeaderboard() async {
-    setState(() => _isLoading = true);
+    _leaderboardCache.remove(_selectedPeriod);
+    _leaderboardCacheTime.remove(_selectedPeriod);
+    setState(() {
+      _isLoading = true;
+      _showOfflineBanner = false;
+    });
     _slideAnimationController.reset();
     _fadeAnimationController.reset();
     await _loadLeaderboard();
   }
 
+  /// Ham listeyi mevcut kullanıcı zikri/rank ile birleştirip state günceller. Önbelleğe yazmaz.
+  Future<void> _applyLeaderboardData(List<Map<String, dynamic>> rawList) async {
+    if (!mounted) return;
+    final currentUuid = _supabaseService.toUuid(widget.currentUserId);
+    final prefs = await SharedPreferences.getInstance();
+    final currentUserZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+    List<Map<String, dynamic>> leaderboardData = List<Map<String, dynamic>>.from(rawList);
+
+    final existingUserIndex = leaderboardData.indexWhere(
+      (user) => user['user_id'] == widget.currentUserId || user['user_id'] == currentUuid,
+    );
+    Map<String, dynamic> currentUserProfile;
+    if (existingUserIndex != -1) {
+      currentUserProfile = Map<String, dynamic>.from(leaderboardData[existingUserIndex]);
+      currentUserProfile['total_zikrs'] = currentUserZikrs;
+      leaderboardData[existingUserIndex] = currentUserProfile;
+    } else {
+      currentUserProfile = {
+        'user_id': widget.currentUserId,
+        'username': 'User_${widget.currentUserId.length >= 8 ? widget.currentUserId.substring(0, 8) : widget.currentUserId}',
+        'display_name': 'Zikir Çalışanı',
+        'total_zikrs': currentUserZikrs,
+        'rank': 999,
+      };
+      leaderboardData.add(currentUserProfile);
+    }
+    leaderboardData.sort((a, b) => (b['total_zikrs'] as int).compareTo(a['total_zikrs'] as int));
+    final userRank = leaderboardData.indexWhere((u) => u['user_id'] == widget.currentUserId || u['user_id'] == currentUuid) + 1;
+    currentUserProfile['rank'] = userRank;
+
+    if (!mounted) return;
+    setState(() {
+      _leaderboardData = leaderboardData;
+      _leaderboard = leaderboardData;
+      _currentUserProfile = currentUserProfile;
+      _currentUserRank = userRank;
+      _isLoading = false;
+      _showOfflineBanner = false;
+      _offlineBannerAlreadyShown = false;
+    });
+    _slideAnimationController.forward();
+    _fadeAnimationController.forward();
+  }
+
   Future<void> _loadLeaderboard({String? period}) async {
     final effectivePeriod = period ?? _selectedPeriod;
+    final cached = _leaderboardCache[effectivePeriod];
+    final cacheValid = cached != null &&
+        cached.isNotEmpty &&
+        (DateTime.now().difference(_leaderboardCacheTime[effectivePeriod]!) <= _cacheMaxAge);
+
+    if (cacheValid) {
+      await _applyLeaderboardData(List<Map<String, dynamic>>.from(cached));
+      return;
+    }
+
+    final hadCache = cached != null && cached.isNotEmpty;
+    if (hadCache) {
+      await _applyLeaderboardData(List<Map<String, dynamic>>.from(cached));
+    } else {
+      setState(() => _isLoading = true);
+    }
+
     try {
-      final currentUuid = _supabaseService.toUuid(widget.currentUserId);
-      print('=== LEADERBOARD DEBUG ===');
-      print('Loading leaderboard from Supabase (period: $effectivePeriod)...');
-      print('Current User ID: ${widget.currentUserId}');
-      
       List<Map<String, dynamic>> leaderboardData;
       switch (effectivePeriod) {
         case 'all':
@@ -100,65 +180,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         default:
           leaderboardData = await _supabaseService.getDailyLeaderboard(limit: 50);
       }
-      // Not: "Tüm Zamanlar"da tek kişi görünüyorsa Supabase'de users tablosu için
-      // "Public can read users for leaderboard" RLS politikasının tanımlı olduğundan emin olun (supabase_schema.sql).
-      print('Supabase returned ${leaderboardData.length} users');
-      
-      final prefs = await SharedPreferences.getInstance();
-      final currentUserZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
-      
-      print('Current user local zikrs: $currentUserZikrs');
-      
-      final existingUserIndex = leaderboardData.indexWhere(
-        (user) => user['user_id'] == widget.currentUserId || user['user_id'] == currentUuid,
-      );
-      
-      Map<String, dynamic> currentUserProfile;
-      
-      if (existingUserIndex != -1) {
-        currentUserProfile = leaderboardData[existingUserIndex];
-        currentUserProfile['total_zikrs'] = currentUserZikrs;
-      } else {
-        currentUserProfile = {
-          'user_id': widget.currentUserId,
-          'username': 'User_${widget.currentUserId.substring(0, 8)}',
-          'display_name': 'Zikir Çalışanı',
-          'total_zikrs': currentUserZikrs,
-          'rank': 999,
-        };
-        leaderboardData.add(currentUserProfile);
-      }
-      
-      // Sıralamayı yeniden hesapla
-      leaderboardData.sort((a, b) => (b['total_zikrs'] as int).compareTo(a['total_zikrs'] as int));
-      
-      final userRank = leaderboardData.indexWhere((user) => user['user_id'] == widget.currentUserId || user['user_id'] == currentUuid) + 1;
-      currentUserProfile['rank'] = userRank;
-      
-      final listForDisplay = List<Map<String, dynamic>>.from(leaderboardData);
-      setState(() {
-        _leaderboardData = listForDisplay;
-        _leaderboard = listForDisplay;
-        _currentUserProfile = currentUserProfile;
-        _currentUserRank = userRank;
-        _isLoading = false;
-      });
-
-      _slideAnimationController.forward();
-      _fadeAnimationController.forward();
-
-      print('=== LEADERBOARD DEBUG RESULTS ===');
-      print('Total users in leaderboard: ${listForDisplay.length}');
-      print('Current user zikrs: $currentUserZikrs');
-      print('Current user rank: $userRank');
-      print('Current user in list: ${existingUserIndex != -1 ? "YES" : "NO"}');
-      print('==============================');
+      if (!mounted) return;
+      _leaderboardCache[effectivePeriod] = List<Map<String, dynamic>>.from(leaderboardData);
+      _leaderboardCacheTime[effectivePeriod] = DateTime.now();
+      await _applyLeaderboardData(leaderboardData);
     } catch (e) {
-      print('=== LEADERBOARD ERROR ===');
-      print('Error loading leaderboard from Supabase: $e');
-      print('Falling back to local data...');
-      print('========================');
-      // Supabase hata verirse local verileri kullan
+      if (_isNetworkError(e) && mounted && !_offlineBannerAlreadyShown) {
+        setState(() {
+          _showOfflineBanner = true;
+          _offlineBannerAlreadyShown = true;
+        });
+      }
+      if (hadCache && mounted) {
+        setState(() => _isLoading = false);
+        return;
+      }
       _loadLocalLeaderboard();
     }
   }
@@ -201,6 +237,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         _currentUserProfile = currentUserProfile;
         _currentUserRank = userRank;
         _isLoading = false;
+        // _showOfflineBanner zaten catch'te set edildi
       });
       
       print('=== LOCAL LEADERBOARD RESULTS ===');
@@ -255,6 +292,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         ),
         child: Column(
           children: [
+            if (_showOfflineBanner) _buildOfflineBanner(),
             _buildPeriodSelector(),
             _buildPeriodLabel(),
             Expanded(
@@ -285,6 +323,78 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildOfflineBanner() {
+    final closeLabel = DynamicLocalizationHelper.getText({
+      'tr': 'Kapat',
+      'en': 'Dismiss',
+      'ar': 'إغلاق',
+      'id': 'Tutup',
+      'fa': 'بستن',
+      'zh': '关闭',
+      'ja': '閉じる',
+      'ru': 'Закрыть',
+      'de': 'Schließen',
+    });
+    final content = Material(
+      color: Colors.orange.shade800,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Icon(Icons.wifi_off, color: Colors.white, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _showOfflineBanner = false),
+                  child: Text(
+                    DynamicLocalizationHelper.getText({
+                      'tr': 'İnternet kapalı veya ayarlardan sıralama kapatılmış olabilir. Wi‑Fi/veriyi açın veya Ayarlar\'da kontrol edin.',
+                      'en': 'Internet may be off or leaderboard disabled in settings. Turn on Wi‑Fi/mobile data or check Settings.',
+                      'ar': 'قد يكون الإنترنت مغلقاً أو تم تعطيل لوحة المتصدرين من الإعدادات. شغّل Wi‑Fi/البيانات أو تحقق من الإعدادات.',
+                      'id': 'Internet mungkin mati atau papan peringkat dinonaktifkan di pengaturan. Nyalakan Wi‑Fi/data atau periksa Pengaturan.',
+                      'fa': 'اینترنت خاموش است یا جدول امتیازات در تنظیمات غیرفعال است. وای‌فای/داده را روشن کنید یا تنظیمات را بررسی کنید.',
+                      'zh': '可能未联网或已在设置中关闭排行榜。请开启 Wi‑Fi/移动数据或检查设置。',
+                      'ja': 'インターネットがオフか、設定でランキングが無効です。Wi‑Fi/モバイルデータをオンにするか設定を確認してください。',
+                      'ru': 'Возможно, интернет выключен или таблица лидеров отключена в настройках. Включите Wi‑Fi/мобильные данные или проверьте настройки.',
+                      'de': 'Internet ist aus oder Bestenliste in Einstellungen deaktiviert. Wi‑Fi/Mobildaten einschalten oder Einstellungen prüfen.',
+                    }),
+                    style: GoogleFonts.notoSans(fontSize: 13, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => setState(() => _showOfflineBanner = false),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Text(closeLabel, style: GoogleFonts.notoSans(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.close, color: Colors.white, size: 20),
+                onPressed: () => setState(() => _showOfflineBanner = false),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    return Dismissible(
+      key: const ValueKey('offline_banner'),
+      direction: DismissDirection.up,
+      onDismissed: (_) => setState(() => _showOfflineBanner = false),
+      child: content,
     );
   }
 

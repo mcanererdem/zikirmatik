@@ -307,6 +307,7 @@ class SupabaseService {
         }).toList();
       } catch (fallbackError) {
         print('Fallback leaderboard also failed: $fallbackError');
+        if (_isNetworkError(e) || _isNetworkError(fallbackError)) rethrow;
         return [];
       }
     }
@@ -339,7 +340,25 @@ class SupabaseService {
       }).toList();
     } catch (e) {
       print('Error getting weekly leaderboard: $e');
-      return [];
+      try {
+        final response = await _supabase
+            .from('users')
+            .select('id, username, display_name, avatar_url, total_zikrs')
+            .order('total_zikrs', ascending: false)
+            .limit(limit);
+        final users = List<Map<String, dynamic>>.from(response);
+        return users.map((user) => {
+          'user_id': _idToString(user['id']),
+          'username': user['username'],
+          'display_name': user['display_name'],
+          'avatar_url': user['avatar_url'],
+          'total_zikrs': user['total_zikrs'] ?? 0,
+        }).toList();
+      } catch (fallbackError) {
+        print('Fallback weekly leaderboard also failed: $fallbackError');
+        if (_isNetworkError(e) || _isNetworkError(fallbackError)) rethrow;
+        return [];
+      }
     }
   }
 
@@ -370,7 +389,25 @@ class SupabaseService {
       }).toList();
     } catch (e) {
       print('Error getting monthly leaderboard: $e');
-      return [];
+      try {
+        final response = await _supabase
+            .from('users')
+            .select('id, username, display_name, avatar_url, total_zikrs')
+            .order('total_zikrs', ascending: false)
+            .limit(limit);
+        final users = List<Map<String, dynamic>>.from(response);
+        return users.map((user) => {
+          'user_id': _idToString(user['id']),
+          'username': user['username'],
+          'display_name': user['display_name'],
+          'avatar_url': user['avatar_url'],
+          'total_zikrs': user['total_zikrs'] ?? 0,
+        }).toList();
+      } catch (fallbackError) {
+        print('Fallback monthly leaderboard also failed: $fallbackError');
+        if (_isNetworkError(e) || _isNetworkError(fallbackError)) rethrow;
+        return [];
+      }
     }
   }
 
@@ -413,6 +450,17 @@ class SupabaseService {
     } catch (_) {}
   }
 
+  static bool _isNetworkError(dynamic e) {
+    final s = e.toString().toLowerCase();
+    return s.contains('socketexception') ||
+        s.contains('host lookup') ||
+        s.contains('no address associated') ||
+        s.contains('connection') ||
+        s.contains('failed host lookup') ||
+        s.contains('connection refused') ||
+        s.contains('timed out');
+  }
+
   /// Tüm zamanlar sıralaması: Önce RPC (tüm kullanıcılar), yoksa/hatada tablo SELECT
   Future<List<Map<String, dynamic>>> getAllTimeLeaderboard({int limit = 50}) async {
     if (!_isInitialized) return [];
@@ -452,6 +500,7 @@ class SupabaseService {
         }).toList();
     } catch (e) {
       print('Error getting all-time leaderboard: $e');
+      if (_isNetworkError(e)) rethrow;
       return [];
     }
   }

@@ -2,7 +2,7 @@ name: zikirmatik_app
 description: A modern and user-friendly zikirmatik application.
 author: Caner Erdem
 publish_to: 'none'
-version: 1.1.0+12
+version: 1.2.1+14
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -44,11 +44,17 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
+
+  fonts:
+    - family: Noto Sans
+      fonts:
+        - asset: assets/fonts/NotoSans-Variable.ttf
+
   assets:
     - assets/sounds/click.mp3
     - assets/icons/white_misbah.png
     - assets/backgrounds/
+    - assets/fonts/
 
 flutter_launcher_icons:
   android: true

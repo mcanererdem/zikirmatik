@@ -680,7 +680,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.localizations.notifications,
+            DynamicLocalizationHelper.getText({
+              'tr': 'Bildirimler',
+              'en': 'Notifications',
+              'ar': 'الإشعارات',
+              'id': 'Notifikasi',
+              'fa': 'اعلان‌ها',
+              'zh': '通知',
+              'ja': '通知',
+              'ru': 'Уведомления',
+              'de': 'Benachrichtigungen',
+            }),
             style: GoogleFonts.notoSans(
               color: widget.themeConfig.textColor,
               fontSize: 18,
@@ -690,13 +700,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           SwitchListTile(
             title: Text(
-              widget.localizations.reminders,
+              DynamicLocalizationHelper.getText({
+                'tr': 'Hatırlatıcılar',
+                'en': 'Reminders',
+                'ar': 'التذكيرات',
+                'id': 'Pengingat',
+                'fa': 'یادآورها',
+                'zh': '提醒',
+                'ja': 'リマインダー',
+                'ru': 'Напоминания',
+                'de': 'Erinnerungen',
+              }),
               style: GoogleFonts.notoSans(
                 color: widget.themeConfig.textColor,
               ),
             ),
             subtitle: Text(
-              widget.localizations.dhikrReminders,
+              DynamicLocalizationHelper.getText({
+                'tr': 'Zikir hatırlatıcıları',
+                'en': 'Dhikr reminders',
+                'ar': 'تذكيرات الذكر',
+                'id': 'Pengingat Dhikr',
+                'fa': 'یادآور ذکر',
+                'zh': '赞念提醒',
+                'ja': 'ズィクルリマインダー',
+                'ru': 'Напоминания о зикре',
+                'de': 'Dhikr-Erinnerungen',
+              }),
               style: GoogleFonts.notoSans(
                 color: widget.themeConfig.textColor.withOpacity(0.7),
                 fontSize: 12,
@@ -715,7 +745,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: Icon(Icons.schedule, color: widget.themeConfig.accentColor, size: 22),
             title: Text(
-              widget.localizations.setReminder,
+              DynamicLocalizationHelper.getText({
+                'tr': 'Hatırlatıcı Ayarla',
+                'en': 'Set Reminder',
+                'ar': 'تعيين تذكير',
+                'id': 'Atur Pengingat',
+                'fa': 'تنظیم یادآور',
+                'zh': '设置提醒',
+                'ja': 'リマインダー設定',
+                'ru': 'Установить напоминание',
+                'de': 'Erinnerung festlegen',
+              }),
               style: GoogleFonts.notoSans(
                 color: widget.themeConfig.textColor,
                 fontSize: 15,

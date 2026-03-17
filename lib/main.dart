@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -46,9 +47,14 @@ void backgroundCallback(Uri? uri) async {
   }
 }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  HomeWidget.registerInteractivityCallback(backgroundCallback);
+void main() {
+  // Zone uyumsuzluğunu önlemek için binding ve runApp aynı zone içinde olmalı.
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    // allowRuntimeFetching = true: İnternet varken fonts.gstatic.com'dan yüklenir. Yoksa zone hata yakalar.
+    GoogleFonts.config.allowRuntimeFetching = true;
+
+    HomeWidget.registerInteractivityCallback(backgroundCallback);
 
   tz.initializeTimeZones();
   try {
@@ -116,12 +122,23 @@ void main() async {
   runApp(const MyApp());
 
   // Initialize AdMob in background (don't await here to avoid blocking UI).
-  // Configure test device(s) to ensure test ads are returned while developing.
   MobileAds.instance.updateRequestConfiguration(
     RequestConfiguration(testDeviceIds: [
       '877E869F3262F1F3869B6957DB237A75', // device id shown in logs
     ]),
   ).then((_) => MobileAds.instance.initialize());
+  }, (error, stack) {
+    final msg = error.toString();
+    if (msg.contains('Failed to load font') ||
+        msg.contains('fonts.gstatic.com') ||
+        msg.contains('hostname') ||
+        msg.contains('was not found in the application assets') ||
+        msg.contains('GoogleFonts.config')) {
+      debugPrint('Font yükleme atlandı: $error');
+      return;
+    }
+    throw error;
+  });
 }
 
 class MyApp extends StatefulWidget {

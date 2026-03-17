@@ -88,6 +88,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   ThemeConfig _currentTheme = AppThemes.getTheme('dark_blue');
   String _currentLanguage = 'en';
   String _currentUserId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+  String? _profileDisplayName; // Profil/görünen ad (header'da gösterilecek)
   late AppLocalizations _localizations;
   List<Goal> _goals = [];
   Map<String, dynamic>? _lastStreakInfo;
@@ -231,6 +232,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final prefs = await SharedPreferences.getInstance();
     final animationSpeed = prefs.getInt('animation_speed') ?? 0;
     final currentLanguage = prefs.getString('language') ?? 'tr';
+    // Profil/görünen ad: profil ekranında düzenlenen değer
+    _profileDisplayName = prefs.getString('display_name_$_currentUserId');
     
     print('🏠 HomePage _loadSettings:');
     print('🏠 languageCode from settings: $languageCode');
@@ -668,8 +671,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       
       print('Checking achievements for $totalZikrs zikrs');
       
-      // Leaderboard senkronizasyonu kontrolü
-      final leaderboardEnabled = prefs.getBool('leaderboard_enabled') ?? true;
+      // Leaderboard senkronizasyonu (varsayılan: kapalı)
+      final leaderboardEnabled = await _settingsService.getShowInLeaderboard();
       if (leaderboardEnabled) {
         // Batch sync kullan - her 5 dakikada bir veya 10 zikir biriktiğinde
         // Aktif sayaç değiştiğinde batch sync tetikle
@@ -989,6 +992,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   String _getProfileDisplayName() {
+    // Kullanıcı profil ekranında "Görünen ad"ı ayarladıysa onu göster,
+    // aksi halde yerelleştirilmiş varsayılan başlığı kullan.
+    if (_profileDisplayName != null && _profileDisplayName!.trim().isNotEmpty) {
+      return _profileDisplayName!;
+    }
     return DynamicLocalizationHelper.getText({
       'tr': 'Zikir Çalışanı',
       'en': 'Dhikr Practitioner',
@@ -1695,13 +1703,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
   Future<void> _batchSyncToLeaderboard() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final leaderboardEnabled = prefs.getBool('leaderboard_enabled') ?? true;
-      
+      final leaderboardEnabled = await _settingsService.getShowInLeaderboard();
       if (!leaderboardEnabled) {
         return;
       }
-
+      final prefs = await SharedPreferences.getInstance();
       final lastSync = prefs.getInt('last_sync_count_$_currentUserId') ?? 0;
       final currentCount = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
       

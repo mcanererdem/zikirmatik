@@ -83,21 +83,20 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _startAnimations() async {
-    // Logo animasyonu başlat
+    if (!mounted) return;
     _logoController.forward();
-    
-    // 500ms sonra text animasyonu başlat
+
     await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
     _textController.forward();
-    
-    // 1000ms sonra progress animasyonu başlat
+
     await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
     _progressController.forward();
-    
-    // 3 saniye sonra ana ekrana geç
+
     await Future.delayed(const Duration(milliseconds: 3000));
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => 
             const HomePage(),
@@ -110,7 +109,6 @@ class _SplashScreenState extends State<SplashScreen>
           transitionDuration: const Duration(milliseconds: 800),
         ),
       );
-    }
   }
 
   @override

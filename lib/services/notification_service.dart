@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
@@ -29,6 +30,15 @@ class NotificationService {
 
     // Timezone setup
     tz.initializeTimeZones();
+    try {
+      final String timezoneName = await FlutterTimezone.getLocalTimezone();
+      final location = tz.getLocation(timezoneName);
+      tz.setLocalLocation(location);
+      print('Timezone set to: $timezoneName');
+    } catch (e) {
+      // Eğer cihaz timezone bilgisini vermezse, varsayılan local kalır.
+      print('Failed to set local timezone, using default: $e');
+    }
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -61,7 +71,9 @@ class NotificationService {
       'daily_reminders',
       'Günlük Hatırlatıcılar',
       description: 'Günlük zikir hatırlatıcıları',
-      importance: Importance.high,
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
       sound: RawResourceAndroidNotificationSound('notification'),
     );
     await androidImpl?.createNotificationChannel(androidChannel);
@@ -69,8 +81,10 @@ class NotificationService {
       'zikirmatik_channel',
       'Zikirmatik Bildirimleri',
       description: 'Zikir hatırlatıcı bildirimleri',
-      importance: Importance.high,
+      importance: Importance.max,
       playSound: true,
+      enableVibration: true,
+      enableLights: true,
     );
     await androidImpl?.createNotificationChannel(zikrChannel);
     print('Bildirim kanalları oluşturuldu');
@@ -139,8 +153,8 @@ class NotificationService {
             'zikirmatik_channel',
             'Zikirmatik Bildirimleri',
             channelDescription: 'Zikir hatırlatıcı bildirimleri',
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
             icon: '@mipmap/ic_launcher',
           ),
           iOS: DarwinNotificationDetails(
@@ -273,8 +287,8 @@ class NotificationService {
             channelDescription: 'Test bildirimleri',
             icon: '@mipmap/ic_launcher',
             color: Color.fromARGB(255, 255, 152, 0),
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
             showWhen: true,
             autoCancel: true,
           ),
@@ -289,31 +303,58 @@ class NotificationService {
     }
   }
 
-  /// 10 saniye (veya verilen süre) sonra tek bir test bildirimi planlar. Uygulama kapalıyken de gelir.
+  /// 10 saniye (veya verilen süre) sonra tek bir test bildirimi planlar.
   static const int testScheduledId = 998;
+  static const int testInstantId = 997;
 
-  Future<void> scheduleTestNotificationInSeconds(int seconds) async {
+  /// Hemen bir test bildirimi gösterir (kanal ve izin testi).
+  Future<void> showInstantTestNotification() async {
     try {
-      await _notifications.cancel(testScheduledId);
-      final scheduledTime = DateTime.now().add(Duration(seconds: seconds));
-      await _notifications.zonedSchedule(
-        testScheduledId,
+      await _notifications.show(
+        testInstantId,
         'Zikirmatik Test',
-        'Bildirimler çalışıyor! ($seconds sn sonra)',
-        tz.TZDateTime.from(scheduledTime, tz.local),
+        'Bildirimler çalışıyor!',
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'zikirmatik_channel',
             'Zikirmatik Bildirimleri',
             channelDescription: 'Zikir hatırlatıcı bildirimleri',
             icon: '@mipmap/ic_launcher',
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
+          ),
+        ),
+      );
+      print('Anlık test bildirimi gösterildi');
+    } catch (e) {
+      print('Anlık test bildirimi hatası: $e');
+    }
+  }
+
+  Future<void> scheduleTestNotificationInSeconds(int seconds) async {
+    try {
+      await _notifications.cancel(testScheduledId);
+      final scheduledTime = DateTime.now().add(Duration(seconds: seconds));
+      final scheduledTz = tz.TZDateTime.from(scheduledTime, tz.local);
+      // inexactAllowWhileIdle: birçok cihazda exact kısıtlı; inexact daha az engellenir (birkaç dakika sapma olabilir)
+      await _notifications.zonedSchedule(
+        testScheduledId,
+        'Zikirmatik Test',
+        'Bildirimler çalışıyor! ($seconds sn sonra)',
+        scheduledTz,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'zikirmatik_channel',
+            'Zikirmatik Bildirimleri',
+            channelDescription: 'Zikir hatırlatıcı bildirimleri',
+            icon: '@mipmap/ic_launcher',
+            importance: Importance.max,
+            priority: Priority.max,
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
-      print('Test bildirimi $seconds saniye sonra planlandı');
+      print('Test bildirimi $seconds saniye sonra planlandı ($scheduledTz)');
     } catch (e) {
       print('Test bildirimi planlama hatası: $e');
     }
@@ -369,8 +410,8 @@ class NotificationService {
                 'zikirmatik_channel',
                 'Zikirmatik Bildirimleri',
                 channelDescription: 'Zikir hatırlatıcı bildirimleri',
-                importance: Importance.high,
-                priority: Priority.high,
+                importance: Importance.max,
+                priority: Priority.max,
                 icon: '@mipmap/ic_launcher',
               ),
             ),
@@ -390,8 +431,8 @@ class NotificationService {
                 'zikirmatik_channel',
                 'Zikirmatik Bildirimleri',
                 channelDescription: 'Zikir hatırlatıcı bildirimleri',
-                importance: Importance.high,
-                priority: Priority.high,
+                importance: Importance.max,
+                priority: Priority.max,
                 icon: '@mipmap/ic_launcher',
               ),
             ),
@@ -422,7 +463,16 @@ class NotificationService {
 
   DateTime _nextWeekdayWithTime(DateTime from, int weekday, int hour, int minute) {
     int daysUntil = (weekday - from.weekday + 7) % 7;
-    if (daysUntil == 0) daysUntil = 7;
+
+    if (daysUntil == 0) {
+      final todayCandidate = DateTime(from.year, from.month, from.day, hour, minute);
+      if (todayCandidate.isAfter(from)) {
+        return todayCandidate;
+      } else {
+        daysUntil = 7;
+      }
+    }
+
     final next = from.add(Duration(days: daysUntil));
     return DateTime(next.year, next.month, next.day, hour, minute);
   }
@@ -471,8 +521,8 @@ class NotificationService {
                   channelDescription: 'Günlük zikir hatırlatıcıları',
                   icon: '@mipmap/ic_launcher',
                   color: Color.fromARGB(255, 33, 150, 243),
-                  importance: Importance.high,
-                  priority: Priority.high,
+                  importance: Importance.max,
+                  priority: Priority.max,
                   showWhen: true,
                   autoCancel: true,
                 ),
@@ -511,8 +561,8 @@ class NotificationService {
               channelDescription: 'Günlük zikir hatırlatıcıları',
               icon: '@mipmap/ic_launcher',
               color: Color.fromARGB(255, 33, 150, 243),
-              importance: Importance.high,
-              priority: Priority.high,
+              importance: Importance.max,
+              priority: Priority.max,
               showWhen: true,
               autoCancel: true,
             ),
