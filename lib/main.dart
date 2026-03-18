@@ -89,6 +89,14 @@ void main() {
       debugPrint('Hatırlatıcı yeniden planlama: $e');
     }
   }
+  else {
+    // Kullanıcı hatırlatıcıları kapatmışsa, önceki planları temizle.
+    try {
+      await notificationService.cancelReminderNotifications();
+    } catch (e) {
+      debugPrint('Hatırlatıcı iptali sırasında hata: $e');
+    }
+  }
 
   // Dynamic localization helper'ı başlat
   await DynamicLocalizationHelper.initialize();

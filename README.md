@@ -235,4 +235,4 @@ Released under the MIT License.
 
 Made with love and dedication ❤️
 
-**Version 1.0.0 - Modern dhikr counter with cloud sync and beautiful UI**
+**Version 1.2.1 - Modern dhikr counter with cloud sync, smart reminders and leaderboard improvements**

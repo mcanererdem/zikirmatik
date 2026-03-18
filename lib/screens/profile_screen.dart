@@ -14,6 +14,7 @@ import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
 import '../services/settings_service.dart';
 import '../services/supabase_service.dart';
+import '../services/notification_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -46,7 +47,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _currentStreak = 0;
   int _weeklyZikrs = 0;
   final SupabaseService _supabaseService = SupabaseService();
+  final NotificationService _notificationService = NotificationService();
   final ImagePicker _imagePicker = ImagePicker();
+
+  String _getZikrDefaultDisplayName() {
+    return DynamicLocalizationHelper.getText({
+      'tr': 'Zikir',
+      'en': 'Dhikr',
+      'ar': 'الذكر',
+      'id': 'Dzikir',
+      'ur': 'ذکر',
+      'bn': 'যিকির',
+      'ms': 'Zikir',
+      'fa': 'ذکر',
+      'fr': 'Dhikr',
+      'zh': 'ذكر',
+      'ja': 'ズィクル',
+      'ru': 'Зикр',
+      'de': 'Dhikr',
+      'sw': 'Dhikri',
+      'ha': 'Zikir',
+    });
+  }
 
   @override
   void initState() {
@@ -99,7 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         userProfile = UserProfile(
           userId: widget.currentUserId,
           username: initialUsername,
-          displayName: localDisplayName ?? 'Kullanıcı',
+        displayName: localDisplayName != null && localDisplayName.trim().isNotEmpty
+            ? localDisplayName
+            : _getZikrDefaultDisplayName(),
           avatarUrl: avatarUrl,
           totalZikrs: totalZikrs,
           lastZikrDate: null,
@@ -234,7 +258,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Icon(Icons.check_circle, color: Colors.white),
                     SizedBox(width: 8),
-                    Text('Profil fotoğrafı başarıyla güncellendi!'),
+                    Text(
+                      DynamicLocalizationHelper.getText({
+                        'tr': 'Profil fotoğrafı başarıyla güncellendi!',
+                        'en': 'Profile photo updated successfully!',
+                        'ar': 'تم تحديث صورة الملف الشخصي بنجاح!',
+                        'id': 'Foto profil berhasil diperbarui!',
+                        'ur': 'پروفائل فوٹو کامیابی سے اپڈیٹ ہوئی!',
+                        'bn': 'প্রোফাইল ছবি সফলভাবে আপডেট হয়েছে!',
+                        'ms': 'Foto profil berjaya dikemas kini!',
+                        'fa': 'عکس پروفایل با موفقیت به‌روزرسانی شد!',
+                        'fr': 'Photo de profil mise à jour avec succès !',
+                        'zh': '头像更新成功！',
+                        'ja': 'プロフィール画像を更新しました！',
+                        'ru': 'Профильное фото обновлено успешно!',
+                        'de': 'Profilfoto erfolgreich aktualisiert!',
+                        'sw': 'Picha ya wasifu imesasishwa kwa mafanikio!',
+                        'ha': 'An sabunta hoton martaba cikin nasara!',
+                      }),
+                    ),
                   ],
                 ),
                 backgroundColor: Colors.green,
@@ -252,7 +294,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
     } catch (e) {
       print('❌ Avatar selection error: $e');
-      _showErrorSnackBar('Profil fotoğrafı seçilemedi: $e');
+      _showErrorSnackBar(
+        DynamicLocalizationHelper.getText({
+              'tr': 'Profil fotoğrafı seçilemedi:',
+              'en': 'Profile photo could not be selected:',
+              'ar': 'تعذر اختيار صورة الملف الشخصي:',
+              'id': 'Foto profil tidak dapat dipilih:',
+              'ur': 'پروفائل فوٹو منتخب نہیں ہوسکی:',
+              'bn': 'প্রোফাইল ছবি নির্বাচন করা যায়নি:',
+              'ms': 'Foto profil tidak dapat dipilih:',
+              'fa': 'امکان انتخاب عکس پروفایل وجود نداشت:',
+              'fr': 'Impossible de sélectionner la photo de profil :',
+              'zh': '无法选择头像：',
+              'ja': 'プロフィール画像を選択できませんでした：',
+              'ru': 'Не удалось выбрать профильное фото:',
+              'de': 'Profilfoto konnte nicht ausgewählt werden:',
+              'sw': 'Picha ya wasifu haikuweza kuchaguliwa:',
+              'ha': 'Ba a iya zaɓar hoton martaba:',
+            }) +
+            ' $e',
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -266,14 +327,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: widget.themeConfig.primaryColor,
         title: Text(
-          'Galeri İzni Gerekli',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Galeri İzni Gerekli',
+            'en': 'Gallery Permission Required',
+            'ar': 'يلزم إذن المعرض',
+            'id': 'Izin Galeri Diperlukan',
+            'ur': 'گیلری اجازت درکار ہے',
+            'bn': 'গ্যালারির অনুমতি প্রয়োজন',
+            'ms': 'Kebenaran Galeri Diperlukan',
+            'fa': 'اجازه دسترسی به گالری لازم است',
+            'fr': 'Autorisation de la galerie requise',
+            'zh': '需要相册权限',
+            'ja': 'ギャラリーの権限が必要です',
+            'ru': 'Требуется разрешение на галерею',
+            'de': 'Galerieberechtigung erforderlich',
+            'sw': 'Ruhusa ya Matunzio inahitajika',
+            'ha': 'Ana bukatar izinin Gallery',
+          }),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
             fontWeight: FontWeight.bold,
           ),
         ),
         content: Text(
-          'Profil fotoğrafı seçmek için galeri erişim izni gereklidir. Lütfen izni verin.',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Profil fotoğrafı seçmek için galeri erişim izni gereklidir. Lütfen izni verin.',
+            'en': 'Gallery access permission is required to select a profile photo. Please allow it.',
+            'ar': 'يلزم إذن الوصول للمعرض لاختيار صورة الملف الشخصي. يُرجى السماح بذلك.',
+            'id': 'Izin akses galeri diperlukan untuk memilih foto profil. Silakan izinkan.',
+            'ur': 'پروفائل فوٹو منتخب کرنے کے لیے گیلری رسائی کی اجازت ضروری ہے۔ براہ کرم اجازت دیں۔',
+            'bn': 'প্রোফাইল ছবি নির্বাচন করতে গ্যালারির অ্যাক্সেস অনুমতি প্রয়োজন। অনুগ্রহ করে অনুমতি দিন।',
+            'ms': 'Kebenaran akses galeri diperlukan untuk memilih foto profil. Sila benarkan.',
+            'fa': 'برای انتخاب عکس پروفایل، اجازه دسترسی به گالری لازم است. لطفا اجازه دهید.',
+            'fr': "L'autorisation d'accès à la galerie est requise pour sélectionner une photo de profil. Veuillez l'autoriser.",
+            'zh': '选择头像需要允许访问相册。请允许。',
+            'ja': 'プロフィール画像を選択するには、ギャラリーへのアクセス権限が必要です。許可してください。',
+            'ru': 'Чтобы выбрать фото профиля, требуется разрешение на доступ к галерее. Пожалуйста, разрешите.',
+            'de': 'Zum Auswählen eines Profilfotos ist die Berechtigung für den Galeriezugriff erforderlich. Bitte erlauben.',
+            'sw': 'Ruhusa ya kufikia matunzio inahitajika kuchagua picha ya wasifu. Tafadhali ruhusu.',
+            'ha': 'Ana bukatar izinin shiga Gallery don zabar hoton martaba. Don Allah ka ba da izini.',
+          }),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
           ),
@@ -282,7 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'İptal',
+              DynamicLocalizationHelper.cancel,
               style: GoogleFonts.notoSans(
                 color: widget.themeConfig.textColor.withOpacity(0.7),
               ),
@@ -305,7 +398,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               backgroundColor: widget.themeConfig.accentColor,
             ),
             child: Text(
-              'İzin Ver',
+              DynamicLocalizationHelper.allow,
               style: GoogleFonts.notoSans(color: Colors.white),
             ),
           ),
@@ -339,7 +432,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       print('❌ Local avatar save error: $e');
-      if (mounted) _showErrorSnackBar('Profil fotoğrafı yüklenemedi!');
+      if (mounted) {
+        _showErrorSnackBar(
+          DynamicLocalizationHelper.getText({
+            'tr': 'Profil fotoğrafı yüklenemedi!',
+            'en': 'Could not load profile photo!',
+            'ar': 'تعذر تحميل صورة الملف الشخصي!',
+            'id': 'Tidak dapat memuat foto profil!',
+            'ur': 'پروفائل فوٹو لوڈ نہیں ہو سکی!',
+            'bn': 'প্রোফাইল ছবি লোড করা যায়নি!',
+            'ms': 'Tidak dapat memuatkan foto profil!',
+            'fa': 'بارگذاری عکس پروفایل ممکن نبود!',
+            'fr': 'Impossible de charger la photo de profil !',
+            'zh': '无法加载头像！',
+            'ja': 'プロフィール画像を読み込めませんでした！',
+            'ru': 'Не удалось загрузить профильное фото!',
+            'de': 'Profilfoto konnte nicht geladen werden!',
+            'sw': 'Haikuweza kupakia picha ya wasifu!',
+            'ha': 'Ba a iya loda hoton martaba ba!',
+          }),
+        );
+      }
     }
   }
 
@@ -410,7 +523,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profil fotoğrafı başarıyla güncellendi!'),
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Profil fotoğrafı başarıyla güncellendi!',
+                'en': 'Profile photo updated successfully!',
+                'ar': 'تم تحديث صورة الملف الشخصي بنجاح!',
+                'id': 'Foto profil berhasil diperbarui!',
+                'ur': 'پروفائل فوٹو کامیابی سے اپڈیٹ ہوئی!',
+                'bn': 'প্রোফাইল ছবি সফলভাবে আপডেট হয়েছে!',
+                'ms': 'Foto profil berjaya dikemas kini!',
+                'fa': 'عکس پروفایل با موفقیت به‌روزرسانی شد!',
+                'fr': 'Photo de profil mise à jour avec succès !',
+                'zh': '头像更新成功！',
+                'ja': 'プロフィール画像を更新しました！',
+                'ru': 'Профильное фото обновлено успешно!',
+                'de': 'Profilfoto erfolgreich aktualisiert!',
+                'sw': 'Picha ya wasifu imesasishwa kwa mafanikio!',
+                'ha': 'An sabunta hoton martaba cikin nasara!',
+              }),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -432,7 +563,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profil fotoğrafı yerel olarak kaydedildi!'),
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Profil fotoğrafı yerel olarak kaydedildi!',
+                'en': 'Profile photo saved locally!',
+                'ar': 'تم حفظ صورة الملف الشخصي محليًا!',
+                'id': 'Foto profil disimpan secara lokal!',
+                'ur': 'پروفائل فوٹو مقامی طور پر محفوظ ہوگئی!',
+                'bn': 'প্রোফাইল ছবি লোকালি সংরক্ষণ করা হয়েছে!',
+                'ms': 'Foto profil disimpan secara tempatan!',
+                'fa': 'عکس پروفایل به صورت محلی ذخیره شد!',
+                'fr': 'Photo de profil enregistrée localement !',
+                'zh': '头像已本地保存！',
+                'ja': 'プロフィール画像をローカルに保存しました！',
+                'ru': 'Профильное фото сохранено локально!',
+                'de': 'Profilfoto lokal gespeichert!',
+                'sw': 'Picha ya wasifu imehifadhiwa hapa kwenye kifaa!',
+                'ha': 'An adana hoton martaba a gida!',
+              }),
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -440,7 +589,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         print('❌ Local storage hatası: $localError');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profil fotoğrafı kaydedilemedi!'),
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Profil fotoğrafı kaydedilemedi!',
+                'en': 'Could not save profile photo!',
+                'ar': 'تعذر حفظ صورة الملف الشخصي!',
+                'id': 'Tidak dapat menyimpan foto profil!',
+                'ur': 'پروفائل فوٹو محفوظ نہیں ہو سکی!',
+                'bn': 'প্রোফাইল ছবি সংরক্ষণ করা যায়নি!',
+                'ms': 'Tidak dapat menyimpan foto profil!',
+                'fa': 'ذخیره عکس پروفایل ممکن نبود!',
+                'fr': 'Impossible d’enregistrer la photo de profil !',
+                'zh': '无法保存头像！',
+                'ja': 'プロフィール画像を保存できませんでした！',
+                'ru': 'Не удалось сохранить профильное фото!',
+                'de': 'Profilfoto konnte nicht gespeichert werden!',
+                'sw': 'Haikuweza kuhifadhi picha ya wasifu!',
+                'ha': 'Ba a iya ajiye hoton martaba!',
+              }),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -984,7 +1151,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _saveProfileToLocal(updatedProfile);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Kullanıcı adı güncellendi!'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Kullanıcı adı güncellendi!',
+                'en': 'Username updated!',
+                'ar': 'تم تحديث اسم المستخدم!',
+                'id': 'Nama pengguna diperbarui!',
+                'ur': 'صارف نام اپڈیٹ ہو گیا!',
+                'bn': 'ইউজারনেম আপডেট হয়েছে!',
+                'ms': 'Nama pengguna dikemas kini!',
+                'fa': 'نام کاربری به‌روزرسانی شد!',
+                'fr': 'Nom d’utilisateur mis à jour !',
+                'zh': '用户名已更新！',
+                'ja': 'ユーザー名を更新しました！',
+                'ru': 'Имя пользователя обновлено!',
+                'de': 'Benutzername aktualisiert!',
+                'sw': 'Jina la mtumiaji limesasishwa!',
+                'ha': 'An sabunta sunan mai amfani!',
+              }),
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -994,7 +1182,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Kullanıcı adı yerel olarak kaydedildi.'),
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Kullanıcı adı yerel olarak kaydedildi.',
+                'en': 'Username saved locally.',
+                'ar': 'تم حفظ اسم المستخدم محليًا.',
+                'id': 'Nama pengguna disimpan secara lokal.',
+                'ur': 'صارف نام مقامی طور پر محفوظ ہوگیا.',
+                'bn': 'ইউজারনেম লোকালি সংরক্ষণ করা হয়েছে.',
+                'ms': 'Nama pengguna disimpan secara tempatan.',
+                'fa': 'نام کاربری به صورت محلی ذخیره شد.',
+                'fr': 'Nom d’utilisateur enregistré localement.',
+                'zh': '用户名已本地保存。',
+                'ja': 'ユーザー名をローカルに保存しました。',
+                'ru': 'Имя пользователя сохранено локально.',
+                'de': 'Benutzername lokal gespeichert.',
+                'sw': 'Jina la mtumiaji limehifadhiwa hapa kwenye kifaa.',
+                'ha': 'An adana sunan mai amfani a gida.',
+              }),
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -1011,7 +1217,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _saveProfileToLocal(updatedProfile);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Görünen adı güncellendi!'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Görünen adı güncellendi!',
+                'en': 'Display name updated!',
+                'ar': 'تم تحديث الاسم المعروض!',
+                'id': 'Nama tampilan diperbarui!',
+                'ur': 'ڈسپلے نام اپڈیٹ ہو گیا!',
+                'bn': 'ডিসপ্লে নাম আপডেট হয়েছে!',
+                'ms': 'Nama paparan dikemas kini!',
+                'fa': 'نام نمایشی به‌روزرسانی شد!',
+                'fr': 'Nom d’affichage mis à jour !',
+                'zh': '显示名称已更新！',
+                'ja': '表示名を更新しました！',
+                'ru': 'Отображаемое имя обновлено!',
+                'de': 'Anzeigename aktualisiert!',
+                'sw': 'Jina la kuonyesha limesasishwa!',
+                'ha': 'An sabunta sunan da ake nunawa!',
+              }),
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -1021,7 +1248,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Görünen ad yerel olarak kaydedildi.'),
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Görünen ad yerel olarak kaydedildi.',
+                'en': 'Display name saved locally.',
+                'ar': 'تم حفظ الاسم المعروض محليًا.',
+                'id': 'Nama tampilan disimpan secara lokal.',
+                'ur': 'ڈسپلے نام مقامی طور پر محفوظ ہوگیا.',
+                'bn': 'ডিসপ্লে নাম লোকালি সংরক্ষণ করা হয়েছে.',
+                'ms': 'Nama paparan disimpan secara tempatan.',
+                'fa': 'نام نمایشی به صورت محلی ذخیره شد.',
+                'fr': 'Nom d’affichage enregistré localement.',
+                'zh': '显示名称已本地保存。',
+                'ja': '表示名をローカルに保存しました。',
+                'ru': 'Отображаемое имя сохранено локально.',
+                'de': 'Anzeigename lokal gespeichert.',
+                'sw': 'Jina la kuonyesha limehifadhiwa hapa kwenye kifaa.',
+                'ha': 'An adana sunan da ake nunawa a gida.',
+              }),
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -1051,7 +1296,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Profil bilgileri güncellendi!'),
+          content: Text(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Profil bilgileri güncellendi!',
+              'en': 'Profile information updated!',
+              'ar': 'تم تحديث معلومات الملف الشخصي!',
+              'id': 'Informasi profil diperbarui!',
+              'ur': 'پروفائل کی معلومات اپڈیٹ ہو گئیں!',
+              'bn': 'প্রোফাইল তথ্য আপডেট হয়েছে!',
+              'ms': 'Maklumat profil dikemas kini!',
+              'fa': 'اطلاعات پروفایل به‌روزرسانی شد!',
+              'fr': 'Informations du profil mises à jour !',
+              'zh': '个人资料信息已更新！',
+              'ja': 'プロフィール情報を更新しました！',
+              'ru': 'Информация профиля обновлена!',
+              'de': 'Profilinformationen aktualisiert!',
+              'sw': 'Taarifa za wasifu zimesasishwa!',
+              'ha': 'An sabunta bayanan martaba!',
+            }),
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -1061,7 +1324,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Profil bilgileri güncellenemedi.'),
+          content: Text(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Profil bilgileri güncellenemedi.',
+              'en': 'Could not update profile information.',
+              'ar': 'تعذر تحديث معلومات الملف الشخصي.',
+              'id': 'Tidak dapat memperbarui informasi profil.',
+              'ur': 'پروفائل کی معلومات اپڈیٹ نہیں ہو سکیں.',
+              'bn': 'প্রোফাইল তথ্য আপডেট করা যায়নি.',
+              'ms': 'Tidak dapat mengemas kini maklumat profil.',
+              'fa': 'عدم امکان به‌روزرسانی اطلاعات پروفایل.',
+              'fr': 'Impossible de mettre à jour les informations du profil.',
+              'zh': '无法更新个人资料信息。',
+              'ja': 'プロフィール情報を更新できませんでした。',
+              'ru': 'Не удалось обновить информацию профиля.',
+              'de': 'Profilinformationen konnten nicht aktualisiert werden.',
+              'sw': 'Haikuweza kusasisha taarifa za wasifu.',
+              'ha': 'Ba a iya sabunta bayanan martaba.',
+            }),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -1122,21 +1403,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _deleteAccount() async {
     try {
       setState(() => _isLoading = true);
-      
-      // TODO: SupabaseService'e deleteUser metodu eklenecek
-      // await _supabaseService.deleteUser(widget.currentUserId);
-      
-      // Local verileri temizle
+
+      bool deletedInCloud = false;
+      try {
+        await _supabaseService.deleteUserAccount(widget.currentUserId);
+        deletedInCloud = true;
+      } catch (e) {
+        // İnternet yoksa ya da RLS hatası varsa burası çalışır.
+        // Bu durumda en azından yerel verileri temizliyoruz.
+        print('Cloud delete failed: $e');
+      }
+
+      // Hesap silme sonrası bildirim planlarını temizle.
+      try {
+        await _notificationService.cancelReminderNotifications();
+      } catch (e) {
+        print('Reminder cancel failed: $e');
+      }
+
+      // Local verileri temizle (cihaz bazlı hesap akışı için yeterli).
       final prefs = await SharedPreferences.getInstance();
+      // Uygulama dilini (kullanıcı verisi değil) koru.
+      final savedLanguageCode = prefs.getString('language_code');
+      final savedLanguage = prefs.getString('language');
+      final localAvatarPath = prefs.getString('avatar_path_${widget.currentUserId}');
+      if (localAvatarPath != null && localAvatarPath.isNotEmpty) {
+        try {
+          final f = File(localAvatarPath);
+          if (f.existsSync()) {
+            await f.delete();
+          }
+        } catch (e) {
+          print('Local avatar delete failed: $e');
+        }
+      }
       await prefs.clear();
-      
+
+      // Dil ayarlarını geri yükle (hesap silme sadece kullanıcı verisini etkilesin).
+      if (savedLanguageCode != null && savedLanguageCode.trim().isNotEmpty) {
+        await prefs.setString('language_code', savedLanguageCode.trim());
+      }
+      if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
+        await prefs.setString('language', savedLanguage.trim());
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Hesap silme özelliği yakında eklenecek.'),
-          backgroundColor: Colors.orange,
+          content: Text(
+            deletedInCloud
+                ? DynamicLocalizationHelper.getText({
+                    'tr': 'Hesabınız silindi.',
+                    'en': 'Your account was deleted.',
+                    'ar': 'تم حذف حسابك.',
+                    'id': 'Akun Anda telah dihapus.',
+                    'ur': 'آپ کا کھاتہ حذف کر دیا گیا ہے۔',
+                    'bn': 'আপনার অ্যাকাউন্ট মুছে ফেলা হয়েছে।',
+                    'ms': 'Akaun anda telah dipadamkan.',
+                    'fa': 'حساب شما حذف شد.',
+                    'fr': 'Votre compte a été supprimé.',
+                    'zh': '你的账户已删除。',
+                    'ja': 'アカウントを削除しました。',
+                    'ru': 'Ваш аккаунт удален.',
+                    'de': 'Ihr Konto wurde gelöscht.',
+                    'sw': 'Akaunti yako imefutwa.',
+                    'ha': 'An goge asusunka.',
+                  })
+                : DynamicLocalizationHelper.getText({
+                    'tr': 'Yerel veriler silindi. İnternet yoksa buluttaki silme işlemi gerçekleşmemiş olabilir.',
+                    'en': 'Local data deleted. If there is no internet, the cloud delete may not have completed.',
+                    'ar': 'تم حذف البيانات محليًا. إذا لم يكن هناك اتصال بالإنترنت، فقد لا تكتمل عملية الحذف في السحابة.',
+                    'id': 'Data lokal dihapus. Jika tidak ada internet, penghapusan di cloud mungkin belum selesai.',
+                    'ur': 'مقامی ڈیٹا حذف ہو گیا۔ اگر انٹرنیٹ نہیں تو کلاؤڈ والی ڈیلیٹ مکمل نہیں ہوئی ہو سکتی ہے۔',
+                    'bn': 'লোকাল ডেটা মুছে ফেলা হয়েছে। ইন্টারনেট না থাকলে ক্লাউড ডিলিট সম্পন্ন নাও হতে পারে।',
+                    'ms': 'Data tempatan dipadamkan. Jika tiada internet, pemadaman di cloud mungkin belum selesai.',
+                    'fa': 'داده‌های محلی حذف شد. اگر اینترنت نباشد، ممکن است حذف در ابر کامل نشده باشد.',
+                    'fr': 'Données locales supprimées. S’il n’y a pas d’internet, la suppression dans le cloud n’a peut-être pas abouti.',
+                    'zh': '已删除本地数据。如果没有网络，云端删除可能未完成。',
+                    'ja': 'ローカルデータを削除しました。インターネットがない場合、クラウド側の削除は完了していない可能性があります。',
+                    'ru': 'Локальные данные удалены. Если нет интернета, удаление в облаке могло не завершиться.',
+                    'de': 'Lokale Daten gelöscht. Ohne Internet kann das Löschen in der Cloud möglicherweise nicht abgeschlossen worden sein.',
+                    'sw': 'Data za ndani zimefutwa. Kama hakuna intaneti, kufuta kwenye wingu kunaweza kuwa hakujakamilika.',
+                    'ha': 'An goge bayanan cikin gida. Idan babu internet, goge a gajimare yana iya kasa cika.',
+                  }),
+          ),
+          backgroundColor: deletedInCloud ? Colors.green : Colors.orange,
         ),
       );
-      
+
       // Ana sayfaya dön
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     } catch (e) {
@@ -1145,7 +1498,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Hesap silinemedi.'),
+          content: Text(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Hesap silinemedi.',
+              'en': 'Account could not be deleted.',
+              'ar': 'تعذر حذف الحساب.',
+              'id': 'Akun tidak dapat dihapus.',
+              'ur': 'کھاتہ حذف نہیں ہو سکا۔',
+              'bn': 'অ্যাকাউন্ট মুছতে ব্যর্থ হয়েছে।',
+              'ms': 'Akaun tidak dapat dipadamkan.',
+              'fa': 'حساب قابل حذف نیست.',
+              'fr': "Impossible de supprimer le compte.",
+              'zh': '无法删除账户。',
+              'ja': 'アカウントを削除できませんでした。',
+              'ru': 'Не удалось удалить аккаунт.',
+              'de': 'Konto konnte nicht gelöscht werden.',
+              'sw': 'Akaunti haikuweza kufutwa.',
+              'ha': 'Ba a iya goge asusu ba.',
+            }),
+          ),
           backgroundColor: Colors.red,
         ),
       );

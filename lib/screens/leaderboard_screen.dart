@@ -56,6 +56,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         s.contains('timed out');
   }
 
+  String _getZikrDefaultDisplayName() {
+    return DynamicLocalizationHelper.getText({
+      'tr': 'Zikir',
+      'en': 'Dhikr',
+      'ar': 'الذكر',
+      'id': 'Dzikir',
+      'ur': 'ذکر',
+      'bn': 'যিকির',
+      'ms': 'Zikir',
+      'fa': 'ذکر',
+      'fr': 'Dhikr',
+      'zh': 'ذكر',
+      'ja': 'ズィクル',
+      'ru': 'Зикр',
+      'de': 'Dhikr',
+      'sw': 'Dhikri',
+      'ha': 'Zikir',
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -119,7 +139,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       currentUserProfile = {
         'user_id': widget.currentUserId,
         'username': 'User_${widget.currentUserId.length >= 8 ? widget.currentUserId.substring(0, 8) : widget.currentUserId}',
-        'display_name': 'Zikir Çalışanı',
+        'display_name': _getZikrDefaultDisplayName(),
         'total_zikrs': currentUserZikrs,
         'rank': 999,
       };
@@ -220,7 +240,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       final currentUserProfile = {
         'user_id': widget.currentUserId,
         'username': 'User_${widget.currentUserId.substring(0, 8)}',
-        'display_name': 'Zikir Çalışanı',
+        'display_name': _getZikrDefaultDisplayName(),
         'total_zikrs': currentUserZikrs,
         'rank': 999,
       };
@@ -790,7 +810,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user['username'] ?? 'Anonymous',
+                    (() {
+                      final displayName = user['display_name'] as String?;
+                      if (displayName != null && displayName.trim().isNotEmpty) return displayName.trim();
+                      final username = user['username'] as String?;
+                      if (username != null && username.trim().isNotEmpty) return username.trim();
+                      return _getZikrDefaultDisplayName();
+                    })(),
                     style: GoogleFonts.notoSans(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -905,7 +931,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildUserAvatar(Map<String, dynamic> user) {
     final avatarUrl = user['avatar_url'];
-    final username = user['username'] ?? 'Anonymous';
+    final name = (user['display_name'] ?? user['username'] ?? 'Anonymous') as String?;
+    final initialName = (name != null && name.trim().isNotEmpty) ? name.trim() : 'Anonymous';
     
     return Container(
       width: 45,
@@ -929,11 +956,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 height: 45,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return _buildAvatarInitial(username);
+                  return _buildAvatarInitial(initialName);
                 },
               ),
             )
-          : _buildAvatarInitial(username),
+          : _buildAvatarInitial(initialName),
     );
   }
 

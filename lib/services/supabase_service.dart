@@ -598,4 +598,22 @@ class SupabaseService {
     }
   }
 
+  /// Hesap silme: Supabase RPC (security definer) üzerinden RLS bypass.
+  Future<void> deleteUserAccount(String userId) async {
+    if (!_isInitialized) {
+      throw Exception('Supabase not initialized. Call initialize() first.');
+    }
+
+    final uuid = toUuid(userId);
+    try {
+      await _supabase.rpc(
+        'delete_user_account',
+        params: {'user_id': uuid},
+      );
+    } catch (e) {
+      print('Error deleting user account: $e');
+      rethrow;
+    }
+  }
+
 }

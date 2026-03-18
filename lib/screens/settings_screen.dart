@@ -7,6 +7,7 @@ import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
+import '../services/notification_service.dart';
 import '../screens/home_page.dart' as home;
 import '../screens/about_screen.dart';
 import '../screens/support_screen_new.dart';
@@ -50,6 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _themeModeSelection = 'system';
   final SettingsService _settingsService = SettingsService();
   final AdService _adService = AdService();
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
@@ -733,11 +735,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             value: _isReminderEnabled,
-            onChanged: (value) {
+            onChanged: (value) async {
               setState(() {
                 _isReminderEnabled = value;
               });
-              _settingsService.saveReminderEnabled(value);
+              await _settingsService.saveReminderEnabled(value);
+
+              // Kullanıcı kapattıysa, daha önce planlanmış bildirimleri iptal et.
+              if (!value) {
+                await _notificationService.cancelReminderNotifications();
+              }
             },
             activeColor: widget.themeConfig.accentColor,
           ),

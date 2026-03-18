@@ -613,7 +613,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       final prefs = await SharedPreferences.getInstance();
       final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
       final username = prefs.getString('username_$_currentUserId') ?? 'user';
-      final displayName = prefs.getString('display_name_$_currentUserId') ?? username;
+      final storedDisplayName = prefs.getString('display_name_$_currentUserId');
+      final displayName = (storedDisplayName != null)
+          ? (() {
+              final t = storedDisplayName.trim();
+              if (t.isNotEmpty && !_isOldDefaultDisplayName(t)) return t;
+              return _getZikrDefaultDisplayName();
+            })()
+          : _getZikrDefaultDisplayName();
       final avatarUrl = prefs.getString('avatar_url_$_currentUserId');
 
       // Supabase'e profil oluştur/güncelle
@@ -994,14 +1001,47 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   String _getProfileDisplayName() {
     // Kullanıcı profil ekranında "Görünen ad"ı ayarladıysa onu göster,
     // aksi halde yerelleştirilmiş varsayılan başlığı kullan.
-    if (_profileDisplayName != null && _profileDisplayName!.trim().isNotEmpty) {
-      return _profileDisplayName!;
+    final raw = _profileDisplayName;
+    if (raw != null) {
+      final t = raw.trim();
+      if (t.isNotEmpty && !_isOldDefaultDisplayName(t)) {
+        return t;
+      }
     }
+    return _getZikrDefaultDisplayName();
+  }
+
+  bool _isOldDefaultDisplayName(String value) {
+    // Eski sürümlerde varsayılan olarak kaydedilmiş metinleri Zikr'e dönüştür.
+    const oldDefaults = <String>{
+      'Kullanıcı',
+      'Zikir Çalışanı',
+      'Dhikr Practitioner',
+      'Pengamal Zikir',
+      'الذاكر',
+      'user',
+      'User',
+    };
+    return oldDefaults.contains(value);
+  }
+
+  String _getZikrDefaultDisplayName() {
     return DynamicLocalizationHelper.getText({
-      'tr': 'Zikir Çalışanı',
-      'en': 'Dhikr Practitioner',
-      'ar': 'الذاكر',
-      'id': 'Pengamal Zikir',
+      'tr': 'Zikir',
+      'en': 'Dhikr',
+      'ar': 'الذكر',
+      'id': 'Dzikir',
+      'ur': 'ذکر',
+      'bn': 'যিকির',
+      'ms': 'Zikir',
+      'fa': 'ذکر',
+      'fr': 'Dhikr',
+      'zh': 'ذكر',
+      'ja': 'ズィクル',
+      'ru': 'Зикр',
+      'de': 'Dhikr',
+      'sw': 'Dhikri',
+      'ha': 'Zikir',
     });
   }
 
@@ -1160,8 +1200,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           // Sol taraf - Avatar, profil ismi ve kupalar
           Expanded(
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ProfileScreen(
@@ -1171,6 +1211,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                     ),
                   ),
                 );
+
+                // Profil ekranından geri dönünce "Görünen ad"ı yeniden oku.
+                if (!mounted) return;
+                final prefs = await SharedPreferences.getInstance();
+                setState(() {
+                  _profileDisplayName = prefs.getString('display_name_$_currentUserId');
+                });
               },
               child: Row(
                 children: [

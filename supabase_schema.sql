@@ -102,6 +102,7 @@ DROP POLICY IF EXISTS "Users can update own profile" ON users;
 DROP POLICY IF EXISTS "Users can insert own profile" ON users;
 DROP POLICY IF EXISTS "Public can read users for leaderboard" ON users;
 DROP POLICY IF EXISTS "Public can upsert users (device id)" ON users;
+DROP POLICY IF EXISTS "Public can update users (device id)" ON users;
 
 DROP POLICY IF EXISTS "Users can view own achievements" ON user_achievements;
 DROP POLICY IF EXISTS "Users can insert own achievements" ON user_achievements;
@@ -112,18 +113,21 @@ DROP POLICY IF EXISTS "Users can update own leaderboard data" ON leaderboard_dai
 DROP POLICY IF EXISTS "Users can insert own leaderboard data" ON leaderboard_daily;
 DROP POLICY IF EXISTS "Public can read daily leaderboard" ON leaderboard_daily;
 DROP POLICY IF EXISTS "Public can upsert daily leaderboard (device id)" ON leaderboard_daily;
+DROP POLICY IF EXISTS "Public can update daily leaderboard (device id)" ON leaderboard_daily;
 
 DROP POLICY IF EXISTS "Users can view own weekly leaderboard data" ON leaderboard_weekly;
 DROP POLICY IF EXISTS "Users can update own weekly leaderboard data" ON leaderboard_weekly;
 DROP POLICY IF EXISTS "Users can insert own weekly leaderboard data" ON leaderboard_weekly;
 DROP POLICY IF EXISTS "Public can read weekly leaderboard" ON leaderboard_weekly;
 DROP POLICY IF EXISTS "Public can upsert weekly leaderboard (device id)" ON leaderboard_weekly;
+DROP POLICY IF EXISTS "Public can update weekly leaderboard (device id)" ON leaderboard_weekly;
 
 DROP POLICY IF EXISTS "Users can view own monthly leaderboard data" ON leaderboard_monthly;
 DROP POLICY IF EXISTS "Users can update own monthly leaderboard data" ON leaderboard_monthly;
 DROP POLICY IF EXISTS "Users can insert own monthly leaderboard data" ON leaderboard_monthly;
 DROP POLICY IF EXISTS "Public can read monthly leaderboard" ON leaderboard_monthly;
 DROP POLICY IF EXISTS "Public can upsert monthly leaderboard (device id)" ON leaderboard_monthly;
+DROP POLICY IF EXISTS "Public can update monthly leaderboard (device id)" ON leaderboard_monthly;
 
 DROP POLICY IF EXISTS "Public can read achievements" ON achievements;
 
@@ -218,6 +222,20 @@ $$;
 
 GRANT EXECUTE ON FUNCTION get_leaderboard_all_time(int) TO anon;
 GRANT EXECUTE ON FUNCTION get_leaderboard_all_time(int) TO authenticated;
+
+-- RPC: Hesabı silme (users tablosu + cascade ile ilişkili kayıtlar)
+-- Not: RLS bypass için SECURITY DEFINER kullanıyoruz.
+CREATE OR REPLACE FUNCTION delete_user_account(user_id uuid)
+RETURNS void
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  DELETE FROM users WHERE id = user_id;
+$$;
+
+GRANT EXECUTE ON FUNCTION delete_user_account(uuid) TO anon;
+GRANT EXECUTE ON FUNCTION delete_user_account(uuid) TO authenticated;
 
 -- Storage: avatars (Dashboard > Storage’da "avatars" bucket oluşturun, limit 1 MB)
 DROP POLICY IF EXISTS "Allow public uploads to avatars" ON storage.objects;
