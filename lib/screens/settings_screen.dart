@@ -8,6 +8,7 @@ import '../utils/dynamic_localization_helper.dart';
 import '../services/settings_service.dart';
 import '../services/ad_service.dart';
 import '../services/notification_service.dart';
+import '../services/supabase_service.dart';
 import '../screens/home_page.dart' as home;
 import '../screens/about_screen.dart';
 import '../screens/support_screen_new.dart';
@@ -52,6 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsService _settingsService = SettingsService();
   final AdService _adService = AdService();
   final NotificationService _notificationService = NotificationService();
+  final SupabaseService _supabaseService = SupabaseService();
 
   @override
   void initState() {
@@ -967,6 +969,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               } else {
                 setState(() => _isLeaderboardEnabled = false);
                 _settingsService.saveShowInLeaderboard(false);
+                // Kullanıcı paylaşımı kapattıysa Supabase'te leaderboard kayıtlarını da temizleyelim.
+                _supabaseService
+                    .setLeaderboardVisibility(widget.currentUserId, false)
+                    .catchError((_) {});
               }
             },
             activeColor: widget.themeConfig.accentColor,
@@ -1379,6 +1385,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.of(ctx).pop();
               setState(() => _isLeaderboardEnabled = true);
               _settingsService.saveShowInLeaderboard(true);
+              _supabaseService
+                  .setLeaderboardVisibility(widget.currentUserId, true)
+                  .catchError((_) {});
             },
             child: Text(
               DynamicLocalizationHelper.getText({

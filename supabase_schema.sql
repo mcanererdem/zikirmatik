@@ -13,9 +13,14 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_url TEXT,
   total_zikrs INTEGER DEFAULT 0,
   last_zikr_date TIMESTAMP,
+  show_in_leaderboard BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Idempotent şema güncellemesi (table zaten varsa)
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS show_in_leaderboard BOOLEAN NOT NULL DEFAULT false;
 
 -- 2. achievements
 CREATE TABLE IF NOT EXISTS achievements (
@@ -216,12 +221,37 @@ STABLE
 AS $$
   SELECT u.id, u.username, u.display_name, u.avatar_url, COALESCE(u.total_zikrs, 0)::int
   FROM users u
+  WHERE COALESCE(u.show_in_leaderboard, false) = true
   ORDER BY u.total_zikrs DESC NULLS LAST
   LIMIT lim;
 $$;
 
 GRANT EXECUTE ON FUNCTION get_leaderboard_all_time(int) TO anon;
 GRANT EXECUTE ON FUNCTION get_leaderboard_all_time(int) TO authenticated;
+
+-- RPC: Liderlik görünürlüğünü aç/kapat (RLS bypass)
+-- show=false iken günlük/haftalık/aylık leaderboard kayıtlarını da temizler.
+CREATE OR REPLACE FUNCTION set_leaderboard_visibility(p_user_id uuid, p_show boolean)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE users
+  SET show_in_leaderboard = p_show
+  WHERE id = p_user_id;
+
+  IF NOT p_show THEN
+    DELETE FROM leaderboard_daily WHERE user_id = p_user_id;
+    DELETE FROM leaderboard_weekly WHERE user_id = p_user_id;
+    DELETE FROM leaderboard_monthly WHERE user_id = p_user_id;
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION set_leaderboard_visibility(uuid, boolean) TO anon;
+GRANT EXECUTE ON FUNCTION set_leaderboard_visibility(uuid, boolean) TO authenticated;
 
 -- RPC: Hesabı silme (users tablosu + cascade ile ilişkili kayıtlar)
 -- Not: RLS bypass için SECURITY DEFINER kullanıyoruz.

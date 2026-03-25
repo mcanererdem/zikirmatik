@@ -89,6 +89,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                     ),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.contact_support,
@@ -119,6 +120,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(

@@ -158,6 +158,9 @@ class SupabaseService {
             'total_zikrs': zikrCount,
             'last_zikr_date': DateTime.now().toIso8601String(),
             'updated_at': DateTime.now().toIso8601String(),
+            // Tüm zamanlı leaderboard, users tablosundaki bu bayrağa göre filtreleniyor.
+            // Bu yüzden ayar kapalıyken kullanıcıyı gizlemek için false set ediyoruz.
+            'show_in_leaderboard': updateLeaderboard,
           })
           .eq('id', uuid);
 
@@ -168,6 +171,28 @@ class SupabaseService {
       }
     } catch (e) {
       print('Error updating zikr count: $e');
+    }
+  }
+
+  /// Liderlik görünürlüğünü aç/kapat.
+  /// show=false iken daily/weekly/monthly leaderboard kayıtları temizlenir.
+  Future<void> setLeaderboardVisibility(String userId, bool show) async {
+    if (!_isInitialized) {
+      throw Exception('Supabase not initialized. Call initialize() first.');
+    }
+
+    final uuid = toUuid(userId);
+    try {
+      await _supabase.rpc(
+        'set_leaderboard_visibility',
+        params: {
+          'p_user_id': uuid,
+          'p_show': show,
+        },
+      );
+    } catch (e) {
+      print('Error setting leaderboard visibility: $e');
+      rethrow;
     }
   }
 
@@ -273,6 +298,7 @@ class SupabaseService {
           .from('leaderboard_daily')
           .select('user_id, daily_count, users!inner(username, display_name, avatar_url)')
           .eq('date', todayStr)
+          .eq('users.show_in_leaderboard', true)
           .order('daily_count', ascending: false)
           .limit(limit);
       
@@ -295,6 +321,7 @@ class SupabaseService {
         final response = await _supabase
             .from('users')
             .select('id, username, display_name, avatar_url, total_zikrs')
+            .eq('show_in_leaderboard', true)
             .order('total_zikrs', ascending: false)
             .limit(limit);
         final users = List<Map<String, dynamic>>.from(response);
@@ -323,6 +350,7 @@ class SupabaseService {
           .from('leaderboard_weekly')
           .select('user_id, weekly_count, users!inner(username, display_name, avatar_url)')
           .eq('week_start', weekStartStr)
+          .eq('users.show_in_leaderboard', true)
           .order('weekly_count', ascending: false)
           .limit(limit);
       final rows = List<Map<String, dynamic>>.from(response);
@@ -344,6 +372,7 @@ class SupabaseService {
         final response = await _supabase
             .from('users')
             .select('id, username, display_name, avatar_url, total_zikrs')
+            .eq('show_in_leaderboard', true)
             .order('total_zikrs', ascending: false)
             .limit(limit);
         final users = List<Map<String, dynamic>>.from(response);
@@ -372,6 +401,7 @@ class SupabaseService {
           .from('leaderboard_monthly')
           .select('user_id, monthly_count, users!inner(username, display_name, avatar_url)')
           .eq('month_start', monthStartStr)
+          .eq('users.show_in_leaderboard', true)
           .order('monthly_count', ascending: false)
           .limit(limit);
       final rows = List<Map<String, dynamic>>.from(response);
@@ -393,6 +423,7 @@ class SupabaseService {
         final response = await _supabase
             .from('users')
             .select('id, username, display_name, avatar_url, total_zikrs')
+            .eq('show_in_leaderboard', true)
             .order('total_zikrs', ascending: false)
             .limit(limit);
         final users = List<Map<String, dynamic>>.from(response);
@@ -487,6 +518,7 @@ class SupabaseService {
       final response = await _supabase
           .from('users')
           .select('id, username, display_name, avatar_url, total_zikrs')
+          .eq('show_in_leaderboard', true)
           .order('total_zikrs', ascending: false)
           .limit(limit);
       final users = List<Map<String, dynamic>>.from(response);
