@@ -183,10 +183,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 12),
           
           _buildInfoItem(
-            'Web Sitesi',
-            'www.mcanererdem.com',
+            'Website',
+            'github.com/mcanererdem/zikirmatik',
             Icons.language,
-            () => _launchUrl('https://www.mcanererdem.com'),
+            () => _launchUrl('https://github.com/mcanererdem/zikirmatik'),
           ),
           
           const SizedBox(height: 12),
@@ -202,9 +202,9 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           
           _buildInfoItem(
             'E-posta',
-            'info@mcanererdem.com',
+            'tasbih.counter.zikirmatik@gmail.com',
             Icons.email,
-            () => _launchEmail('info@mcanererdem.com'),
+            () => _launchEmail('tasbih.counter.zikirmatik@gmail.com'),
           ),
         ],
       ),
@@ -412,7 +412,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           _buildLegalItem(
             'Gizlilik Politikası',
             'Verilerinizin nasıl korunduğunu öğrenin',
-            () => _launchUrl('https://www.mcanererdem.com/privacy'),
+            () => _launchUrl('https://mcanererdem.github.io/zikirmatik/privacy'),
           ),
           
           const SizedBox(height: 12),
@@ -420,7 +420,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           _buildLegalItem(
             'Kullanım Koşulları',
             'Uygulama kullanım kuralları',
-            () => _launchUrl('https://www.mcanererdem.com/terms'),
+            () => _launchEmail('tasbih.counter.zikirmatik@gmail.com'),
           ),
           
           const SizedBox(height: 12),
@@ -428,7 +428,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           _buildLegalItem(
             'Lisans',
             'Açık kaynak lisansı',
-            () => _launchUrl('https://www.mcanererdem.com/license'),
+            () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/main/LICENSE'),
           ),
         ],
       ),

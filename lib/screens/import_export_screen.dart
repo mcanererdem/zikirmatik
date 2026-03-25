@@ -79,11 +79,15 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         ),
         child: SafeArea(
           top: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -180,7 +184,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                 ),
               ),
           ],
-            ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -625,6 +632,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                 }),
               ),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
             ),
           );
         }

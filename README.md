@@ -220,7 +220,7 @@ Available at: `https://mcanererdem.github.io/zikirmatik/privacy_policy.html`
 
 ## Contact 💬
 
-- **Email:** mcanererdem@gmail.com
+- **Email:** tasbih.counter.zikirmatik@gmail.com
 - **GitHub:** [github.com/mcanererdem/zikirmatik](https://github.com/mcanererdem/zikirmatik)
 
 ## Feedback 💬

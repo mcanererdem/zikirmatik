@@ -91,5 +91,5 @@ We may update this Privacy Policy from time to time. Changes will be posted in t
 
 For privacy concerns or questions, please contact:
 
-**Email:** mcanererdem@gmail.com  
+**Email:** tasbih.counter.zikirmatik@gmail.com  
 **GitHub:** https://github.com/mcanererdem/zikirmatik

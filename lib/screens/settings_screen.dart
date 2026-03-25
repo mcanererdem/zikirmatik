@@ -1216,6 +1216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }),
             ),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -1301,7 +1302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             }),
           ),
           backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 3),
         ),
       );
       return;

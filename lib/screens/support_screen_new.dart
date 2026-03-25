@@ -20,6 +20,8 @@ class SupportScreenNew extends StatefulWidget {
 }
 
 class _SupportScreenNewState extends State<SupportScreenNew> {
+  static const String _supportEmail = 'tasbih.counter.zikirmatik@gmail.com';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,23 +231,23 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               'sw': 'Barua pepe',
               'ha': 'Imel',
             }),
-            'support@mcanererdem.com',
+            _supportEmail,
             Icons.email,
-            () => _launchEmail('support@mcanererdem.com'),
+            () => _launchEmail(_supportEmail),
           ),
           
           const SizedBox(height: 16),
           
           _buildContactItem(
             DynamicLocalizationHelper.getText({
-              'tr': 'Web Sitesi',
-              'en': 'Website',
+              'tr': 'Web Sitesi (Yakında)',
+              'en': 'Website (Coming soon)',
               'ar': 'الموقع',
-              'id': 'Situs Web',
+              'id': 'Situs Web (Segera hadir)',
               'ur': 'ویب سائٹ',
-              'bn': 'ওয়েবসাইট',
+              'bn': 'ওয়েবসাইট (শীঘ্রই)',
               'ms': 'Laman Web',
-              'fa': 'وب‌سایت',
+              'fa': 'وب‌سایت (به زودی)',
               'fr': 'Site web',
               'zh': '网站',
               'ja': 'ウェブサイト',
@@ -254,9 +256,25 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               'sw': 'Tovuti',
               'ha': 'Gidan yanar gizo',
             }),
-            'www.mcanererdem.com',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Yakında',
+              'en': 'Coming soon',
+              'ar': 'قريبا',
+              'id': 'Segera hadir',
+              'ur': 'جلد',
+              'bn': 'শীঘ্রই',
+              'ms': 'Akan datang',
+              'fa': 'به زودی',
+              'fr': 'Bientôt',
+              'zh': '即将推出',
+              'ja': '近日公開',
+              'ru': 'Скоро',
+              'de': 'Bald verfügbar',
+              'sw': 'Inakuja',
+              'ha': 'Daga baya',
+            }),
             Icons.language,
-            () => _launchUrl('https://www.mcanererdem.com'),
+            () => _launchEmail(_supportEmail),
           ),
 
           const SizedBox(height: 16),
@@ -780,7 +798,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
   Future<void> _launchFeedback() async {
     final Uri feedbackUri = Uri(
       scheme: 'mailto',
-      path: 'feedback@mcanererdem.com',
+      path: _supportEmail,
       query: 'subject=Zikirmatik Geri Bildirim',
     );
     

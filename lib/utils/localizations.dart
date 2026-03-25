@@ -489,8 +489,8 @@ class AppLocalizations {
       'help_toggles_text': 'Use the bottom controls (Vibration, Sound, Confetti) to instantly toggle features and personalize your experience.',
       'developer_name': 'Caner Erdem',
       'developer_title': 'Developer',
-      'developer_website': 'www.mcanererdem.com',
-      'developer_email': 'info@mcanererdem.com',
+      'developer_website': 'github.com/mcanererdem/zikirmatik',
+      'developer_email': 'tasbih.counter.zikirmatik@gmail.com',
       'developer_github': 'github.com/mcanererdem',
     },
     'ar': {
@@ -642,8 +642,8 @@ class AppLocalizations {
       'export_failed': 'فشل التصدير',
       'developer_name': 'Caner Erdem',
       'developer_title': 'المطور',
-      'developer_website': 'www.mcanererdem.com',
-      'developer_email': 'info@mcanererdem.com',
+      'developer_website': 'github.com/mcanererdem/zikirmatik',
+      'developer_email': 'tasbih.counter.zikirmatik@gmail.com',
       'developer_github': 'github.com/mcanererdem',
     },
     'id': {

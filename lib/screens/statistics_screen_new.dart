@@ -6,6 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/theme_model.dart';
@@ -57,6 +59,17 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   void initState() {
     super.initState();
     _loadStatistics();
+  }
+
+  @override
+  void dispose() {
+    // Route kapanırken SnackBar'ın önceki ekranda kalmaması için.
+    try {
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    } catch (_) {
+      // dispose sırasında context değişmiş olabilir.
+    }
+    super.dispose();
   }
 
   Future<void> _loadStatistics() async {
@@ -294,6 +307,11 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
 
   Future<void> _exportStatistics() async {
     try {
+      // Aynı anda birden fazla SnackBar birikmesin.
+      try {
+        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      } catch (_) {}
+
       // İstatistik verilerini oluştur
       final stats = {
         'total_zikrs': _totalZikrs,
@@ -314,56 +332,134 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
 
       // JSON formatında veriyi string'e çevir
       String jsonStats = _formatStatsAsJson(stats);
-      
-      // Downloads klasörüne kaydet (Android için External Storage)
-      Directory? directory;
-      if (Platform.isAndroid) {
-        // Android için External Storage Downloads
-        directory = Directory('/storage/emulated/0/Download');
-        if (!await directory.exists()) {
-          // Eğer klasör yoksa oluştur
-          await directory.create(recursive: true);
+
+      final fileName = 'zikirmatik_istatistik_${DateTime.now().millisecondsSinceEpoch}.json';
+
+      // 1) Önce platformun uygun "Downloads" dizinine yazmayı dene.
+      // 2) Yazma başarısız olursa (Android scoped storage/izin) kullanıcıya kaydetme yeri seçtir.
+      String? savedPath;
+      try {
+        final directory = await getDownloadsDirectory();
+        if (directory != null) {
+          final file = File('${directory.path}/$fileName');
+          await file.writeAsString(jsonStats);
+          savedPath = file.path;
         }
-      } else {
-        directory = await getDownloadsDirectory();
+      } catch (_) {
+        // Fallback'a geçilecek.
       }
-      
-      if (directory != null) {
-        final fileName = 'zikirmatik_istatistik_${DateTime.now().millisecondsSinceEpoch}.json';
-        final file = File('${directory.path}/$fileName');
-        await file.writeAsString(jsonStats);
-        
-        // Başarılı mesajı
-        ScaffoldMessenger.of(context).showSnackBar(
+
+      savedPath ??= await (() async {
+        final bytes = Uint8List.fromList(utf8.encode(jsonStats));
+        return await FilePicker.platform.saveFile(
+          type: FileType.custom,
+          allowedExtensions: ['json'],
+          bytes: bytes,
+          fileName: fileName,
+        );
+      })();
+
+      if (savedPath != null && savedPath.isNotEmpty) {
+        if (!mounted) return;
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
           SnackBar(
-            content: Text('İstatistikler Dosyalarım/Downloads klasörüne kaydedildi: ${file.path}'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('İstatistikler kaydedildi: $savedPath'),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          messenger.removeCurrentSnackBar();
+                          _shareStats(savedPath!);
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: const Text('Paylaş'),
+                      ),
+                      TextButton(
+                        onPressed: () => messenger.removeCurrentSnackBar(),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: Text(DynamicLocalizationHelper.close),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
-        
-        // Başarılı mesajı göster
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('İstatistikler cihaz Downloads klasörüne kaydedildi!'),
-              backgroundColor: Colors.green,
-              action: SnackBarAction(
-                label: 'Paylaş',
-                textColor: Colors.white,
-                onPressed: () => _shareStats(file.path),
-              ),
+      } else {
+        if (!mounted) return;
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('İstatistikler kaydedilemedi.'),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => messenger.removeCurrentSnackBar(),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    child: Text(DynamicLocalizationHelper.close),
+                  ),
+                ),
+              ],
             ),
-          );
-        }
+          ),
+        );
       }
     } catch (e) {
       print('Error exporting statistics: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
           SnackBar(
-            content: Text('İstatistikler kaydedilemedi.'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('İstatistikler kaydedilemedi.'),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => messenger.removeCurrentSnackBar(),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    child: Text(DynamicLocalizationHelper.close),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       }
@@ -388,10 +484,30 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     } catch (e) {
       print('Error sharing statistics: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
           SnackBar(
-            content: Text('Paylaşım başarısız.'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Paylaşım başarısız.'),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => messenger.removeCurrentSnackBar(),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    child: Text(DynamicLocalizationHelper.close),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       }
@@ -423,7 +539,10 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                            Navigator.pop(context);
+                          },
                           icon: Icon(
                             Icons.arrow_back,
                             color: widget.themeConfig.textColor,
