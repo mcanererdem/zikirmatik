@@ -197,6 +197,7 @@ Detailed guides for uploading to Google Play Store:
 - Leaderboard sharing is opt-in and off by default.
 - Statistics such as most productive hour are on-device aggregate estimates.
 - Export files are data-focused and do not include mandatory legal branding text.
+- For design prompts, export scope, and performance roadmap details, see `DESIGN_PERFORMANCE_AND_EXPORT_NOTES.md`.
 
 ### Release Build
 
