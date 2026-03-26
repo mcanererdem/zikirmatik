@@ -11,8 +11,10 @@ class ZikrSelectionDialog extends StatelessWidget {
   final ZikrModel? selectedZikr;
   final String currentLanguage; // YENİ
   final Function(ZikrModel) onZikrSelected;
+  final Function(ZikrModel) onEditTarget;
   final VoidCallback onAddCustomZikr;
   final Function(ZikrModel) onDeleteZikr;
+  final Map<String, int> zikrTargets;
   final ThemeConfig themeConfig;
   final AppLocalizations localizations;
 
@@ -23,8 +25,10 @@ class ZikrSelectionDialog extends StatelessWidget {
     required this.selectedZikr,
     required this.currentLanguage,
     required this.onZikrSelected,
+    required this.onEditTarget,
     required this.onAddCustomZikr,
     required this.onDeleteZikr,
+    required this.zikrTargets,
     required this.themeConfig,
     required this.localizations,
   });
@@ -145,6 +149,7 @@ class ZikrSelectionDialog extends StatelessWidget {
   Widget _buildZikrItem(BuildContext context, ZikrModel zikr, bool canDelete) {
     final isSelected = selectedZikr?.id == zikr.id;
     final displayName = _getZikrName(zikr);
+    final currentTarget = zikrTargets[zikr.id] ?? zikr.defaultCount;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -200,23 +205,51 @@ class ZikrSelectionDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: themeConfig.textColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${zikr.defaultCount}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: themeConfig.textColor,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: themeConfig.textColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$currentTarget',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: themeConfig.textColor,
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 6),
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                          onEditTarget(zikr);
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: themeConfig.accentColor.withOpacity(0.22),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: themeConfig.accentColor.withOpacity(0.55),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.edit_rounded,
+                            size: 16,
+                            color: themeConfig.textColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   // Silme butonu için boşluk bırak
-                  if (canDelete) const SizedBox(width: 40),
+                  if (canDelete) const SizedBox(width: 44),
                 ],
               ),
             ),

@@ -1,6 +1,7 @@
 # Design, Performance, and Export Notes
 
 This document summarizes:
+
 - Visual asset generation prompts (Gemini-ready)
 - Current export scope and statistics coverage
 - Performance findings and optimization backlog
@@ -10,6 +11,7 @@ This document summarizes:
 Use these prompts directly in Gemini Pro and save outputs under `assets/generated/...`.
 
 ### 1.1 Leaderboard Empty State
+
 - **Output:** `assets/generated/illustrations/leaderboard_empty.png`
 - **Prompt:**
   - Create a clean mobile app illustration for an Islamic dhikr app leaderboard empty state.
@@ -20,6 +22,7 @@ Use these prompts directly in Gemini Pro and save outputs under `assets/generate
   - Negative: no watermark, no logos, no busy background.
 
 ### 1.2 Profile Header Decorative Background
+
 - **Output:** `assets/generated/backgrounds/profile_header_bg_dark.png`
 - **Prompt:**
   - Generate a dark decorative header background for a Flutter profile screen.
@@ -29,6 +32,7 @@ Use these prompts directly in Gemini Pro and save outputs under `assets/generate
   - Output: PNG, 1600x900.
 
 ### 1.3 Trophy Icon Set
+
 - **Output folder:** `assets/generated/trophies/`
   - `trophy_bronze.png`
   - `trophy_silver.png`
@@ -43,6 +47,7 @@ Use these prompts directly in Gemini Pro and save outputs under `assets/generate
   - Output: PNG, 512x512 transparent.
 
 ### 1.4 About Hero Illustration
+
 - **Output:** `assets/generated/illustrations/about_hero.png`
 - **Prompt:**
   - Create an About screen hero illustration for a dhikr counter app.
@@ -51,6 +56,7 @@ Use these prompts directly in Gemini Pro and save outputs under `assets/generate
   - Output: PNG, 1536x1024.
 
 ### 1.5 Support Hero Illustration
+
 - **Output:** `assets/generated/illustrations/support_hero.png`
 - **Prompt:**
   - Create a support hero illustration for a mobile app.
@@ -59,6 +65,7 @@ Use these prompts directly in Gemini Pro and save outputs under `assets/generate
   - Output: PNG, 1536x1024.
 
 ### 1.6 Light/Dark App Texture Backgrounds
+
 - **Outputs:**
   - `assets/generated/backgrounds/app_bg_dark.png`
   - `assets/generated/backgrounds/app_bg_light.png`
@@ -85,24 +92,29 @@ Use these prompts directly in Gemini Pro and save outputs under `assets/generate
 ## 3) Export Scope (Current State)
 
 Current backup export in `lib/screens/import_export_screen.dart` includes:
+
 - `zikirCounts` (total/current/last date)
 - `achievements` (cup unlock booleans)
 - `settings` (theme/language/vibration/sound/confetti/reminder/tts)
 
 ### Important Note
+
 Detailed statistics series are **not fully exported yet**:
-- `daily_count_*`
+
+- `daily_count_`*
 - `hourly_count_*`
 - other chart source keys used by statistics screens
 
 ## 4) Recommended Export Improvement
 
 Add a new `statistics` block to export payload:
+
 - `dailyCounts`: all keys matching `daily_count_`
 - `hourlyCounts`: all keys matching `hourly_count_`
 - optional derived summaries if needed
 
 And import side should:
+
 - validate type/limits
 - apply safely with existing checksum/schema checks
 - remain backward-compatible with old backups
@@ -110,6 +122,7 @@ And import side should:
 ## 5) Performance Findings and Action Plan
 
 ### Quick wins (high impact, low effort)
+
 - Move non-critical startup async work to post-`runApp`.
 - Ensure Ad SDK initialization runs in one place only.
 - Reduce heavy glow/shadow layers on animated home widgets.
@@ -117,6 +130,7 @@ And import side should:
 - Prefer lazy lists (`ListView.builder`) for ranking-heavy screens.
 
 ### Medium refactors
+
 - Startup orchestration by phases: critical vs deferred tasks.
 - Shared in-memory session cache for settings/profile/statistics.
 - Add adaptive animation quality on lower-end devices.
@@ -130,3 +144,4 @@ And import side should:
   - leaderboard/profile transitions
   - about/support rendering with new assets
   - backup export/import compatibility after statistics block addition
+

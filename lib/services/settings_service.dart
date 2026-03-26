@@ -28,6 +28,7 @@ class SettingsService {
   static const String _streakCountKey = 'streak_count';
   static const String _goalsKey = 'goals';
   static const String _zikrCountPrefix = 'zikr_count_'; // zikr_count_{zikrId}_{date}
+  static const String _zikrTargetPrefix = 'zikr_target_'; // zikr_target_{zikrId}
 
   // Theme
   Future<void> saveTheme(String themeId) async {
@@ -331,6 +332,17 @@ class SettingsService {
   Future<String> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_themeModeKey) ?? 'system';
+  }
+
+  // Per-zikr target
+  Future<void> saveZikrTarget(String zikrId, int target) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('$_zikrTargetPrefix$zikrId', target);
+  }
+
+  Future<int?> getZikrTarget(String zikrId) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('$_zikrTargetPrefix$zikrId');
   }
 
   Future<void> saveShowInLeaderboard(bool value) async {

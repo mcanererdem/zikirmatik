@@ -10,7 +10,7 @@ import '../services/ad_service.dart';
 import '../services/notification_service.dart';
 import '../services/supabase_service.dart';
 import '../screens/home_page.dart' as home;
-import '../screens/about_screen.dart';
+import '../screens/about_screen_new.dart';
 import '../screens/support_screen_new.dart';
 import '../screens/import_export_screen.dart';
 import '../widgets/notification_settings_dialog.dart';
@@ -1715,9 +1715,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AboutScreen(
-                  themeConfig: widget.themeConfig,
+                builder: (context) => AboutScreenNew(
+                  themeConfig: _currentTheme,
                   localizations: widget.localizations,
+                  appVersion: '1.0.0',
                 ),
               ),
             ),

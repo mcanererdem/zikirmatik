@@ -887,7 +887,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -906,116 +906,91 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       ),
       child: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              gradient: widget.themeConfig.buttonGradient,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: widget.themeConfig.accentColor.withOpacity(0.5),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                '#$_currentUserRank',
-                style: GoogleFonts.notoSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: widget.themeConfig.textColor,
-                ),
-              ),
-            ),
-          ),
+          _buildRankBadge(_currentUserRank),
+          const SizedBox(width: 9),
+          _buildUserAvatar(_currentUserProfile!),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  DynamicLocalizationHelper.getText({
-                    'tr': 'Sen',
-                    'en': 'You',
-                    'ar': 'أنت',
-                    'id': 'Anda',
-                    'ur': 'آپ',
-                    'bn': 'আপনি',
-                    'ms': 'Anda',
-                    'fa': 'شما',
-                    'fr': 'Vous',
-                    'zh': '你',
-                    'ja': 'あなた',
-                    'ru': 'Вы',
-                    'de': 'Sie',
-                    'sw': 'Wewe',
-                    'ha': 'Kai',
-                  }),
-                  style: GoogleFonts.notoSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: widget.themeConfig.textColor,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Sen',
+                          'en': 'You',
+                          'ar': 'أنت',
+                          'id': 'Anda',
+                          'ur': 'آپ',
+                          'bn': 'আপনি',
+                          'ms': 'Anda',
+                          'fa': 'شما',
+                          'fr': 'Vous',
+                          'zh': '你',
+                          'ja': 'あなた',
+                          'ru': 'Вы',
+                          'de': 'Sie',
+                          'sw': 'Wewe',
+                          'ha': 'Kai',
+                        }),
+                        style: GoogleFonts.notoSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: widget.themeConfig.textColor,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: widget.themeConfig.accentColor.withOpacity(0.22),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        DynamicLocalizationHelper.getText({
+                          'tr': 'Sen',
+                          'en': 'You',
+                          'ar': 'أنت',
+                          'id': 'Anda',
+                        }),
+                        style: GoogleFonts.notoSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: widget.themeConfig.textColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _leaderboardMode == 'cups'
-                      ? '${_currentUserProfile!['cup_count'] ?? 0} ${DynamicLocalizationHelper.getText({
-                          'tr': 'kupa',
-                          'en': 'cups',
-                          'ar': 'كؤوس',
-                          'id': 'piala',
-                        })}'
-                      : '${_currentUserProfile!['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
-                          'tr': 'zikir',
-                          'en': 'dhikr',
-                          'ar': 'ذكر',
-                          'id': 'zikir',
-                          'ur': 'ذکر',
-                          'bn': 'জিকির',
-                          'ms': 'zikir',
-                          'fa': 'ذکر',
-                          'fr': 'dhikr',
-                          'zh': '赞念',
-                          'ja': 'ジクル',
-                          'ru': 'зикр',
-                          'de': 'Dhikr',
-                          'sw': 'dhikr',
-                          'ha': 'zikiri',
-                        })}',
-                  style: GoogleFonts.notoSans(
-                    fontSize: 12,
-                    color: widget.themeConfig.textColor.withOpacity(0.8),
-                  ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Icon(
+                      _leaderboardMode == 'cups' ? Icons.workspace_premium : Icons.trending_up,
+                      size: 14,
+                      color: _leaderboardMode == 'cups'
+                          ? Colors.amber.shade400
+                          : widget.themeConfig.textColor.withOpacity(0.72),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _leaderboardMode == 'cups'
+                          ? '${_currentUserProfile!['cup_count'] ?? 0} ${DynamicLocalizationHelper.getText({'tr': 'kupa', 'en': 'cups', 'ar': 'كؤوس', 'id': 'piala'})}'
+                          : '${_currentUserProfile!['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({'tr': 'zikir', 'en': 'dhikr', 'ar': 'ذكر', 'id': 'zikir', 'ur': 'ذکر', 'bn': 'জিকির', 'ms': 'zikir', 'fa': 'ذکر', 'fr': 'dhikr', 'zh': '赞念', 'ja': 'ジクル', 'ru': 'зикр', 'de': 'Dhikr', 'sw': 'dhikr', 'ha': 'zikiri'})}',
+                      style: GoogleFonts.notoSans(
+                        fontSize: 11.5,
+                        color: widget.themeConfig.textColor.withOpacity(0.84),
+                      ),
+                    ),
+                  ],
                 ),
                 if (_leaderboardMode == 'cups') ...[
                   const SizedBox(height: 4),
                   _buildCupBadges(_currentUserProfile!),
                 ],
               ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: widget.themeConfig.accentColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              DynamicLocalizationHelper.getText({
-                'tr': 'Sıra',
-                'en': 'Rank',
-                'ar': 'الترتيب',
-                'id': 'Peringkat',
-              }) + ': $_currentUserRank',
-              style: GoogleFonts.notoSans(
-                fontSize: 11,
-                color: widget.themeConfig.textColor,
-                fontWeight: FontWeight.w500,
-              ),
             ),
           ),
         ],
@@ -1101,91 +1076,150 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _buildRankBadge(rank),
-            const SizedBox(width: 10),
+            const SizedBox(width: 9),
             _buildUserAvatar(user),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    (() {
-                      final displayName = user['display_name'] as String?;
-                      if (displayName != null && displayName.trim().isNotEmpty) return displayName.trim();
-                      final username = user['username'] as String?;
-                      if (username != null && username.trim().isNotEmpty) return username.trim();
-                      return _getZikrDefaultDisplayName();
-                    })(),
-                    style: GoogleFonts.notoSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: widget.themeConfig.textColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (_leaderboardMode == 'cups') ...[
-                        Icon(
-                          Icons.workspace_premium,
-                          size: 14,
-                          color: Colors.amber.shade400,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${user['cup_count'] ?? 0} ${DynamicLocalizationHelper.getText({
-                            'tr': 'kupa',
-                            'en': 'cups',
-                            'ar': 'كؤوس',
-                            'id': 'piala',
-                          })}',
+                      Expanded(
+                        child: Text(
+                          (() {
+                            final displayName = user['display_name'] as String?;
+                            if (displayName != null && displayName.trim().isNotEmpty) return displayName.trim();
+                            final username = user['username'] as String?;
+                            if (username != null && username.trim().isNotEmpty) return username.trim();
+                            return _getZikrDefaultDisplayName();
+                          })(),
                           style: GoogleFonts.notoSans(
-                            fontSize: 11,
-                            color: widget.themeConfig.textColor.withOpacity(0.8),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: widget.themeConfig.textColor,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isCurrentUser)
+                        Container(
+                          margin: const EdgeInsets.only(left: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: widget.themeConfig.accentColor.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            DynamicLocalizationHelper.getText({
+                              'tr': 'Sen',
+                              'en': 'You',
+                              'ar': 'أنت',
+                              'id': 'Anda',
+                            }),
+                            style: GoogleFonts.notoSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: widget.themeConfig.textColor,
+                            ),
                           ),
                         ),
-                      ] else ...[
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  if (_leaderboardMode == 'cups')
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.workspace_premium, size: 12, color: Colors.amber.shade300),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${user['cup_count'] ?? 0} ${DynamicLocalizationHelper.getText({'tr': 'kupa', 'en': 'cups', 'ar': 'كؤوس', 'id': 'piala'})}',
+                                style: GoogleFonts.notoSans(
+                                  fontSize: 10.5,
+                                  color: widget.themeConfig.textColor.withOpacity(0.9),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (user['current_streak'] != null && user['current_streak'] > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.16),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.local_fire_department, size: 12, color: Colors.orange),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${user['current_streak']}',
+                                  style: GoogleFonts.notoSans(
+                                    fontSize: 10.5,
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
                         Icon(
                           Icons.trending_up,
                           size: 14,
-                          color: widget.themeConfig.textColor.withOpacity(0.7),
+                          color: widget.themeConfig.textColor.withOpacity(0.72),
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${user['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
-                            'tr': 'zikir',
-                            'en': 'dhikr',
-                            'ar': 'ذكر',
-                            'id': 'zikir',
-                          })}',
+                          '${user['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({'tr': 'zikir', 'en': 'dhikr', 'ar': 'ذكر', 'id': 'zikir'})}',
                           style: GoogleFonts.notoSans(
                             fontSize: 11,
-                            color: widget.themeConfig.textColor.withOpacity(0.8),
+                            color: widget.themeConfig.textColor.withOpacity(0.82),
                           ),
                         ),
-                      ],
-                      if (user['current_streak'] != null && user['current_streak'] > 0) ...[
-                        const SizedBox(width: 12),
-                        Icon(
-                          Icons.local_fire_department,
-                          size: 14,
-                          color: Colors.orange,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${user['current_streak']} 🔥',
-                          style: GoogleFonts.notoSans(
-                            fontSize: 12,
+                        if (user['current_streak'] != null && user['current_streak'] > 0) ...[
+                          const SizedBox(width: 10),
+                          Icon(
+                            Icons.local_fire_department,
+                            size: 13,
                             color: Colors.orange,
                           ),
-                        ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${user['current_streak']}',
+                            style: GoogleFonts.notoSans(
+                              fontSize: 11,
+                              color: Colors.orange,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
+                    ),
                   if (_leaderboardMode == 'cups') ...[
                     const SizedBox(height: 4),
                     _buildCupBadges(user),
@@ -1203,27 +1237,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ],
               ),
             ),
-            if (isCurrentUser)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: widget.themeConfig.accentColor.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  DynamicLocalizationHelper.getText({
-                    'tr': 'Sen',
-                    'en': 'You',
-                    'ar': 'أنت',
-                    'id': 'Anda',
-                  }),
-                  style: GoogleFonts.notoSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: widget.themeConfig.textColor,
-                  ),
-                ),
-              ),
           ],
         ),
       ),

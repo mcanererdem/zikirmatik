@@ -197,7 +197,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             DynamicLocalizationHelper.getText({
@@ -222,10 +222,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 12),
           
           _buildInfoItem(
-            'Website',
-            'github.com/mcanererdem/zikirmatik',
-            Icons.language,
-            () => _launchUrl('https://github.com/mcanererdem/zikirmatik'),
+            'LinkedIn',
+            'linkedin.com/in/mcanererdem',
+            Icons.business_center,
+            () => _launchUrl('https://www.linkedin.com/in/mcanererdem/'),
           ),
           
           const SizedBox(height: 12),
@@ -565,13 +565,17 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
 
   Widget _buildFeatureItem(String title, String description) {
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+        ),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -579,18 +583,16 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              description,
-              style: GoogleFonts.notoSans(
-                color: Colors.white70,
-                fontSize: 12,
-                height: 1.3,
-              ),
+          const SizedBox(height: 6),
+          Text(
+            description,
+            style: GoogleFonts.notoSans(
+              color: Colors.white70,
+              fontSize: 12,
+              height: 1.35,
             ),
           ),
         ],
@@ -689,7 +691,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           _buildLegalItem(
             DynamicLocalizationHelper.getText({'tr': 'Kullanım Koşulları', 'en': 'Terms of Use'}),
             DynamicLocalizationHelper.getText({'tr': 'Uygulama kullanım koşulları', 'en': 'Application usage terms'}),
-            () => _launchEmail('tasbih.counter.zikirmatik@gmail.com'),
+            () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/HEAD/TERMS_OF_USE.md'),
           ),
           
           const SizedBox(height: 12),

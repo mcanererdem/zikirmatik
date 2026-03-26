@@ -697,7 +697,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           GestureDetector(
-            onTap: () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/dev/LICENSE'),
+            onTap: () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/main/LICENSE'),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
