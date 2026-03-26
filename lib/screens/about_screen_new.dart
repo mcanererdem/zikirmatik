@@ -170,10 +170,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           Text(
-            DynamicLocalizationHelper.getText({
-              'tr': 'Modern bir zikir sayacı uygulaması. Zikir takibi, kupa ilerlemesi, istatistikler, yedekleme ve çoklu dil desteği sunar.',
-              'en': 'A modern dhikr counter app with dhikr tracking, trophy progress, statistics, backup, and multi-language support.',
-            }),
+            widget.localizations.translate('about_intro'),
             style: GoogleFonts.notoSans(
               color: Colors.white70,
               fontSize: 14,
@@ -200,10 +197,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            DynamicLocalizationHelper.getText({
-              'tr': 'Geliştirici',
-              'en': 'Developer',
-            }),
+            widget.localizations.translate('about_developer_title'),
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 18,
@@ -214,7 +208,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           _buildInfoItem(
-            DynamicLocalizationHelper.getText({'tr': 'Ad', 'en': 'Name'}),
+            widget.localizations.translate('name'),
             'Caner Erdem',
             Icons.person,
           ),
@@ -240,7 +234,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 12),
           
           _buildInfoItem(
-            DynamicLocalizationHelper.getText({'tr': 'E-posta', 'en': 'Email'}),
+            widget.localizations.translate('email'),
             'tasbih.counter.zikirmatik@gmail.com',
             Icons.email,
             () => _launchEmail('tasbih.counter.zikirmatik@gmail.com'),
@@ -626,7 +620,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           Text(
-            DynamicLocalizationHelper.getText({'tr': 'Teşekkürler', 'en': 'Thank You'}),
+            widget.localizations.translate('about_thanks_title'),
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 18,
@@ -637,10 +631,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 8),
           
           Text(
-            DynamicLocalizationHelper.getText({
-              'tr': 'Uygulamayı kullandığınız için teşekkür ederiz. Geri bildirimlerinizle uygulamayı sürekli geliştiriyoruz.',
-              'en': 'Thank you for using the app. We continuously improve it with your feedback.',
-            }),
+            widget.localizations.translate('about_thanks_desc'),
             style: GoogleFonts.notoSans(
               color: Colors.white70,
               fontSize: 14,
@@ -667,10 +658,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            DynamicLocalizationHelper.getText({
-              'tr': 'Yasal Bilgiler',
-              'en': 'Legal',
-            }),
+            widget.localizations.translate('about_legal_title'),
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 18,
@@ -681,24 +669,24 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           _buildLegalItem(
-            DynamicLocalizationHelper.getText({'tr': 'Gizlilik Politikası', 'en': 'Privacy Policy'}),
-            DynamicLocalizationHelper.getText({'tr': 'Verilerinizin nasıl işlendiğini öğrenin', 'en': 'Learn how your data is handled'}),
+            widget.localizations.translate('about_privacy_title'),
+            widget.localizations.translate('about_privacy_desc'),
             () => _launchUrl('https://mcanererdem.github.io/zikirmatik/privacy'),
           ),
           
           const SizedBox(height: 12),
           
           _buildLegalItem(
-            DynamicLocalizationHelper.getText({'tr': 'Kullanım Koşulları', 'en': 'Terms of Use'}),
-            DynamicLocalizationHelper.getText({'tr': 'Uygulama kullanım koşulları', 'en': 'Application usage terms'}),
+            widget.localizations.translate('about_terms_title'),
+            widget.localizations.translate('about_terms_desc'),
             () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/HEAD/TERMS_OF_USE.md'),
           ),
           
           const SizedBox(height: 12),
           
           _buildLegalItem(
-            DynamicLocalizationHelper.getText({'tr': 'Lisans', 'en': 'License'}),
-            DynamicLocalizationHelper.getText({'tr': 'Açık kaynak lisans bilgisi', 'en': 'Open source license details'}),
+            widget.localizations.translate('about_license_title'),
+            widget.localizations.translate('about_license_desc'),
             () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/main/LICENSE'),
           ),
         ],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
 import '../models/zikr_model.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
 
 class EditZikrDialog extends StatefulWidget {
   final ZikrModel zikr;
@@ -25,130 +27,147 @@ class EditZikrDialog extends StatefulWidget {
 }
 
 class _EditZikrDialogState extends State<EditZikrDialog> {
-  late TextEditingController _nameArController;
-  late TextEditingController _nameTrController;
-  late TextEditingController _nameEnController;
+  static const int _maxZikrCount = 100000;
+  static const int _maxTextLength = 80;
+  late TextEditingController _primaryController;
+  late TextEditingController _secondaryController;
   late TextEditingController _countController;
 
   @override
   void initState() {
     super.initState();
-    _nameArController = TextEditingController(text: widget.zikr.nameAr);
-    _nameTrController = TextEditingController(text: widget.zikr.nameTr);
-    _nameEnController = TextEditingController(text: widget.zikr.nameEn);
+    _primaryController = TextEditingController(
+      text: widget.zikr.getNameForLanguage(widget.currentLanguage),
+    );
+    _secondaryController = TextEditingController(
+      text: widget.currentLanguage == 'ar' ? '' : widget.zikr.nameAr,
+    );
     _countController = TextEditingController(text: widget.zikr.defaultCount.toString());
   }
 
   @override
   void dispose() {
-    _nameArController.dispose();
-    _nameTrController.dispose();
-    _nameEnController.dispose();
+    _primaryController.dispose();
+    _secondaryController.dispose();
     _countController.dispose();
     super.dispose();
   }
 
+  String get _title => DynamicLocalizationHelper.getText({
+        'tr': 'Zikri Düzenle',
+        'en': 'Edit Dhikr',
+        'ar': 'تعديل الذكر',
+      });
+
+  String get _primaryLabel => widget.currentLanguage == 'ar'
+      ? DynamicLocalizationHelper.getText({'tr': 'Arapça', 'en': 'Arabic', 'ar': 'العربية'})
+      : DynamicLocalizationHelper.getText({
+          'tr': 'Okunuş / İsim',
+          'en': 'Reading / Name',
+          'ar': 'القراءة / الاسم',
+        });
+
+  String get _secondaryLabel => DynamicLocalizationHelper.getText({
+        'tr': 'Arapça',
+        'en': 'Arabic',
+        'ar': 'العربية',
+      });
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: widget.themeConfig.primaryColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: widget.themeConfig.backgroundGradient,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: widget.themeConfig.accentColor.withOpacity(0.35),
+            width: 1.5,
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Başlık
-            Text(
-              'Zikri Düzenle',
-              style: GoogleFonts.notoSans(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: widget.themeConfig.textColor,
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            // Arapça isim
-            _buildTextField(
-              controller: _nameArController,
-              label: 'Arapça',
-              hint: 'سُبْحَانَ اللّٰهِ',
-              textDirection: TextDirection.rtl,
-            ),
-            const SizedBox(height: 16),
-            
-            // Türkçe isim
-            _buildTextField(
-              controller: _nameTrController,
-              label: 'Türkçe',
-              hint: 'Sübhanallah',
-              textDirection: TextDirection.ltr,
-            ),
-            const SizedBox(height: 16),
-            
-            // İngilizce isim
-            _buildTextField(
-              controller: _nameEnController,
-              label: 'İngilizce',
-              hint: 'Subhanallah',
-              textDirection: TextDirection.ltr,
-            ),
-            const SizedBox(height: 16),
-            
-            // Sayı
-            _buildTextField(
-              controller: _countController,
-              label: 'Adet',
-              hint: '33',
-              textDirection: TextDirection.ltr,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-            
-            // Butonlar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // İptal
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'İptal',
-                    style: GoogleFonts.notoSans(
-                      color: widget.themeConfig.textColor.withOpacity(0.7),
-                      fontSize: 16,
-                    ),
-                  ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _title,
+                style: GoogleFonts.notoSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: widget.themeConfig.textColor,
                 ),
-                const SizedBox(width: 16),
-                
-                // Kaydet
-                ElevatedButton(
-                  onPressed: _saveZikr,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: widget.themeConfig.accentColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Kaydet',
-                    style: GoogleFonts.notoSans(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+              ),
+              const SizedBox(height: 20),
+              _buildTextField(
+                controller: _primaryController,
+                label: _primaryLabel,
+                hint: widget.currentLanguage == 'ar' ? 'سُبْحَانَ اللّٰهِ' : 'Subhanallah',
+                textDirection: widget.currentLanguage == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+              ),
+              if (widget.currentLanguage != 'ar') ...[
+                const SizedBox(height: 14),
+                _buildTextField(
+                  controller: _secondaryController,
+                  label: _secondaryLabel,
+                  hint: 'سُبْحَانَ اللّٰهِ',
+                  textDirection: TextDirection.rtl,
                 ),
               ],
-            ),
-          ],
+              const SizedBox(height: 14),
+              _buildTextField(
+                controller: _countController,
+                label: DynamicLocalizationHelper.getText({'tr': 'Adet', 'en': 'Count', 'ar': 'العدد'}),
+                hint: '33',
+                textDirection: TextDirection.ltr,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        widget.localizations.cancel,
+                        style: GoogleFonts.notoSans(
+                          color: widget.themeConfig.textColor.withOpacity(0.75),
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _saveZikr,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: widget.themeConfig.accentColor,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        widget.localizations.save,
+                        style: GoogleFonts.notoSans(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -160,6 +179,7 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
     required String hint,
     required TextDirection textDirection,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,6 +196,7 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           textDirection: textDirection,
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
@@ -214,15 +235,28 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
   }
 
   void _saveZikr() {
-    final nameAr = _nameArController.text.trim();
-    final nameTr = _nameTrController.text.trim();
-    final nameEn = _nameEnController.text.trim();
+    final primary = _primaryController.text.trim();
+    final secondary = _secondaryController.text.trim();
     final countText = _countController.text.trim();
     
-    if (nameAr.isEmpty || nameTr.isEmpty || nameEn.isEmpty || countText.isEmpty) {
+    if (primary.isEmpty || countText.isEmpty || (widget.currentLanguage != 'ar' && secondary.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Tüm alanları doldurun!'),
+          content: Text(DynamicLocalizationHelper.getText({
+            'tr': 'Lutfen gerekli alanlari doldurun.',
+            'en': 'Please fill required fields.',
+            'ar': 'يرجى ملء الحقول المطلوبة.',
+          })),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (!_isValidZikrText(primary) || (secondary.isNotEmpty && !_isValidZikrText(secondary))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.localizations.translate('zikr_text_invalid_short')),
           backgroundColor: Colors.red,
         ),
       );
@@ -230,20 +264,40 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
     }
     
     final count = int.tryParse(countText);
-    if (count == null || count <= 0) {
+    if (count == null || count <= 0 || count > _maxZikrCount) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Geçerli bir sayı girin!'),
+          content: Text(widget.localizations.translate('zikr_count_range_error')),
           backgroundColor: Colors.red,
         ),
       );
       return;
+    }
+
+    String nameAr = widget.zikr.nameAr;
+    String nameTr = widget.zikr.nameTr;
+    String nameEn = widget.zikr.nameEn;
+    if (widget.currentLanguage == 'ar') {
+      nameAr = primary;
+    } else if (widget.currentLanguage == 'en') {
+      nameEn = primary;
+      nameTr = primary;
+      nameAr = secondary;
+    } else {
+      nameTr = primary;
+      nameEn = primary;
+      nameAr = secondary;
     }
     
     final updatedZikr = widget.zikr.copyWith(
       nameAr: nameAr,
       nameTr: nameTr,
       nameEn: nameEn,
+      localizedNames: {
+        ...widget.zikr.localizedNames,
+        widget.currentLanguage: primary,
+        if (widget.currentLanguage != 'ar') 'ar': secondary,
+      },
       defaultCount: count,
     );
     
@@ -252,9 +306,19 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Zikir başarıyla güncellendi!'),
+        content: Text(DynamicLocalizationHelper.getText({
+          'tr': 'Zikir guncellendi.',
+          'en': 'Dhikr updated.',
+          'ar': 'تم تحديث الذكر.',
+        })),
         backgroundColor: Colors.green,
       ),
     );
+  }
+
+  bool _isValidZikrText(String text) {
+    if (text.length < 2 || text.length > _maxTextLength) return false;
+    final safePattern = RegExp(r"^[^<>[\]{};`|\\$%]+$");
+    return safePattern.hasMatch(text);
   }
 }

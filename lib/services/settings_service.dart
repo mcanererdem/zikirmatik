@@ -10,6 +10,7 @@ class SettingsService {
   static const String _vibrationKey = 'vibration_enabled';
   static const String _soundKey = 'sound_enabled';
   static const String _customZikrsKey = 'custom_zikrs';
+  static const String _editedDefaultZikrsKey = 'edited_default_zikrs';
   static const String _selectedZikrKey = 'selected_zikr';
   static const String _dailyCountKey = 'daily_count_';
   static const String _totalCountKey = 'total_count';
@@ -91,6 +92,18 @@ class SettingsService {
   Future<List<ZikrModel>> getCustomZikrs() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = prefs.getStringList(_customZikrsKey) ?? [];
+    return jsonList.map((json) => ZikrModel.fromJson(jsonDecode(json))).toList();
+  }
+
+  Future<void> saveEditedDefaultZikrs(List<ZikrModel> zikrs) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = zikrs.map((z) => jsonEncode(z.toJson())).toList();
+    await prefs.setStringList(_editedDefaultZikrsKey, jsonList);
+  }
+
+  Future<List<ZikrModel>> getEditedDefaultZikrs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = prefs.getStringList(_editedDefaultZikrsKey) ?? [];
     return jsonList.map((json) => ZikrModel.fromJson(jsonDecode(json))).toList();
   }
 

@@ -21,6 +21,7 @@ class SupportScreenNew extends StatefulWidget {
 
 class _SupportScreenNewState extends State<SupportScreenNew> {
   static const String _supportEmail = 'tasbih.counter.zikirmatik@gmail.com';
+  bool get _isRtl => Directionality.of(context) == TextDirection.rtl;
 
   @override
   Widget build(BuildContext context) {
@@ -32,23 +33,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
         foregroundColor: widget.themeConfig.textColor,
         iconTheme: IconThemeData(color: widget.themeConfig.textColor),
         title: Text(
-          DynamicLocalizationHelper.getText({
-            'tr': 'Bize Ulaşın',
-            'en': 'Contact Us',
-            'ar': 'تواصل معنا',
-            'id': 'Hubungi Kami',
-            'ur': 'ہم سے رابطہ کریں',
-            'bn': 'আমাদের সাথে যোগাযোগ করুন',
-            'ms': 'Hubungi Kami',
-            'fa': 'با ما تماس بگیرید',
-            'fr': 'Nous contacter',
-            'zh': '联系我们',
-            'ja': 'お問い合わせ',
-            'ru': 'Связаться с нами',
-            'de': 'Kontakt',
-            'sw': 'Wasiliana Nasi',
-            'ha': 'Tuntube Mu',
-          }),
+          widget.localizations.translate('contact'),
           style: GoogleFonts.notoSans(
             color: widget.themeConfig.textColor,
             fontWeight: FontWeight.bold,
@@ -71,7 +56,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Header
                 Container(
@@ -98,23 +83,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        DynamicLocalizationHelper.getText({
-                          'tr': 'Sorularınız veya geri bildiriminiz mi var?',
-                          'en': 'Need help?',
-                          'ar': 'هل تحتاج مساعدة؟',
-                          'id': 'Butuh bantuan?',
-                          'ur': 'کیا آپ کو مدد چاہیے؟',
-                          'bn': 'সাহায্য দরকার?',
-                          'ms': 'Perlukan bantuan?',
-                          'fa': 'نیاز به کمک دارید؟',
-                          'fr': 'Besoin d\'aide ?',
-                          'zh': '需要帮助？',
-                          'ja': 'お困りですか？',
-                          'ru': 'Нужна помощь?',
-                          'de': 'Brauchen Sie Hilfe?',
-                          'sw': 'Unahitaji msaada?',
-                          'ha': 'Kuna buƙatar taimako?',
-                        }),
+                        widget.localizations.translate('support_need_help_title'),
                         style: GoogleFonts.notoSans(
                           color: widget.themeConfig.textColor,
                           fontSize: 20,
@@ -124,23 +93,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        DynamicLocalizationHelper.getText({
-                          'tr': 'Sorunlarınızı yanıtlamak ve geri bildirimlerinizi değerlendirmek için buradayız.',
-                          'en': 'We are here to answer your questions and review your feedback.',
-                          'ar': 'نحن هنا للإجابة على أسئلتك وتقييم ملاحظاتك.',
-                          'id': 'Kami di sini untuk menjawab pertanyaan dan meninjau masukan Anda.',
-                          'ur': 'ہم آپ کے سوالات کے جوابات اور آپ کی رائے کا جائزہ لینے کے لیے یہاں ہیں۔',
-                          'bn': 'আপনার প্রশ্নের উত্তর এবং মতামত মূল্যায়নের জন্য আমরা এখানে আছি।',
-                          'ms': 'Kami di sini untuk menjawab soalan dan menilai maklum balas anda.',
-                          'fa': 'ما اینجا هستیم تا به سوالات شما پاسخ دهیم و بازخورد شما را بررسی کنیم.',
-                          'fr': 'Nous sommes là pour répondre à vos questions et évaluer vos retours.',
-                          'zh': '我们在此解答您的问题并查看您的反馈。',
-                          'ja': 'ご質問への回答とフィードバックの確認のため、こちらにいます。',
-                          'ru': 'Мы здесь, чтобы ответить на ваши вопросы и учесть отзывы.',
-                          'de': 'Wir sind da, um Ihre Fragen zu beantworten und Ihr Feedback auszuwerten.',
-                          'sw': 'Tuko hapa kujibu maswali yako na kukagua maoni yako.',
-                          'ha': 'Muna nan don amsa tambayoyinku da kimanta ra\'ayoyinku.',
-                        }),
+                        widget.localizations.translate('support_need_help_desc'),
                         style: GoogleFonts.notoSans(
                           color: widget.themeConfig.textColor.withOpacity(0.8),
                           fontSize: 14,
@@ -190,23 +143,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            DynamicLocalizationHelper.getText({
-              'tr': 'İletişim Yöntemleri',
-              'en': 'Contact Methods',
-              'ar': 'طرق التواصل',
-              'id': 'Metode Kontak',
-              'ur': 'رابطے کے طریقے',
-              'bn': 'যোগাযোগের পদ্ধতি',
-              'ms': 'Kaedah Hubungan',
-              'fa': 'روش‌های تماس',
-              'fr': 'Moyens de contact',
-              'zh': '联系方式',
-              'ja': 'お問い合わせ方法',
-              'ru': 'Способы связи',
-              'de': 'Kontaktmöglichkeiten',
-              'sw': 'Njia za Mawasiliano',
-              'ha': 'Hanyoyin Tuntuɓa',
-            }),
+            widget.localizations.translate('support_contact_methods_title'),
             style: GoogleFonts.notoSans(
               color: widget.themeConfig.textColor,
               fontSize: 18,
@@ -216,23 +153,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
           const SizedBox(height: 20),
 
           _buildContactItem(
-            DynamicLocalizationHelper.getText({
-              'tr': 'E-posta',
-              'en': 'Email',
-              'ar': 'البريد الإلكتروني',
-              'id': 'Email',
-              'ur': 'ای میل',
-              'bn': 'ইমেইল',
-              'ms': 'E-mel',
-              'fa': 'ایمیل',
-              'fr': 'E-mail',
-              'zh': '电子邮件',
-              'ja': 'メール',
-              'ru': 'Эл. почта',
-              'de': 'E-Mail',
-              'sw': 'Barua pepe',
-              'ha': 'Imel',
-            }),
+            widget.localizations.translate('email'),
             _supportEmail,
             Icons.email,
             () => _launchEmail(_supportEmail),
@@ -280,13 +201,14 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-        child: Container(
+      child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: widget.themeConfig.textColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
+          textDirection: _isRtl ? TextDirection.rtl : TextDirection.ltr,
           children: [
             Container(
               width: 48,
@@ -304,10 +226,11 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
             const SizedBox(width: 16),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: _isRtl ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
+                    textAlign: _isRtl ? TextAlign.right : TextAlign.left,
                     style: GoogleFonts.notoSans(
                       color: widget.themeConfig.textColor,
                       fontSize: 16,
@@ -317,6 +240,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
+                    textAlign: _isRtl ? TextAlign.right : TextAlign.left,
                     style: GoogleFonts.notoSans(
                       color: widget.themeConfig.textColor.withOpacity(0.8),
                       fontSize: 14,
@@ -326,7 +250,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               ),
             ),
             Icon(
-              Icons.arrow_forward_ios,
+              _isRtl ? Icons.arrow_back_ios_new : Icons.arrow_forward_ios,
               color: widget.themeConfig.textColor.withOpacity(0.6),
               size: 16,
             ),

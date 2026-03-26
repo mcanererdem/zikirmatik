@@ -225,6 +225,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final confetti = await _settingsService.getConfetti();
     final ttsEnabled = await _settingsService.getTtsEnabled();
     final customZikrs = await _settingsService.getCustomZikrs();
+    final editedDefaultZikrs = await _settingsService.getEditedDefaultZikrs();
     final selectedZikrId = await _settingsService.getSelectedZikr();
     final savedCount = await _settingsService.getCurrentCount();
     final goals = await _settingsService.getGoals();
@@ -253,6 +254,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
     // Dynamic localization helper'ı güncelle
     await DynamicLocalizationHelper.setLanguage(currentLanguage);
+
+    for (final edited in editedDefaultZikrs) {
+      final idx = _defaultZikrs.indexWhere((z) => z.id == edited.id);
+      if (idx != -1) {
+        _defaultZikrs[idx] = edited.copyWith(isEditable: true);
+      }
+    }
 
     ZikrModel selectedZikr;
     if (selectedZikrId != null) {
@@ -861,11 +869,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final prefs = await SharedPreferences.getInstance();
     final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
     
-    if (totalZikrs >= 10000) return 'Platinum';
-    if (totalZikrs >= 5000) return 'Diamond';
-    if (totalZikrs >= 1000) return 'Gold';
-    if (totalZikrs >= 500) return 'Silver';
-    if (totalZikrs >= 100) return 'Bronze';
+    if (totalZikrs >= 10000) return DynamicLocalizationHelper.platinum;
+    if (totalZikrs >= 5000) return DynamicLocalizationHelper.diamond;
+    if (totalZikrs >= 1000) return DynamicLocalizationHelper.gold;
+    if (totalZikrs >= 500) return DynamicLocalizationHelper.silver;
+    if (totalZikrs >= 100) return DynamicLocalizationHelper.bronze;
     return DynamicLocalizationHelper.new_;
   }
 
@@ -924,7 +932,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           await _settingsService.saveSelectedZikr(zikr.id);
           Navigator.pop(context);
         },
-        onEditTarget: _openTargetEditorForZikr,
+        onEditZikr: _openEditZikrDialog,
         onAddCustomZikr: _addCustomZikr,
         onDeleteZikr: _deleteCustomZikr,
         themeConfig: _currentTheme,
@@ -934,21 +942,35 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     });
   }
 
-  void _openTargetEditorForZikr(ZikrModel zikr) async {
-    final initialTarget = await _resolveTargetForZikr(zikr.id);
+  void _openEditZikrDialog(ZikrModel zikr) async {
     if (!mounted) return;
     showDialog(
       context: context,
-      builder: (context) => TargetDialog(
-        currentTarget: initialTarget,
-        onTargetChanged: (newTarget) {
-          unawaited(_settingsService.saveZikrTarget(zikr.id, newTarget));
-          if (_selectedZikr?.id == zikr.id) {
-            setState(() => _target = newTarget);
-          }
-        },
+      builder: (context) => EditZikrDialog(
+        zikr: zikr,
+        currentLanguage: _currentLanguage,
         themeConfig: _currentTheme,
         localizations: _localizations,
+        onZikrUpdated: (updated) {
+          final customIndex = _customZikrs.indexWhere((z) => z.id == updated.id);
+          if (customIndex != -1) {
+            _customZikrs[customIndex] = updated;
+            _settingsService.saveCustomZikrs(_customZikrs);
+          } else {
+            final defaultIndex = _defaultZikrs.indexWhere((z) => z.id == updated.id);
+            if (defaultIndex != -1) {
+              _defaultZikrs[defaultIndex] = updated.copyWith(isEditable: true);
+              unawaited(_settingsService.saveEditedDefaultZikrs(_defaultZikrs));
+            }
+          }
+          unawaited(_settingsService.saveZikrTarget(updated.id, updated.defaultCount));
+          setState(() {
+            if (_selectedZikr?.id == updated.id) {
+              _selectedZikr = updated;
+              _target = updated.defaultCount;
+            }
+          });
+        },
       ),
     );
   }
@@ -1122,21 +1144,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   String _getZikrName(ZikrModel zikr) {
-    switch (_currentLanguage) {
-      case 'ar':
-        return zikr.nameAr;
-      case 'en':
-        return zikr.nameEn;
-      default:
-        return zikr.nameTr;
-    }
+    return zikr.getNameForLanguage(_currentLanguage);
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final progress = _counter / _target;
-    String zikrText = _selectedZikr?.nameAr ?? 'سُبْحَانَ اللّٰهِ';
+    String zikrText = _selectedZikr?.getNameForLanguage('ar') ?? 'سُبْحَانَ اللّٰهِ';
 
     return Scaffold(
       resizeToAvoidBottomInset: false,

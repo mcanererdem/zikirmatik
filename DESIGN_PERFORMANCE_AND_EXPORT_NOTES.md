@@ -145,3 +145,17 @@ And import side should:
   - about/support rendering with new assets
   - backup export/import compatibility after statistics block addition
 
+## 7) Next UI Improvement Strategy
+
+Planned order for the next visual pass:
+
+1. Home progress section modernization
+   - Redesign progress bar with stronger contrast, softer corners, and clearer fill animation.
+   - Keep current spacing stable first; then tune counter/progress/zikr gaps with small incremental changes.
+2. Background asset strategy
+   - Use theme-aware background selection rules (light/dark, low-noise variants).
+   - Add readability guardrails: preserve text contrast and avoid high-frequency textures behind dense text.
+3. Leaderboard card package
+   - Build one reusable card style for rank/avatar/name/metrics.
+   - Keep cup and zikr modes visually consistent while allowing compact mode-specific chips.
+

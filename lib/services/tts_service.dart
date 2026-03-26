@@ -97,14 +97,7 @@ class TtsService {
   }
 
   String _getZikrNameByLanguage(ZikrModel zikr, String code) {
-    switch (code) {
-      case 'ar':
-        return zikr.nameAr;
-      case 'en':
-        return zikr.nameEn;
-      default:
-        return zikr.nameTr;
-    }
+    return zikr.getNameForLanguage(code);
   }
 
   String _mapLanguage(String code) {

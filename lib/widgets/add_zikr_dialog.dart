@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/zikr_model.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
 
 class AddZikrDialog extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -23,9 +24,11 @@ class AddZikrDialog extends StatefulWidget {
 }
 
 class _AddZikrDialogState extends State<AddZikrDialog> {
+  static const int _maxZikrCount = 100000;
+  static const int _maxTextLength = 80;
   final _primaryController = TextEditingController();
   final _secondaryController = TextEditingController();
-  final _countController = TextEditingController(text: '100');
+  final _countController = TextEditingController(text: '33');
 
   @override
   void dispose() {
@@ -54,7 +57,7 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
       case 'de':
       case 'sw':
       case 'ha':
-        return widget.localizations.translate('zikr_name_${widget.currentLanguage}') ?? widget.localizations.zikrNameTr;
+        return widget.localizations.translate('zikr_name_${widget.currentLanguage}');
       default:
         return widget.localizations.zikrNameTr;
     }
@@ -62,9 +65,9 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
 
   String get _secondaryLabel {
     if (widget.currentLanguage == 'ar') {
-      return '${widget.localizations.translate('transliteration') ?? 'Transliteration'} (${widget.localizations.translate('optional') ?? 'Optional'})';
+      return '${widget.localizations.translate('transliteration')} (${widget.localizations.translate('optional')})';
     }
-    return '${widget.localizations.zikrNameAr} (${widget.localizations.translate('optional') ?? 'Optional'})';
+    return '${widget.localizations.zikrNameAr} (${widget.localizations.translate('optional')})';
   }
 
   String get _primaryHint {
@@ -112,29 +115,59 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
   }
 
   void _saveZikr() {
-    if (_primaryController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$_primaryLabel ${widget.localizations.translate('required') ?? 'required'}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final count = int.tryParse(_countController.text) ?? 100;
-    if (count == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.localizations.translate('count_cannot_be_zero') ?? 'Count cannot be 0'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     final primaryText = _primaryController.text.trim();
     final secondaryText = _secondaryController.text.trim();
+
+    if (primaryText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            DynamicLocalizationHelper.getText({
+              'tr': '$_primaryLabel gerekli',
+              'en': '$_primaryLabel is required',
+              'ar': '$_primaryLabel مطلوب',
+              'id': '$_primaryLabel wajib diisi',
+              'ur': '$_primaryLabel ضروری ہے',
+              'bn': '$_primaryLabel আবশ্যক',
+              'ms': '$_primaryLabel diperlukan',
+              'fa': '$_primaryLabel الزامی است',
+              'fr': '$_primaryLabel est requis',
+              'zh': '$_primaryLabel 为必填项',
+              'ja': '$_primaryLabel は必須です',
+              'ru': '$_primaryLabel обязательно',
+              'de': '$_primaryLabel ist erforderlich',
+              'sw': '$_primaryLabel inahitajika',
+              'ha': '$_primaryLabel ana bukata',
+            }),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (!_isValidZikrText(primaryText)) {
+      _showValidationError(widget.localizations.translate('zikr_text_invalid'));
+      return;
+    }
+
+    if (secondaryText.isNotEmpty && !_isValidZikrText(secondaryText)) {
+      _showValidationError(widget.localizations.translate('zikr_secondary_invalid'));
+      return;
+    }
+
+    final count = int.tryParse(_countController.text);
+    if (count == null || count <= 0 || count > _maxZikrCount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.localizations.translate('zikr_count_range_error'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     String nameAr, nameTr, nameEn;
     
@@ -157,11 +190,33 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
       nameAr: nameAr,
       nameTr: nameTr,
       nameEn: nameEn,
+      localizedNames: {
+        widget.currentLanguage: primaryText,
+        'ar': nameAr,
+      },
       defaultCount: count,
+      isCustom: true,
+      isEditable: true,
     );
 
     widget.onZikrAdded(newZikr);
     Navigator.pop(context);
+  }
+
+  bool _isValidZikrText(String text) {
+    if (text.length < 2 || text.length > _maxTextLength) return false;
+    // Allow multilingual letters while blocking common unsafe/scripting symbols.
+    final safePattern = RegExp(r"^[^<>[\]{};`|\\$%]+$");
+    return safePattern.hasMatch(text);
+  }
+
+  void _showValidationError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -231,15 +286,16 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
                 textDirection: widget.currentLanguage == 'ar' ? TextDirection.rtl : TextDirection.ltr,
               ),
 
-              const SizedBox(height: 16),
-
-              // Secondary Field (Optional - Arabic or Transliteration)
-              _buildTextField(
-                controller: _secondaryController,
-                label: _secondaryLabel,
-                hint: _secondaryHint,
-                textDirection: widget.currentLanguage == 'ar' ? TextDirection.ltr : TextDirection.rtl,
-              ),
+              if (widget.currentLanguage != 'ar') ...[
+                const SizedBox(height: 16),
+                // Secondary Field (Optional - Arabic or Transliteration)
+                _buildTextField(
+                  controller: _secondaryController,
+                  label: _secondaryLabel,
+                  hint: _secondaryHint,
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
 
               const SizedBox(height: 16),
 

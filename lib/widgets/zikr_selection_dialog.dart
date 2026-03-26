@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
@@ -11,7 +10,7 @@ class ZikrSelectionDialog extends StatelessWidget {
   final ZikrModel? selectedZikr;
   final String currentLanguage; // YENİ
   final Function(ZikrModel) onZikrSelected;
-  final Function(ZikrModel) onEditTarget;
+  final Function(ZikrModel) onEditZikr;
   final VoidCallback onAddCustomZikr;
   final Function(ZikrModel) onDeleteZikr;
   final Map<String, int> zikrTargets;
@@ -25,7 +24,7 @@ class ZikrSelectionDialog extends StatelessWidget {
     required this.selectedZikr,
     required this.currentLanguage,
     required this.onZikrSelected,
-    required this.onEditTarget,
+    required this.onEditZikr,
     required this.onAddCustomZikr,
     required this.onDeleteZikr,
     required this.zikrTargets,
@@ -35,14 +34,7 @@ class ZikrSelectionDialog extends StatelessWidget {
 
   // YENİ: Dile göre zikir adını getir
   String _getZikrName(ZikrModel zikr) {
-    switch (currentLanguage) {
-      case 'ar':
-        return zikr.nameAr;
-      case 'en':
-        return zikr.nameEn;
-      default:
-        return zikr.nameTr;
-    }
+    return zikr.getNameForLanguage(currentLanguage);
   }
 
   @override
@@ -193,7 +185,7 @@ class ZikrSelectionDialog extends StatelessWidget {
                         if (currentLanguage != 'ar') ...[
                           const SizedBox(height: 4),
                           Text(
-                            zikr.nameAr,
+                            zikr.getNameForLanguage('ar'),
                             style: TextStyle(
                               fontSize: 14,
                               color: themeConfig.textColor.withOpacity(0.7),
@@ -205,84 +197,82 @@ class ZikrSelectionDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: themeConfig.textColor.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '$currentTarget',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: themeConfig.textColor,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: themeConfig.textColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$currentTarget',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: themeConfig.textColor,
                       ),
-                      const SizedBox(width: 6),
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          onEditTarget(zikr);
-                        },
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: themeConfig.accentColor.withOpacity(0.22),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: themeConfig.accentColor.withOpacity(0.55),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.edit_rounded,
-                            size: 16,
-                            color: themeConfig.textColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  // Silme butonu için boşluk bırak
-                  if (canDelete) const SizedBox(width: 44),
+                  // Sağ aksiyon alanı için boşluk bırak
+                  const SizedBox(width: 44),
                 ],
               ),
             ),
           ),
-          
-          // Silme butonu (sadece custom zikirler için)
-          if (canDelete)
-            Positioned(
-              right: 0,
-              top: 0,
-              bottom: 0,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                  onDeleteZikr(zikr);
-                },
-                child: Container(
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.8),
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(12),
-                      bottomRight: Radius.circular(12),
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: Column(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      onEditZikr(zikr);
+                    },
+                    child: Container(
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: themeConfig.accentColor.withOpacity(0.85),
+                        borderRadius: BorderRadius.only(
+                          topRight: const Radius.circular(12),
+                          bottomRight: canDelete ? Radius.zero : const Radius.circular(12),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.edit_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
-                  child: const Icon(
-                    Icons.delete_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
                 ),
-              ),
+                if (canDelete)
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        onDeleteZikr(zikr);
+                      },
+                      child: Container(
+                        width: 40,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD64A4A),
+                          borderRadius: BorderRadius.only(
+                            bottomRight: Radius.circular(12),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.delete_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );

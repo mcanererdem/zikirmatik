@@ -48,6 +48,8 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   String _mostProductiveHour = '';
   int _activeDaysCount = 0;
 
+  String get _notAvailableText => widget.localizations.translate('statistics_no_data');
+
   String _getStatisticsTitle() {
     return DynamicLocalizationHelper.statistics;
   }
@@ -228,23 +230,23 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
 
   String _findMostProductiveDay() {
     if (_weeklyData.isEmpty) {
-      return '-';
+      return _notAvailableText;
     }
     
     final maxEntry = _weeklyData.reduce((a, b) => 
         (a['zikrs'] as int) > (b['zikrs'] as int) ? a : b);
     if ((maxEntry['zikrs'] as int? ?? 0) <= 0) {
-      return '-';
+      return _notAvailableText;
     }
     return maxEntry['day'] as String;
   }
 
   String _findMostProductiveHour() {
-    if (_hourlyDistribution.isEmpty) return '-';
+    if (_hourlyDistribution.isEmpty) return _notAvailableText;
     
     final maxEntry = _hourlyDistribution.entries.reduce((a, b) => 
         a.value > b.value ? a : b);
-    if (maxEntry.value <= 0) return '-';
+    if (maxEntry.value <= 0) return _notAvailableText;
     return maxEntry.key;
   }
 
@@ -1014,7 +1016,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
             }), 
             _mostProductiveHour
           ),
-          if (_mostProductiveHour != '-') ...[
+          if (_mostProductiveHour != _notAvailableText) ...[
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(

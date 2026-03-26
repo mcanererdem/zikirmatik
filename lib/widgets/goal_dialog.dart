@@ -284,16 +284,7 @@ class _GoalDialogState extends State<GoalDialog> {
   }
 
   String _getZikrName(ZikrModel zikr) {
-    switch (widget.currentLanguage) {
-      case 'ar':
-        return zikr.nameAr;
-      case 'en':
-        return zikr.nameEn;
-      case 'id':
-        return zikr.nameEn;
-      default:
-        return zikr.nameTr;
-    }
+    return zikr.getNameForLanguage(widget.currentLanguage);
   }
 
   Widget _buildTargetInput() {

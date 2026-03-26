@@ -3,6 +3,7 @@ class ZikrModel {
   final String nameAr;
   final String nameTr;
   final String nameEn;
+  final Map<String, String> localizedNames;
   final int defaultCount;
   final bool isCustom;
   final bool isEditable;
@@ -12,16 +13,18 @@ class ZikrModel {
     required this.nameAr,
     required this.nameTr,
     required this.nameEn,
+    Map<String, String>? localizedNames,
     required this.defaultCount,
     this.isCustom = false,
     this.isEditable = false,
-  });
+  }) : localizedNames = localizedNames ?? const {};
 
   ZikrModel copyWith({
     String? id,
     String? nameAr,
     String? nameTr,
     String? nameEn,
+    Map<String, String>? localizedNames,
     int? defaultCount,
     bool? isCustom,
     bool? isEditable,
@@ -31,10 +34,27 @@ class ZikrModel {
       nameAr: nameAr ?? this.nameAr,
       nameTr: nameTr ?? this.nameTr,
       nameEn: nameEn ?? this.nameEn,
+      localizedNames: localizedNames ?? this.localizedNames,
       defaultCount: defaultCount ?? this.defaultCount,
       isCustom: isCustom ?? this.isCustom,
       isEditable: isEditable ?? this.isEditable,
     );
+  }
+
+  String getNameForLanguage(String languageCode) {
+    final lang = languageCode.trim().toLowerCase();
+    final localized = localizedNames[lang];
+    if (localized != null && localized.trim().isNotEmpty) {
+      return localized.trim();
+    }
+    switch (lang) {
+      case 'ar':
+        return nameAr;
+      case 'en':
+        return nameEn;
+      default:
+        return nameTr;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -43,6 +63,7 @@ class ZikrModel {
       'nameAr': nameAr,
       'nameTr': nameTr,
       'nameEn': nameEn,
+      'localizedNames': localizedNames,
       'defaultCount': defaultCount,
     };
   }
@@ -53,6 +74,9 @@ class ZikrModel {
       nameAr: json['nameAr'],
       nameTr: json['nameTr'],
       nameEn: json['nameEn'],
+      localizedNames: (json['localizedNames'] is Map<String, dynamic>)
+          ? Map<String, String>.from(json['localizedNames'] as Map<String, dynamic>)
+          : const {},
       defaultCount: json['defaultCount'],
     );
   }
