@@ -59,49 +59,66 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Header
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        widget.themeConfig.accentColor.withOpacity(0.2),
-                        widget.themeConfig.accentColor.withOpacity(0.1),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          widget.themeConfig.accentColor.withOpacity(0.2),
+                          widget.themeConfig.accentColor.withOpacity(0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: widget.themeConfig.accentColor.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Positioned.fill(
+                          child: Opacity(
+                            opacity: 0.12,
+                            child: Image.asset(
+                              'assets/generated/illustrations/support_hero.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.contact_support,
+                              color: widget.themeConfig.accentColor,
+                              size: 48,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              widget.localizations.translate('support_need_help_title'),
+                              style: GoogleFonts.notoSans(
+                                color: widget.themeConfig.textColor,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.localizations.translate('support_need_help_desc'),
+                              style: GoogleFonts.notoSans(
+                                color: widget.themeConfig.textColor.withOpacity(0.8),
+                                fontSize: 14,
+                                height: 1.4,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: widget.themeConfig.accentColor.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.contact_support,
-                        color: widget.themeConfig.accentColor,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        widget.localizations.translate('support_need_help_title'),
-                        style: GoogleFonts.notoSans(
-                          color: widget.themeConfig.textColor,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.localizations.translate('support_need_help_desc'),
-                        style: GoogleFonts.notoSans(
-                          color: widget.themeConfig.textColor.withOpacity(0.8),
-                          fontSize: 14,
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
                   ),
                 ),
 

@@ -99,7 +99,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
   BoxDecoration _buildBackgroundDecoration() {
     final isLightTheme = _currentTheme.textColor.computeLuminance() < 0.5;
-    final asset = isLightTheme ? _currentTheme.lightBackgroundAsset : _currentTheme.darkBackgroundAsset;
+    final generatedAsset = isLightTheme
+        ? 'assets/generated/backgrounds/app_bg_light.png'
+        : 'assets/generated/backgrounds/app_bg_dark.png';
+    final fallbackAsset = isLightTheme
+        ? 'assets/backgrounds/light_bg.png'
+        : 'assets/backgrounds/dark_bg.png';
+
+    // Theme'in opsiyonel asset override'ı varsa onu, yoksa generated default'ı kullanalım.
+    final themeAsset = isLightTheme
+        ? _currentTheme.lightBackgroundAsset
+        : _currentTheme.darkBackgroundAsset;
+    final asset = themeAsset ?? generatedAsset ?? fallbackAsset;
     return BoxDecoration(
       gradient: _currentTheme.backgroundGradient,
       image: asset != null

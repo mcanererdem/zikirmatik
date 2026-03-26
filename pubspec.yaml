@@ -56,6 +56,8 @@ flutter:
     - assets/sounds/click.mp3
     - assets/icons/white_misbah.png
     - assets/backgrounds/
+    - assets/generated/backgrounds/
+    - assets/generated/illustrations/
     - assets/fonts/
 
 flutter_launcher_icons:

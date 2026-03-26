@@ -68,9 +68,11 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           children: [
             // App Logo ve Bilgileri
             _buildAppInfo(),
-            
-            const SizedBox(height: 30),
-            
+
+            const SizedBox(height: 18),
+            _buildAboutHero(),
+            const SizedBox(height: 22),
+
             // Geliştirici Bilgileri
             _buildDeveloperInfo(),
             
@@ -88,6 +90,45 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
             
             // Lisans ve Politikalar
             _buildLegal(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAboutHero() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        height: 160,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: widget.themeConfig.accentColor.withOpacity(0.25),
+          ),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Opacity(
+              opacity: 0.14,
+              child: Image.asset(
+                'assets/generated/illustrations/about_hero.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+            // Hafif bir gradient overlay; görselin yazıyla çakışmasını azaltır.
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    widget.themeConfig.primaryColor.withOpacity(0.25),
+                    widget.themeConfig.primaryColor.withOpacity(0.55),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

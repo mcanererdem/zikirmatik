@@ -1010,11 +1010,28 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               color: widget.themeConfig.textColor.withOpacity(0.5),
             ),
             const SizedBox(height: 16),
+            Opacity(
+              opacity: 0.95,
+              child: Image.asset(
+                'assets/generated/illustrations/leaderboard_empty.png',
+                height: 120,
+                width: 120,
+              ),
+            ),
+            const SizedBox(height: 10),
             Text(
-              'Henüz liderlik tablosu yok',
+              DynamicLocalizationHelper.getText({
+                'tr': 'Henüz liderlik tablosu yok',
+                'en': 'No leaderboard yet',
+                'ar': 'لا يوجد جدول صدارة بعد',
+                'id': 'Belum ada papan peringkat',
+                'ur': 'ابھی تک لیڈر بورڈ نہیں',
+                'ms': 'Belum ada papan pemimpin',
+              }),
+              textAlign: TextAlign.center,
               style: GoogleFonts.notoSans(
                 fontSize: 18,
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withOpacity(0.72),
               ),
             ),
           ],
@@ -1380,20 +1397,54 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildCupBadge(String emoji, String count) {
+    final tierColor = switch (emoji) {
+      '🥉' => Colors.brown,
+      '🥈' => Colors.grey,
+      '🥇' => Colors.yellow,
+      '💎' => Colors.blue,
+      '🏆' => Colors.purple,
+      _ => widget.themeConfig.accentColor,
+    };
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: widget.themeConfig.accentColor.withOpacity(0.14),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: widget.themeConfig.accentColor.withOpacity(0.25)),
+        color: tierColor.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: tierColor.withOpacity(0.33)),
       ),
-      child: Text(
-        '$emoji $count',
-        style: GoogleFonts.notoSans(
-          fontSize: 10,
-          color: widget.themeConfig.textColor,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: tierColor.withOpacity(0.2),
+              border: Border.all(color: tierColor.withOpacity(0.45)),
+            ),
+            child: Center(
+              child: Text(
+                emoji,
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 1,
+                  color: widget.themeConfig.textColor.withOpacity(0.95),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            count,
+            style: GoogleFonts.notoSans(
+              fontSize: 10.5,
+              color: widget.themeConfig.textColor.withOpacity(0.95),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
       ),
     );
   }

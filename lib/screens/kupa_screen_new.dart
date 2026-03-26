@@ -857,6 +857,54 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
     );
   }
 
+  Widget _buildCupIconBadge(String icon, Color tierColor, bool unlocked) {
+    final backgroundColor = unlocked
+        ? tierColor.withOpacity(0.22)
+        : Colors.grey.withOpacity(0.08);
+    final borderColor = unlocked
+        ? tierColor.withOpacity(0.55)
+        : Colors.grey.withOpacity(0.28);
+
+    return Container(
+      width: 58,
+      height: 58,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor, width: 1.2),
+        gradient: unlocked
+            ? LinearGradient(
+                colors: [
+                  tierColor.withOpacity(0.35),
+                  tierColor.withOpacity(0.12),
+                ],
+              )
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: (unlocked ? tierColor : Colors.grey).withOpacity(unlocked ? 0.25 : 0.12),
+            blurRadius: 14,
+            spreadRadius: 2,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Opacity(
+          opacity: unlocked ? 1.0 : 0.65,
+          child: Text(
+            icon,
+            style: TextStyle(
+              fontSize: 28,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCupsGrid() {
     return GridView.builder(
       shrinkWrap: true,
@@ -887,9 +935,10 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              _buildCupIconBadge(
                 cup['icon'] as String,
-                style: const TextStyle(fontSize: 40), // 48'den 40'a düşürdük
+                cup['color'] as Color,
+                isUnlocked,
               ),
               const SizedBox(height: 6), // 8'den 6'ya düşürdük
               Text(
