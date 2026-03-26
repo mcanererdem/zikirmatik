@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
+import '../utils/trophy_assets.dart';
 import '../services/settings_service.dart';
 import '../services/supabase_service.dart';
 
@@ -1387,25 +1388,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       spacing: 4,
       runSpacing: 4,
       children: [
-        _buildCupBadge('🥉', (user['bronze_count'] ?? 0).toString()),
-        _buildCupBadge('🥈', (user['silver_count'] ?? 0).toString()),
-        _buildCupBadge('🥇', (user['gold_count'] ?? 0).toString()),
-        _buildCupBadge('💎', (user['diamond_count'] ?? 0).toString()),
-        _buildCupBadge('🏆', (user['platinum_count'] ?? 0).toString()),
+        _buildCupBadge(TrophyAssets.bronze, (user['bronze_count'] ?? 0).toString(), Colors.brown),
+        _buildCupBadge(TrophyAssets.silver, (user['silver_count'] ?? 0).toString(), Colors.grey),
+        _buildCupBadge(TrophyAssets.gold, (user['gold_count'] ?? 0).toString(), Colors.yellow),
+        _buildCupBadge(TrophyAssets.diamond, (user['diamond_count'] ?? 0).toString(), Colors.blue),
+        _buildCupBadge(TrophyAssets.platinum, (user['platinum_count'] ?? 0).toString(), Colors.purple),
       ],
     );
   }
 
-  Widget _buildCupBadge(String emoji, String count) {
-    final tierColor = switch (emoji) {
-      '🥉' => Colors.brown,
-      '🥈' => Colors.grey,
-      '🥇' => Colors.yellow,
-      '💎' => Colors.blue,
-      '🏆' => Colors.purple,
-      _ => widget.themeConfig.accentColor,
-    };
-
+  Widget _buildCupBadge(String trophyAsset, String count, Color tierColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -1425,13 +1417,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               border: Border.all(color: tierColor.withOpacity(0.45)),
             ),
             child: Center(
-              child: Text(
-                emoji,
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1,
-                  color: widget.themeConfig.textColor.withOpacity(0.95),
-                ),
+              child: Image.asset(
+                trophyAsset,
+                width: 14,
+                height: 14,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.emoji_events,
+                    size: 12,
+                    color: widget.themeConfig.textColor.withOpacity(0.95),
+                  );
+                },
               ),
             ),
           ),

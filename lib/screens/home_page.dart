@@ -17,6 +17,7 @@ import '../models/user_profile_model.dart';
 import '../models/goal_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
+import '../utils/trophy_assets.dart';
 import '../services/settings_service.dart';
 import '../services/audio_manager.dart';
 import '../services/counter_logic.dart';
@@ -874,6 +875,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     }
   }
 
+  Widget _buildHeaderTrophyIcon(String assetPath, String fallbackEmoji) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 2),
+      child: Image.asset(
+        assetPath,
+        width: 16,
+        height: 16,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Text(fallbackEmoji, style: const TextStyle(fontSize: 14));
+        },
+      ),
+    );
+  }
+
   // Kazanılmış en yüksek kupayı hesapla
   Future<String> _getHighestCup() async {
     final prefs = await SharedPreferences.getInstance();
@@ -1328,15 +1344,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       if (unlockedCups['bronze_kupa'] == true)
-                                        Text('🥉', style: TextStyle(fontSize: 14)),
+                                        _buildHeaderTrophyIcon(TrophyAssets.bronze, '🥉'),
                                       if (unlockedCups['silver_kupa'] == true)
-                                        Text('🥈', style: TextStyle(fontSize: 14)),
+                                        _buildHeaderTrophyIcon(TrophyAssets.silver, '🥈'),
                                       if (unlockedCups['gold_kupa'] == true)
-                                        Text('🥇', style: TextStyle(fontSize: 14)),
+                                        _buildHeaderTrophyIcon(TrophyAssets.gold, '🥇'),
                                       if (unlockedCups['diamond_kupa'] == true)
-                                        Text('💎', style: TextStyle(fontSize: 14)),
+                                        _buildHeaderTrophyIcon(TrophyAssets.diamond, '💎'),
                                       if (unlockedCups['platinum_kupa'] == true)
-                                        Text('🏆', style: TextStyle(fontSize: 14)),
+                                        _buildHeaderTrophyIcon(TrophyAssets.platinum, '🏆'),
                                     ],
                                   );
                                 }

@@ -58,6 +58,7 @@ flutter:
     - assets/backgrounds/
     - assets/generated/backgrounds/
     - assets/generated/illustrations/
+    - assets/generated/trophies/
     - assets/fonts/
 
 flutter_launcher_icons:

@@ -5,6 +5,7 @@ import 'package:confetti/confetti.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
+import '../utils/trophy_assets.dart';
 import '../services/settings_service.dart';
 
 class KupaScreenNew extends StatefulWidget {
@@ -84,6 +85,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           {
             'id': 'bronze_kupa',
             'name': _getKupaName('bronze'),
+            'trophyAsset': TrophyAssets.bronze,
             'icon': '🥉',
             'requirement': 100,
             'description': _getKupaDescription('bronze'),
@@ -93,6 +95,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           {
             'id': 'silver_kupa',
             'name': _getKupaName('silver'),
+            'trophyAsset': TrophyAssets.silver,
             'icon': '🥈',
             'requirement': 500,
             'description': _getKupaDescription('silver'),
@@ -102,6 +105,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           {
             'id': 'gold_kupa',
             'name': _getKupaName('gold'),
+            'trophyAsset': TrophyAssets.gold,
             'icon': '🥇',
             'requirement': 1000,
             'description': _getKupaDescription('gold'),
@@ -111,6 +115,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           {
             'id': 'diamond_kupa',
             'name': _getKupaName('diamond'),
+            'trophyAsset': TrophyAssets.diamond,
             'icon': '💎',
             'requirement': 5000,
             'description': _getKupaDescription('diamond'),
@@ -120,6 +125,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           {
             'id': 'platinum_kupa',
             'name': _getKupaName('platinum'),
+            'trophyAsset': TrophyAssets.platinum,
             'icon': '🏆',
             'requirement': 10000,
             'description': _getKupaDescription('platinum'),
@@ -382,10 +388,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
       SnackBar(
         content: Row(
           children: [
-            Text(
-              cup['icon'],
-              style: const TextStyle(fontSize: 24),
-            ),
+            _buildCupSnackIcon(cup),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -419,6 +422,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
       _allCups = [
         {
           'id': 'bronze_kupa',
+          'trophyAsset': TrophyAssets.bronze,
           'name': DynamicLocalizationHelper.getText({
             'tr': 'Bronz Kupa',
             'en': 'Bronze Trophy',
@@ -460,6 +464,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         },
         {
           'id': 'silver_kupa',
+          'trophyAsset': TrophyAssets.silver,
           'name': DynamicLocalizationHelper.getText({
             'tr': 'Gümüş Kupa',
             'en': 'Silver Trophy',
@@ -501,6 +506,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         },
         {
           'id': 'gold_kupa',
+          'trophyAsset': TrophyAssets.gold,
           'name': DynamicLocalizationHelper.getText({
             'tr': 'Altın Kupa',
             'en': 'Gold Trophy',
@@ -542,6 +548,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         },
         {
           'id': 'diamond_kupa',
+          'trophyAsset': TrophyAssets.diamond,
           'name': DynamicLocalizationHelper.getText({
             'tr': 'Elmas Kupa',
             'en': 'Diamond Trophy',
@@ -583,6 +590,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         },
         {
           'id': 'platinum_kupa',
+          'trophyAsset': TrophyAssets.platinum,
           'name': DynamicLocalizationHelper.getText({
             'tr': 'Platin Kupa',
             'en': 'Platinum Trophy',
@@ -857,7 +865,29 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
     );
   }
 
-  Widget _buildCupIconBadge(String icon, Color tierColor, bool unlocked) {
+  Widget _buildCupSnackIcon(Map<String, dynamic> cup) {
+    final asset = cup['trophyAsset'] as String?;
+    final emoji = cup['icon'] as String? ?? '🏆';
+    if (asset != null && asset.isNotEmpty) {
+      return Image.asset(
+        asset,
+        width: 32,
+        height: 32,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Text(emoji, style: const TextStyle(fontSize: 24));
+        },
+      );
+    }
+    return Text(emoji, style: const TextStyle(fontSize: 24));
+  }
+
+  Widget _buildCupIconBadge({
+    required String trophyAsset,
+    required String fallbackEmoji,
+    required Color tierColor,
+    required bool unlocked,
+  }) {
     final backgroundColor = unlocked
         ? tierColor.withOpacity(0.22)
         : Colors.grey.withOpacity(0.08);
@@ -893,11 +923,20 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
       child: Center(
         child: Opacity(
           opacity: unlocked ? 1.0 : 0.65,
-          child: Text(
-            icon,
-            style: TextStyle(
-              fontSize: 28,
-              height: 1,
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: Image.asset(
+              trophyAsset,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Text(
+                  fallbackEmoji,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    height: 1,
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -936,9 +975,10 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildCupIconBadge(
-                cup['icon'] as String,
-                cup['color'] as Color,
-                isUnlocked,
+                trophyAsset: cup['trophyAsset'] as String? ?? TrophyAssets.pathForCupId(cup['id'] as String),
+                fallbackEmoji: cup['icon'] as String,
+                tierColor: cup['color'] as Color,
+                unlocked: isUnlocked,
               ),
               const SizedBox(height: 6), // 8'den 6'ya düşürdük
               Text(
