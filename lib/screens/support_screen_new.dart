@@ -693,6 +693,8 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
       query: 'subject=${Uri.encodeComponent(DynamicLocalizationHelper.getText({
         'tr': 'Zikirmatik Destek',
         'en': 'Zikirmatik Support',
+        'ur': 'Zikirmatik سپورٹ',
+        'ms': 'Sokongan Zikirmatik',
       }))}',
     );
     
@@ -715,6 +717,8 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
       query: 'subject=${Uri.encodeComponent(DynamicLocalizationHelper.getText({
         'tr': 'Zikirmatik Geri Bildirim',
         'en': 'Zikirmatik Feedback',
+        'ur': 'Zikirmatik فیڈبیک',
+        'ms': 'Maklum Balas Zikirmatik',
       }))}',
     );
     

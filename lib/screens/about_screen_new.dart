@@ -216,7 +216,22 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 12),
           
           _buildInfoItem(
-            'LinkedIn',
+            DynamicLocalizationHelper.getText({
+              'tr': 'LinkedIn',
+              'en': 'LinkedIn',
+              'ar': 'لينكدإن',
+              'id': 'LinkedIn',
+              'ur': 'لنکڈ اِن',
+              'ms': 'LinkedIn',
+              'fa': 'لینکدین',
+              'fr': 'LinkedIn',
+              'zh': '领英',
+              'ja': 'LinkedIn',
+              'ru': 'LinkedIn',
+              'de': 'LinkedIn',
+              'sw': 'LinkedIn',
+              'ha': 'LinkedIn',
+            }),
             'linkedin.com/in/mcanererdem',
             Icons.business_center,
             () => _launchUrl('https://www.linkedin.com/in/mcanererdem/'),
@@ -225,7 +240,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 12),
           
           _buildInfoItem(
-            'GitHub',
+            widget.localizations.translate('github'),
             'github.com/mcanererdem',
             Icons.code,
             () => _launchUrl('https://github.com/mcanererdem'),
@@ -749,7 +764,12 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: email,
-      query: 'subject=${Uri.encodeComponent(DynamicLocalizationHelper.getText({'tr': 'Zikirmatik Hakkında', 'en': 'About Zikirmatik'}))}',
+      query: 'subject=${Uri.encodeComponent(DynamicLocalizationHelper.getText({
+        'tr': 'Zikirmatik Hakkında',
+        'en': 'About Zikirmatik',
+        'ur': 'Zikirmatik کے بارے میں',
+        'ms': 'Perihal Zikirmatik',
+      }))}',
     );
     
     if (await canLaunchUrl(emailUri)) {

@@ -99,6 +99,8 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                     'en': 'Notification permission required. You can enable it in Settings.',
                     'ar': 'الإشعارات تتطلب إذناً. يمكنك تفعيله من الإعدادات.',
                     'id': 'Izin notifikasi diperlukan. Aktifkan di Pengaturan.',
+                    'ur': 'نوٹیفکیشن کے لیے اجازت ضروری ہے۔ آپ اسے ترتیبات میں فعال کر سکتے ہیں۔',
+                    'ms': 'Izin pemberitahuan diperlukan. Anda boleh mengaktifkannya dalam Tetapan.',
                     'fa': 'برای اعلان‌ها اجازه لازم است. از تنظیمات فعال کنید.',
                     'zh': '需要通知权限。可在设置中开启。',
                     'ja': '通知の許可が必要です。設定で有効にできます。',
@@ -134,6 +136,8 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               'en': 'Notification permission',
               'ar': 'إذن الإشعارات',
               'id': 'Izin notifikasi',
+              'ur': 'نوٹیفکیشن کی اجازت',
+              'ms': 'Kebenaran pemberitahuan',
               'zh': '通知权限',
               'ja': '通知の許可',
               'ru': 'Разрешение уведомлений',
@@ -146,6 +150,8 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               'en': 'Notification permission is needed for dhikr reminders. Allow?',
               'ar': 'مطلوب إذن الإشعارات لتذكيرات الذكر. السماح؟',
               'id': 'Izin notifikasi diperlukan untuk pengingat zikir. Izinkan?',
+              'ur': 'ذکر کی یاد دہانیوں کے لیے نوٹیفکیشن کی اجازت ضروری ہے۔ کیا اجازت دی جائے؟',
+              'ms': 'Izin pemberitahuan diperlukan untuk pengingat dhikr. Benarkan?',
               'zh': '需要通知权限以发送记念提醒。是否允许？',
               'ja': 'ジクルリマインダーには通知の許可が必要です。許可しますか？',
               'ru': 'Для напоминаний о зикре нужно разрешение. Разрешить?',
@@ -246,7 +252,14 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Bildirim Ayarları',
+                      DynamicLocalizationHelper.getText({
+                        'tr': 'Bildirim Ayarları',
+                        'en': 'Notification Settings',
+                        'ar': 'إعدادات الإشعارات',
+                        'id': 'Pengaturan Notifikasi',
+                        'ur': 'اطلاعات آن کریں',
+                        'ms': 'Tetapan Pemberitahuan',
+                      }),
                       style: GoogleFonts.notoSans(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -284,8 +297,22 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               
               // Ana bildirim switch
               _buildSwitchTile(
-                'Bildirimleri Aç',
-                'Zikir hatırlatıcılarını etkinleştir',
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Bildirimleri Aç',
+                  'en': 'Enable Notifications',
+                  'ar': 'تفعيل الإشعارات',
+                  'id': 'Aktifkan Notifikasi',
+                  'ur': 'اطلاعات آن کریں',
+                  'ms': 'Aktifkan Pemberitahuan',
+                }),
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Zikir hatırlatıcılarını etkinleştir',
+                  'en': 'Enable dhikr reminder notifications',
+                  'ar': 'تفعيل إشعارات تذكيرات الذكر',
+                  'id': 'Aktifkan notifikasi pengingat zikir',
+                  'ur': 'ذکر کی یاد دہانی کی اطلاعات آن کریں',
+                  'ms': 'Aktifkan notifikasi peringatan dhikr',
+                }),
                 _isNotificationEnabled,
                 (value) => setState(() => _isNotificationEnabled = value),
               ),
@@ -295,7 +322,14 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                 
                 // Gün seçimi
                 Text(
-                  'Hatırlatma Günleri',
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Hatırlatma Günleri',
+                    'en': 'Reminder Days',
+                    'ar': 'أيام التذكير',
+                    'id': 'Hari Pengingat',
+                    'ur': 'یاد دہانی کے دن',
+                    'ms': 'Hari Peringatan',
+                  }),
                   style: GoogleFonts.notoSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -309,8 +343,22 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                 
                 // Sabah bildirimi
                 _buildNotificationTimeCard(
-                  'Sabah Bildirimi',
-                  'Sabah zikri hatırlatıcısı',
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Sabah Bildirimi',
+                    'en': 'Morning Notification',
+                    'ar': 'إشعار صباحي',
+                    'id': 'Notifikasi Pagi',
+                    'ur': 'صبح کی اطلاع',
+                    'ms': 'Pemberitahuan Pagi',
+                  }),
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Sabah zikri hatırlatıcısı',
+                    'en': 'Morning dhikr reminder',
+                    'ar': 'تذكير ذكر صباحًا',
+                    'id': 'Pengingat zikir pagi',
+                    'ur': 'صبح کا ذکر یاد دہانی',
+                    'ms': 'Peringatan dhikr waktu pagi',
+                  }),
                   _morningNotification,
                   _morningTime,
                   true,
@@ -320,8 +368,22 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                 
                 // Akşam bildirimi
                 _buildNotificationTimeCard(
-                  'Akşam Bildirimi',
-                  'Akşam zikri hatırlatıcısı',
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Akşam Bildirimi',
+                    'en': 'Evening Notification',
+                    'ar': 'إشعار مسائي',
+                    'id': 'Notifikasi Malam',
+                    'ur': 'شام کی اطلاع',
+                    'ms': 'Pemberitahuan Petang',
+                  }),
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Akşam zikri hatırlatıcısı',
+                    'en': 'Evening dhikr reminder',
+                    'ar': 'تذكير ذكر مساءً',
+                    'id': 'Pengingat zikir malam',
+                    'ur': 'شام کا ذکر یاد دہانی',
+                    'ms': 'Peringatan dhikr waktu petang',
+                  }),
                   _eveningNotification,
                   _eveningTime,
                   false,
@@ -346,6 +408,8 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                           DynamicLocalizationHelper.getText({
                             'tr': '10 saniye sonra test bildirimi gelecek. Uygulamayı kapatıp bekleyin.',
                             'en': 'Test notification in 10 seconds. Minimize app and wait.',
+                            'ur': '10 سیکنڈ بعد ٹیسٹ نوٹیفکیشن آئے گا۔ ایپ کو کم سے کم کر کے انتظار کریں۔',
+                            'ms': 'Notifikasi ujian dalam 10 saat. Minimumkan aplikasi dan tunggu.',
                           }),
                         ),
                       ),
@@ -357,6 +421,8 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                   DynamicLocalizationHelper.getText({
                     'tr': 'Bildirimi test et (10 sn)',
                     'en': 'Test notification (10 sec)',
+                    'ur': 'نوٹیفکیشن ٹیسٹ کریں (10 سیکنڈ)',
+                    'ms': 'Uji pemberitahuan (10 saat)',
                   }),
                 ),
                 style: OutlinedButton.styleFrom(
@@ -373,6 +439,8 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                 DynamicLocalizationHelper.getText({
                   'tr': 'Bildirimlerin zamanında gelmesi için uygulamayı pil optimizasyonundan muaf tutmanız gerekebilir (Ayarlar > Uygulamalar > Tasbih Counter > Pil).',
                   'en': 'For notifications to arrive on time, you may need to disable battery optimization for this app (Settings > Apps > Tasbih Counter > Battery).',
+                  'ur': 'اطلاعات وقت پر پہنچنے کے لیے ہو سکتا ہے آپ کو اس ایپ کے لیے بیٹری آپٹیمائزیشن بند کرنی پڑے (ترتیبات > ایپس > Tasbih Counter > بیٹری)۔',
+                  'ms': 'Untuk memastikan pemberitahuan sampai tepat pada masanya, anda mungkin perlu mematikan pengoptimuman bateri untuk aplikasi ini (Tetapan > Aplikasi > Tasbih Counter > Bateri).',
                 }),
                 style: GoogleFonts.notoSans(fontSize: 12, color: widget.themeConfig.textColor.withValues(alpha: 0.8)),
               ),
@@ -385,7 +453,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                 children: [
                   Expanded(
                     child: _buildButton(
-                      'İptal',
+                      widget.localizations.cancel,
                       () => Navigator.pop(context),
                       isSecondary: true,
                     ),
@@ -393,7 +461,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildButton(
-                      'Kaydet',
+                      widget.localizations.save,
                       () async {
                         await _saveSettings();
                         Navigator.pop(context);
@@ -452,14 +520,14 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
   }
 
   Widget _buildDaySelector() {
-    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final fullDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final dayIds = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     
     return Wrap(
       spacing: 8,
       children: List.generate(7, (index) {
         final day = fullDays[index];
-        final shortDay = days[index];
+        final shortDay = widget.localizations.translate(dayIds[index]);
         final isSelected = _selectedDays.contains(day);
         
         return GestureDetector(

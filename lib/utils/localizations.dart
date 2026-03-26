@@ -924,6 +924,26 @@ class AppLocalizations {
       'read_dhikr_texts_aloud': 'ذکر کے متن بلند پڑھیں',
       'leaderboard': 'لیڈر بورڈ',
       'show_leaderboard': 'لیڈر بورڈ دکھائیں',
+      // About / Legal / Thanks (eksik olanlar)
+      'about_intro': 'جدید ذکر کاؤنٹر ایپ۔ ذکر کی ٹریکنگ، ٹرافی کی ترقی، شماریات، بیک اپ اور متعدد زبانوں کی سپورٹ فراہم کرتی ہے۔',
+      'about_developer_title': 'ڈویلپر',
+      'about_thanks_title': 'آپ کا شکریہ',
+      'about_thanks_desc': 'اس ایپ کو استعمال کرنے کے لیے شکریہ۔ ہم آپ کی رائے کی بنیاد پر مسلسل بہتری کرتے ہیں۔',
+      'about_legal_title': 'قانونی معلومات',
+      'about_privacy_title': 'پرائیویسی پالیسی',
+      'about_privacy_desc': 'جانیں کہ آپ کا ڈیٹا کیسے ہینڈل کیا جاتا ہے',
+      'about_terms_title': 'استعمال کی شرائط',
+      'about_terms_desc': 'ایپ کے استعمال کی شرائط',
+      'about_license_title': 'لائسنس',
+      'about_license_desc': 'اوپن سورس لائسنس کی تفصیلات',
+
+      // Support
+      'support_need_help_title': 'کیا آپ کو مدد چاہیے؟',
+      'support_need_help_desc': 'ہم آپ کے سوالات کا جواب دینے اور آپ کی رائے کا جائزہ لینے کے لیے حاضر ہیں۔',
+      'support_contact_methods_title': 'رابطے کے طریقے',
+
+      // Statistics
+      'statistics_no_data': 'ابھی تک کوئی ڈیٹا نہیں',
     },
     // Bengalce (Bangladeş)
     'bn': {
@@ -1173,6 +1193,26 @@ class AppLocalizations {
       'import_failed': 'Import gagal',
       'export_success': 'Eksport berjaya!',
       'export_failed': 'Eksport gagal',
+      // About / Legal / Thanks (eksik olanlar)
+      'about_intro': 'Aplikasi kaunter dhikr moden dengan penjejakan dhikr, kemajuan trofi, statistik, sandaran, dan sokongan berbilang bahasa.',
+      'about_developer_title': 'Pembangun',
+      'about_thanks_title': 'Terima Kasih',
+      'about_thanks_desc': 'Terima kasih kerana menggunakan aplikasi ini. Kami sentiasa menambah baik berdasarkan maklum balas anda.',
+      'about_legal_title': 'Maklumat Undang-Undang',
+      'about_privacy_title': 'Dasar Privasi',
+      'about_privacy_desc': 'Ketahui cara data anda dikendalikan',
+      'about_terms_title': 'Terma Penggunaan',
+      'about_terms_desc': 'Terma penggunaan aplikasi',
+      'about_license_title': 'Lesen',
+      'about_license_desc': 'Butiran lesen sumber terbuka',
+
+      // Support
+      'support_need_help_title': 'Perlukan bantuan?',
+      'support_need_help_desc': 'Kami di sini untuk menjawab soalan anda dan menyemak maklum balas anda.',
+      'support_contact_methods_title': 'Kaedah Hubungan',
+
+      // Statistics
+      'statistics_no_data': 'Tiada data lagi',
 },
     // Farsça (İran)
     'fa': {
