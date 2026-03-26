@@ -21,6 +21,7 @@ To provide optional features like leaderboard and profile sync, we use Supabase 
 - **Profile data (optional):** Username, display name, avatar URL
 - **Statistics:** Total dhikr counts and aggregate statistics for leaderboards
 - **Achievements:** Information about unlocked trophies
+- **On-device statistical estimates:** Optional aggregate indicators (for example, most productive hour) calculated from local counters
 
 We do **not** collect or store sensitive personal identifiers (such as name with contact details, email, phone number, or address).
 
@@ -54,6 +55,7 @@ We do **not** sell your personal data.
 - You can import a previously exported file to restore data.
 - These files are stored and managed by you on your own device or cloud drive.
 - We do not receive a copy of these files.
+- Export files do not include legal branding/rights tags by default; they contain only data needed for restore and user portability.
 
 ## Third-Party Services
 

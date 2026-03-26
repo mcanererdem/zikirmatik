@@ -26,6 +26,7 @@ import '../services/notification_service.dart';
 import '../services/supabase_service.dart';
 import '../services/widget_service.dart';
 import '../services/ad_service.dart';
+import '../services/secure_storage_service.dart';
 import '../widgets/zikr_selection_dialog.dart';
 import '../widgets/add_zikr_dialog.dart';
 import '../widgets/edit_zikr_dialog.dart';
@@ -77,6 +78,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   final AudioManager _audioManager = AudioManager();
   final FeedbackManager _feedbackManager = FeedbackManager();
   final SupabaseService _supabaseService = SupabaseService();
+  final SecureStorageService _secureStorageService = SecureStorageService.instance;
   
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
@@ -123,8 +125,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     // Rastgele kullanıcı ismi oluştur
     _generateUserId();
     
-    // Supabase'i başlat
-    _supabaseService.initialize();
+    // Supabase'i başlat (dart-define yoksa uygulama çökmemeli).
+    unawaited(
+      _supabaseService.initialize().catchError((e) {
+        print('Supabase initialize skipped: $e');
+      }),
+    );
     
     _loadSettings();
     _initializeTts();
@@ -175,18 +181,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
   Future<void> _generateUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedUserId = prefs.getString('user_id');
+    final savedUserId = await _secureStorageService.readWithMigration(
+      secureKey: 'user_id_secure',
+      legacyPrefsKey: 'user_id',
+    );
     
     if (savedUserId != null && savedUserId!.isNotEmpty) {
       _currentUserId = savedUserId;
       print('👤 Existing user ID loaded: $_currentUserId');
     } else {
-      // Simple timestamp ID
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      _currentUserId = 'user_$timestamp';
+      // Yeni kullanıcılar için tahmin edilmesi zor rastgele UUID kullan.
+      _currentUserId = _supabaseService.generateUserId();
       
       // Kaydet
-      await prefs.setString('user_id', _currentUserId);
+      await _secureStorageService.write('user_id_secure', _currentUserId);
       print('🎲 New random user ID generated: $_currentUserId');
     }
   }
@@ -233,7 +241,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final animationSpeed = prefs.getInt('animation_speed') ?? 0;
     final currentLanguage = prefs.getString('language') ?? 'tr';
     // Profil/görünen ad: profil ekranında düzenlenen değer
-    _profileDisplayName = prefs.getString('display_name_$_currentUserId');
+    _profileDisplayName = await _secureStorageService.readWithMigration(
+      secureKey: 'display_name_$_currentUserId',
+      legacyPrefsKey: 'display_name_$_currentUserId',
+    );
     
     print('🏠 HomePage _loadSettings:');
     print('🏠 languageCode from settings: $languageCode');
@@ -411,24 +422,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     
     print('Zikir count saved locally: ${totalZikrs + 1}');
     
-    // Supabase'e senkronize et (günlük/haftalık/aylık periyot sayıları ile)
-    try {
-      final showInLeaderboard = await _settingsService.getShowInLeaderboard();
-      final dailyCount = await _settingsService.getDailyCount(DateTime.now());
-      final weeklyCount = await _settingsService.getWeeklyCount();
-      final monthlyCount = await _settingsService.getMonthlyCount();
-      await _supabaseService.updateUserZikrCount(
-        _currentUserId,
-        totalZikrs + 1,
-        updateLeaderboard: showInLeaderboard,
-        dailyCount: dailyCount,
-        weeklyCount: weeklyCount,
-        monthlyCount: monthlyCount,
-      );
-      print('Zikir count synced to Supabase: ${totalZikrs + 1} (daily: $dailyCount, weekly: $weeklyCount, monthly: $monthlyCount)');
-    } catch (e) {
-      print('Error syncing to Supabase: $e');
-    }
+    // Not: Her tıklamada cloud upload yapılmaz.
+    // Cloud sync; leaderboard ekranı açılışında ve rate-limit'li refresh ile yapılır.
     
     if (_isTtsOn) {
       await _ttsService.speakZikr(_selectedZikr);
@@ -612,8 +607,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     try {
       final prefs = await SharedPreferences.getInstance();
       final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
-      final username = prefs.getString('username_$_currentUserId') ?? 'user';
-      final storedDisplayName = prefs.getString('display_name_$_currentUserId');
+      final username = await _secureStorageService.readWithMigration(
+            secureKey: 'username_$_currentUserId',
+            legacyPrefsKey: 'username_$_currentUserId',
+          ) ??
+          'user';
+      final storedDisplayName = await _secureStorageService.readWithMigration(
+        secureKey: 'display_name_$_currentUserId',
+        legacyPrefsKey: 'display_name_$_currentUserId',
+      );
       final displayName = (storedDisplayName != null)
           ? (() {
               final t = storedDisplayName.trim();
@@ -621,7 +623,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
               return _getZikrDefaultDisplayName();
             })()
           : _getZikrDefaultDisplayName();
-      final avatarUrl = prefs.getString('avatar_url_$_currentUserId');
+      final avatarUrl = await _secureStorageService.readWithMigration(
+        secureKey: 'avatar_url_$_currentUserId',
+        legacyPrefsKey: 'avatar_url_$_currentUserId',
+      );
 
       // Supabase'e profil oluştur/güncelle
       final now = DateTime.now();
@@ -1214,9 +1219,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
                 // Profil ekranından geri dönünce "Görünen ad"ı yeniden oku.
                 if (!mounted) return;
-                final prefs = await SharedPreferences.getInstance();
+                final refreshedDisplayName = await _secureStorageService.readWithMigration(
+                  secureKey: 'display_name_$_currentUserId',
+                  legacyPrefsKey: 'display_name_$_currentUserId',
+                );
+                if (!mounted) return;
                 setState(() {
-                  _profileDisplayName = prefs.getString('display_name_$_currentUserId');
+                  _profileDisplayName = refreshedDisplayName;
                 });
               },
               child: Row(
@@ -1737,10 +1746,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   // Batch sync metotları
   void _startBatchSync() {
     _batchSyncTimer?.cancel();
-    _batchSyncTimer = Timer.periodic(Duration(minutes: 5), (_) {
-      _batchSyncToLeaderboard();
-    });
-    print('🔄 Batch sync started - every 5 minutes');
+    print('⏸️ Batch cloud sync disabled by policy');
   }
 
   void _stopBatchSync() {
@@ -1749,23 +1755,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   Future<void> _batchSyncToLeaderboard() async {
-    try {
-      final leaderboardEnabled = await _settingsService.getShowInLeaderboard();
-      if (!leaderboardEnabled) {
-        return;
-      }
-      final prefs = await SharedPreferences.getInstance();
-      final lastSync = prefs.getInt('last_sync_count_$_currentUserId') ?? 0;
-      final currentCount = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
-      
-      // Sadece 10 zikir biriktiğinde sync et
-      if (currentCount - lastSync >= 10) {
-        await _syncToLeaderboard();
-        await prefs.setInt('last_sync_count_$_currentUserId', currentCount);
-        print('📊 Batch sync: ${currentCount - lastSync} zikrs synced');
-      }
-    } catch (e) {
-      print('❌ Batch sync error: $e');
-    }
+    // Policy gereği HomePage tarafından cloud sync tetiklenmez.
+    return;
   }
 }

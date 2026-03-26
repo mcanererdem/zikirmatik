@@ -93,6 +93,114 @@ CREATE INDEX IF NOT EXISTS idx_leaderboard_daily_date ON leaderboard_daily(date)
 CREATE INDEX IF NOT EXISTS idx_leaderboard_weekly_week_start ON leaderboard_weekly(week_start);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_monthly_month_start ON leaderboard_monthly(month_start);
 
+-- Veri bütünlüğü: sayılar negatif olamaz.
+DO $$
+BEGIN
+  -- Existing usernames may violate the format constraint.
+  -- Normalize first, then enforce constraints.
+  WITH normalized AS (
+    SELECT
+      u.id,
+      u.username,
+      lower(regexp_replace(coalesce(u.username, ''), '[^a-zA-Z0-9_.]+', '', 'g')) AS cleaned
+    FROM users u
+  ),
+  prepared AS (
+    SELECT
+      n.id,
+      CASE
+        WHEN n.cleaned = '' THEN 'user_' || substr(replace(n.id::text, '-', ''), 1, 8)
+        WHEN char_length(n.cleaned) < 3 THEN n.cleaned || '_' || substr(replace(n.id::text, '-', ''), 1, 3)
+        ELSE n.cleaned
+      END AS base_name
+    FROM normalized n
+  ),
+  ranked AS (
+    SELECT
+      p.id,
+      left(p.base_name, 20) AS truncated_name,
+      row_number() OVER (PARTITION BY left(p.base_name, 20) ORDER BY p.id) AS rn
+    FROM prepared p
+  ),
+  final_names AS (
+    SELECT
+      r.id,
+      CASE
+        WHEN r.rn = 1 THEN r.truncated_name
+        ELSE left(r.truncated_name, greatest(3, 20 - (char_length(r.rn::text) + 1))) || '_' || r.rn::text
+      END AS final_name
+    FROM ranked r
+  )
+  UPDATE users u
+  SET username = f.final_name
+  FROM final_names f
+  WHERE u.id = f.id
+    AND u.username IS DISTINCT FROM f.final_name;
+
+  -- Normalize display_name values before applying length constraint.
+  -- Empty/too-short names become NULL; too-long names are truncated.
+  UPDATE users
+  SET display_name = CASE
+    WHEN display_name IS NULL THEN NULL
+    WHEN char_length(trim(display_name)) < 2 THEN NULL
+    WHEN char_length(trim(display_name)) > 30 THEN left(trim(display_name), 30)
+    ELSE trim(display_name)
+  END
+  WHERE display_name IS NOT NULL;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'users_total_zikrs_non_negative'
+  ) THEN
+    ALTER TABLE users
+      ADD CONSTRAINT users_total_zikrs_non_negative CHECK (total_zikrs >= 0);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'leaderboard_daily_count_non_negative'
+  ) THEN
+    ALTER TABLE leaderboard_daily
+      ADD CONSTRAINT leaderboard_daily_count_non_negative CHECK (daily_count >= 0);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'leaderboard_weekly_count_non_negative'
+  ) THEN
+    ALTER TABLE leaderboard_weekly
+      ADD CONSTRAINT leaderboard_weekly_count_non_negative CHECK (weekly_count >= 0);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'leaderboard_monthly_count_non_negative'
+  ) THEN
+    ALTER TABLE leaderboard_monthly
+      ADD CONSTRAINT leaderboard_monthly_count_non_negative CHECK (monthly_count >= 0);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'users_username_length_valid'
+  ) THEN
+    ALTER TABLE users
+      ADD CONSTRAINT users_username_length_valid
+      CHECK (char_length(username) BETWEEN 3 AND 20);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'users_username_format_valid'
+  ) THEN
+    ALTER TABLE users
+      ADD CONSTRAINT users_username_format_valid
+      CHECK (username ~ '^[A-Za-z0-9_.]+$');
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'users_display_name_length_valid'
+  ) THEN
+    ALTER TABLE users
+      ADD CONSTRAINT users_display_name_length_valid
+      CHECK (display_name IS NULL OR char_length(display_name) BETWEEN 2 AND 30);
+  END IF;
+END $$;
+
 -- RLS açma
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
@@ -252,6 +360,67 @@ $$;
 
 GRANT EXECUTE ON FUNCTION set_leaderboard_visibility(uuid, boolean) TO anon;
 GRANT EXECUTE ON FUNCTION set_leaderboard_visibility(uuid, boolean) TO authenticated;
+
+-- RPC: Kupa leaderboard (RLS bypass)
+DROP FUNCTION IF EXISTS get_leaderboard_by_cups(int);
+CREATE OR REPLACE FUNCTION get_leaderboard_by_cups(lim int DEFAULT 50)
+RETURNS TABLE (
+  id uuid,
+  username text,
+  display_name text,
+  avatar_url text,
+  total_zikrs int,
+  cup_count int,
+  bronze_count int,
+  silver_count int,
+  gold_count int,
+  diamond_count int,
+  platinum_count int,
+  top_cup text
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  WITH user_cups AS (
+    SELECT
+      u.id,
+      u.username,
+      u.display_name,
+      u.avatar_url,
+      COALESCE(u.total_zikrs, 0)::int AS total_zikrs,
+      COUNT(ua.achievement_id)::int AS cup_count,
+      COUNT(*) FILTER (WHERE ua.achievement_id = 'bronze_kupa')::int AS bronze_count,
+      COUNT(*) FILTER (WHERE ua.achievement_id = 'silver_kupa')::int AS silver_count,
+      COUNT(*) FILTER (WHERE ua.achievement_id = 'gold_kupa')::int AS gold_count,
+      COUNT(*) FILTER (WHERE ua.achievement_id = 'diamond_kupa')::int AS diamond_count,
+      COUNT(*) FILTER (WHERE ua.achievement_id = 'platinum_kupa')::int AS platinum_count,
+      CASE
+        WHEN COUNT(ua.achievement_id) = 0 THEN NULL
+        ELSE (
+          SELECT ua2.achievement_id
+          FROM user_achievements ua2
+          JOIN achievements a2 ON a2.id = ua2.achievement_id
+          WHERE ua2.user_id = u.id
+          ORDER BY a2.points DESC, ua2.unlocked_at DESC
+          LIMIT 1
+        )
+      END AS top_cup
+    FROM users u
+    LEFT JOIN user_achievements ua ON ua.user_id = u.id
+    LEFT JOIN achievements a ON a.id = ua.achievement_id
+    WHERE COALESCE(u.show_in_leaderboard, false) = true
+    GROUP BY u.id, u.username, u.display_name, u.avatar_url, u.total_zikrs
+  )
+  SELECT *
+  FROM user_cups
+  ORDER BY cup_count DESC NULLS LAST, total_zikrs DESC NULLS LAST
+  LIMIT lim;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_leaderboard_by_cups(int) TO anon;
+GRANT EXECUTE ON FUNCTION get_leaderboard_by_cups(int) TO authenticated;
 
 -- RPC: Hesabı silme (users tablosu + cascade ile ilişkili kayıtlar)
 -- Not: RLS bypass için SECURITY DEFINER kullanıyoruz.

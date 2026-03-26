@@ -63,40 +63,7 @@ void main() {
   } catch (_) {}
 
   final notificationService = NotificationService();
-  await notificationService.initialize();
-
-  // Hatırlatıcılar açıksa (reboot / güncelleme sonrası) yeniden planla
   final settingsService = SettingsService();
-  final remEnabled = await settingsService.getReminderEnabled();
-  if (remEnabled) {
-    try {
-      final days = await settingsService.getNotificationDays();
-      final morningTime = await settingsService.getMorningNotificationTime();
-      final eveningTime = await settingsService.getEveningNotificationTime();
-      final morningOn = await settingsService.getMorningNotificationEnabled();
-      final eveningOn = await settingsService.getEveningNotificationEnabled();
-      if (days.isNotEmpty) {
-        await notificationService.requestExactAlarmsPermission();
-        await notificationService.scheduleReminderNotifications(
-          selectedDays: days,
-          morningTime: morningTime,
-          eveningTime: eveningTime,
-          morningEnabled: morningOn,
-          eveningEnabled: eveningOn,
-        );
-      }
-    } catch (e) {
-      debugPrint('Hatırlatıcı yeniden planlama: $e');
-    }
-  }
-  else {
-    // Kullanıcı hatırlatıcıları kapatmışsa, önceki planları temizle.
-    try {
-      await notificationService.cancelReminderNotifications();
-    } catch (e) {
-      debugPrint('Hatırlatıcı iptali sırasında hata: $e');
-    }
-  }
 
   // Dynamic localization helper'ı başlat
   await DynamicLocalizationHelper.initialize();
@@ -129,6 +96,9 @@ void main() {
   // Run the app immediately to avoid delaying the first frame.
   runApp(const MyApp());
 
+  // Non-critical startup tasks run in background to reduce first-frame delay.
+  unawaited(_postLaunchNotificationSetup(notificationService, settingsService));
+
   // Initialize AdMob in background (don't await here to avoid blocking UI).
   MobileAds.instance.updateRequestConfiguration(
     RequestConfiguration(testDeviceIds: [
@@ -147,6 +117,37 @@ void main() {
     }
     throw error;
   });
+}
+
+Future<void> _postLaunchNotificationSetup(
+  NotificationService notificationService,
+  SettingsService settingsService,
+) async {
+  try {
+    await notificationService.initialize();
+    final remEnabled = await settingsService.getReminderEnabled();
+    if (remEnabled) {
+      final days = await settingsService.getNotificationDays();
+      final morningTime = await settingsService.getMorningNotificationTime();
+      final eveningTime = await settingsService.getEveningNotificationTime();
+      final morningOn = await settingsService.getMorningNotificationEnabled();
+      final eveningOn = await settingsService.getEveningNotificationEnabled();
+      if (days.isNotEmpty) {
+        await notificationService.requestExactAlarmsPermission();
+        await notificationService.scheduleReminderNotifications(
+          selectedDays: days,
+          morningTime: morningTime,
+          eveningTime: eveningTime,
+          morningEnabled: morningOn,
+          eveningEnabled: eveningOn,
+        );
+      }
+    } else {
+      await notificationService.cancelReminderNotifications();
+    }
+  } catch (e) {
+    debugPrint('Post-launch notification setup: $e');
+  }
 }
 
 class MyApp extends StatefulWidget {

@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 import 'dart:math';
 import '../models/theme_model.dart';
@@ -15,6 +16,7 @@ import '../utils/dynamic_localization_helper.dart';
 import '../services/settings_service.dart';
 import '../services/supabase_service.dart';
 import '../services/notification_service.dart';
+import '../services/secure_storage_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -33,6 +35,12 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static const int _usernameMinLen = 3;
+  static const int _usernameMaxLen = 20;
+  static const int _displayNameMinLen = 2;
+  static const int _displayNameMaxLen = 30;
+  static final RegExp _usernameRegex = RegExp(r'^[a-zA-Z0-9_.]+$');
+
   UserProfile? _userProfile;
   /// Yükleme başarısız olunca yerel dosya yolu (Supabase dışı fallback).
   String? _localAvatarPath;
@@ -49,6 +57,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final SupabaseService _supabaseService = SupabaseService();
   final NotificationService _notificationService = NotificationService();
   final ImagePicker _imagePicker = ImagePicker();
+  final SecureStorageService _secureStorageService = SecureStorageService.instance;
+  final SettingsService _settingsService = SettingsService();
 
   String _getZikrDefaultDisplayName() {
     return DynamicLocalizationHelper.getText({
@@ -85,6 +95,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // Kupalar: yerel toplam zikir + Supabase achievement birleşik kaynak (bilgi uyumlu olsun)
       final localTotalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      try {
+        await _supabaseService.syncAchievementsFromTotal(widget.currentUserId, localTotalZikrs);
+      } catch (_) {}
       bool bronzeUnlocked = localTotalZikrs >= 100;
       bool silverUnlocked = localTotalZikrs >= 500;
       bool goldUnlocked = localTotalZikrs >= 1000;
@@ -107,16 +120,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await prefs.setBool('platinum_kupa_unlocked_${widget.currentUserId}', platinumUnlocked);
       } catch (_) {}
 
-      String? avatarUrl = userProfile?.avatarUrl ?? prefs.getString('avatar_url_${widget.currentUserId}');
-      final localUsername = prefs.getString('username_${widget.currentUserId}');
-      final localDisplayName = prefs.getString('display_name_${widget.currentUserId}');
+      String? avatarUrl = userProfile?.avatarUrl ??
+          await _secureStorageService.readWithMigration(
+            secureKey: 'avatar_url_${widget.currentUserId}',
+            legacyPrefsKey: 'avatar_url_${widget.currentUserId}',
+          );
+      final localUsername = await _secureStorageService.readWithMigration(
+        secureKey: 'username_${widget.currentUserId}',
+        legacyPrefsKey: 'username_${widget.currentUserId}',
+      );
+      final localDisplayName = await _secureStorageService.readWithMigration(
+        secureKey: 'display_name_${widget.currentUserId}',
+        legacyPrefsKey: 'display_name_${widget.currentUserId}',
+      );
       final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
       final localAvatarPath = prefs.getString('avatar_path_${widget.currentUserId}');
 
       if (userProfile == null) {
         final initialUsername = localUsername ?? _generateRandomUsername();
         if (localUsername == null) {
-          await prefs.setString('username_${widget.currentUserId}', initialUsername);
+          await _secureStorageService.write('username_${widget.currentUserId}', initialUsername);
         }
         userProfile = UserProfile(
           userId: widget.currentUserId,
@@ -244,6 +267,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       if (image != null) {
         print('📸 Image selected: ${image.path}');
+        final pathLower = image.path.toLowerCase();
+        final validExt = pathLower.endsWith('.jpg') ||
+            pathLower.endsWith('.jpeg') ||
+            pathLower.endsWith('.png') ||
+            pathLower.endsWith('.webp');
+        if (!validExt) {
+          _showErrorSnackBar(DynamicLocalizationHelper.getText({
+            'tr': 'Desteklenmeyen dosya türü. Lütfen JPG, PNG veya WEBP seçin.',
+            'en': 'Unsupported file type. Please select JPG, PNG, or WEBP.',
+            'ar': 'نوع ملف غير مدعوم. يرجى اختيار JPG أو PNG أو WEBP.',
+            'id': 'Jenis file tidak didukung. Pilih JPG, PNG, atau WEBP.',
+            'ur': 'فائل کی قسم معاونت یافتہ نہیں۔ براہ کرم JPG، PNG یا WEBP منتخب کریں۔',
+            'bn': 'অসমর্থিত ফাইল টাইপ। JPG, PNG, বা WEBP নির্বাচন করুন।',
+            'ms': 'Jenis fail tidak disokong. Sila pilih JPG, PNG, atau WEBP.',
+            'fa': 'نوع فایل پشتیبانی نمی‌شود. لطفا JPG، PNG یا WEBP انتخاب کنید.',
+            'fr': 'Type de fichier non pris en charge. Choisissez JPG, PNG ou WEBP.',
+            'zh': '不支持的文件类型，请选择 JPG、PNG 或 WEBP。',
+            'ja': '未対応のファイル形式です。JPG、PNG、または WEBP を選択してください。',
+            'ru': 'Неподдерживаемый тип файла. Выберите JPG, PNG или WEBP.',
+            'de': 'Nicht unterstützter Dateityp. Bitte JPG, PNG oder WEBP wählen.',
+            'sw': 'Aina ya faili haitumiki. Tafadhali chagua JPG, PNG, au WEBP.',
+            'ha': 'Nau’in fayil ba a goyon baya. Da fatan a zabi JPG, PNG, ko WEBP.',
+          }));
+          return;
+        }
+        final fileSize = await File(image.path).length();
+        if (fileSize > 10 * 1024 * 1024) {
+          _showErrorSnackBar(DynamicLocalizationHelper.getText({
+            'tr': 'Dosya çok büyük. En fazla 10MB olmalı.',
+            'en': 'File is too large. Maximum size is 10MB.',
+            'ar': 'الملف كبير جدا. الحد الأقصى 10MB.',
+            'id': 'File terlalu besar. Ukuran maksimum 10MB.',
+            'ur': 'فائل بہت بڑی ہے۔ زیادہ سے زیادہ 10MB ہو سکتی ہے۔',
+            'bn': 'ফাইল অনেক বড়। সর্বোচ্চ 10MB হতে হবে।',
+            'ms': 'Fail terlalu besar. Saiz maksimum ialah 10MB.',
+            'fa': 'فایل خیلی بزرگ است. حداکثر اندازه 10MB است.',
+            'fr': 'Le fichier est trop volumineux. Taille maximale : 10MB.',
+            'zh': '文件过大，最大为 10MB。',
+            'ja': 'ファイルサイズが大きすぎます。最大 10MB です。',
+            'ru': 'Файл слишком большой. Максимум 10MB.',
+            'de': 'Datei ist zu groß. Maximale Größe ist 10MB.',
+            'sw': 'Faili ni kubwa sana. Ukubwa wa juu ni 10MB.',
+            'ha': 'Fayil ya yi girma sosai. Matsakaicin girma 10MB ne.',
+          }));
+          return;
+        }
+        final canUploadCloud = await _settingsService.getShowInLeaderboard();
+        if (!canUploadCloud) {
+          await _saveAvatarLocally(image);
+          if (mounted) {
+            final messenger = ScaffoldMessenger.of(context);
+            messenger.removeCurrentSnackBar();
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(DynamicLocalizationHelper.getText({
+                  'tr': 'Paylaşım kapalı: fotoğraf yalnızca yerel kaydedildi.',
+                  'en': 'Sharing is off: photo was saved locally only.',
+                  'ar': 'المشاركة مغلقة: تم حفظ الصورة محليًا فقط.',
+                  'id': 'Berbagi nonaktif: foto hanya disimpan lokal.',
+                  'ur': 'شیئرنگ بند ہے: تصویر صرف مقامی طور پر محفوظ ہوئی۔',
+                  'bn': 'শেয়ারিং বন্ধ: ছবি শুধু লোকাল সেভ হয়েছে।',
+                  'ms': 'Perkongsian dimatikan: foto disimpan secara tempatan sahaja.',
+                  'fa': 'اشتراک غیرفعال است: عکس فقط به‌صورت محلی ذخیره شد.',
+                  'fr': 'Partage désactivé : la photo a été enregistrée localement uniquement.',
+                  'zh': '分享已关闭：照片仅保存在本地。',
+                  'ja': '共有オフ：写真はローカル保存のみです。',
+                  'ru': 'Публикация выключена: фото сохранено только локально.',
+                  'de': 'Freigabe ist aus: Foto wurde nur lokal gespeichert.',
+                  'sw': 'Ushiriki umezimwa: picha imehifadhiwa ndani pekee.',
+                  'ha': 'An kashe rabawa: an adana hoton a gida kawai.',
+                })),
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
         
         // Avatar'ı Supabase'e yükle
         final avatarUrl = await _supabaseService.uploadAvatar(image);
@@ -458,14 +559,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.removeCurrentSnackBar();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(message),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
+  }
+
+  String? _validateUsername(String value) {
+    final v = value.trim();
+    if (v.length < _usernameMinLen || v.length > _usernameMaxLen) {
+      return DynamicLocalizationHelper.getText({
+        'tr': 'Kullanıcı adı $_usernameMinLen-$_usernameMaxLen karakter olmalı.',
+        'en': 'Username must be $_usernameMinLen-$_usernameMaxLen characters.',
+        'ar': 'يجب أن يكون اسم المستخدم بين $_usernameMinLen و$_usernameMaxLen حرفًا.',
+        'id': 'Nama pengguna harus $_usernameMinLen-$_usernameMaxLen karakter.',
+        'ur': 'صارف نام $_usernameMinLen سے $_usernameMaxLen حروف کے درمیان ہونا چاہیے۔',
+        'bn': 'ইউজারনেম $_usernameMinLen-$_usernameMaxLen অক্ষরের হতে হবে।',
+        'ms': 'Nama pengguna mesti $_usernameMinLen-$_usernameMaxLen aksara.',
+        'fa': 'نام کاربری باید بین $_usernameMinLen تا $_usernameMaxLen کاراکتر باشد.',
+        'fr': 'Le nom d’utilisateur doit contenir $_usernameMinLen à $_usernameMaxLen caractères.',
+        'zh': '用户名长度需为 $_usernameMinLen-$_usernameMaxLen 个字符。',
+        'ja': 'ユーザー名は $_usernameMinLen〜$_usernameMaxLen 文字で入力してください。',
+        'ru': 'Имя пользователя должно быть от $_usernameMinLen до $_usernameMaxLen символов.',
+        'de': 'Der Benutzername muss $_usernameMinLen-$_usernameMaxLen Zeichen lang sein.',
+        'sw': 'Jina la mtumiaji lazima liwe herufi $_usernameMinLen-$_usernameMaxLen.',
+        'ha': 'Sunan mai amfani ya zama haruffa $_usernameMinLen-$_usernameMaxLen.',
+      });
+    }
+    if (!_usernameRegex.hasMatch(v)) {
+      return DynamicLocalizationHelper.getText({
+        'tr': 'Sadece harf, rakam, nokta ve alt çizgi kullanın.',
+        'en': 'Use only letters, numbers, dot, and underscore.',
+        'ar': 'استخدم الحروف والأرقام والنقطة والشرطة السفلية فقط.',
+        'id': 'Gunakan hanya huruf, angka, titik, dan garis bawah.',
+        'ur': 'صرف حروف، اعداد، ڈاٹ اور انڈر اسکور استعمال کریں۔',
+        'bn': 'শুধু অক্ষর, সংখ্যা, ডট ও আন্ডারস্কোর ব্যবহার করুন।',
+        'ms': 'Guna huruf, nombor, titik, dan garis bawah sahaja.',
+        'fa': 'فقط از حروف، اعداد، نقطه و زیرخط استفاده کنید.',
+        'fr': 'Utilisez uniquement des lettres, chiffres, point et tiret bas.',
+        'zh': '仅可使用字母、数字、点号和下划线。',
+        'ja': '英字・数字・ドット・アンダースコアのみ使用できます。',
+        'ru': 'Используйте только буквы, цифры, точку и подчёркивание.',
+        'de': 'Nur Buchstaben, Zahlen, Punkt und Unterstrich verwenden.',
+        'sw': 'Tumia herufi, namba, nukta na mstari chini pekee.',
+        'ha': 'Yi amfani da haruffa, lambobi, aya da alamar underscore kawai.',
+      });
+    }
+    return null;
+  }
+
+  String? _validateDisplayName(String value) {
+    final v = value.trim();
+    if (v.length < _displayNameMinLen || v.length > _displayNameMaxLen) {
+      return DynamicLocalizationHelper.getText({
+        'tr': 'Görünen ad $_displayNameMinLen-$_displayNameMaxLen karakter olmalı.',
+        'en': 'Display name must be $_displayNameMinLen-$_displayNameMaxLen characters.',
+        'ar': 'يجب أن يكون الاسم المعروض بين $_displayNameMinLen و$_displayNameMaxLen حرفًا.',
+        'id': 'Nama tampilan harus $_displayNameMinLen-$_displayNameMaxLen karakter.',
+        'ur': 'ڈسپلے نام $_displayNameMinLen سے $_displayNameMaxLen حروف کے درمیان ہونا چاہیے۔',
+        'bn': 'ডিসপ্লে নাম $_displayNameMinLen-$_displayNameMaxLen অক্ষরের হতে হবে।',
+        'ms': 'Nama paparan mesti $_displayNameMinLen-$_displayNameMaxLen aksara.',
+        'fa': 'نام نمایشی باید بین $_displayNameMinLen تا $_displayNameMaxLen کاراکتر باشد.',
+        'fr': 'Le nom affiché doit contenir $_displayNameMinLen à $_displayNameMaxLen caractères.',
+        'zh': '显示名长度需为 $_displayNameMinLen-$_displayNameMaxLen 个字符。',
+        'ja': '表示名は $_displayNameMinLen〜$_displayNameMaxLen 文字で入力してください。',
+        'ru': 'Отображаемое имя должно быть от $_displayNameMinLen до $_displayNameMaxLen символов.',
+        'de': 'Der Anzeigename muss $_displayNameMinLen-$_displayNameMaxLen Zeichen lang sein.',
+        'sw': 'Jina la kuonyesha lazima liwe herufi $_displayNameMinLen-$_displayNameMaxLen.',
+        'ha': 'Sunan da ake nunawa ya zama haruffa $_displayNameMinLen-$_displayNameMaxLen.',
+      });
+    }
+    return null;
   }
 
   Future<bool> _checkImagePermission() async {
@@ -512,7 +682,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         
         // Local storage'a da kaydet (fallback)
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('avatar_url_${widget.currentUserId}', avatarUrl);
+        await _secureStorageService.write('avatar_url_${widget.currentUserId}', avatarUrl);
         
         // Local state'i güncelle
         setState(() {
@@ -552,7 +722,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Supabase hatası olursa local storage'a kaydet
       try {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('avatar_url_${widget.currentUserId}', avatarUrl);
+        await _secureStorageService.write('avatar_url_${widget.currentUserId}', avatarUrl);
         
         // Local state'i güncelle
         setState(() {
@@ -871,6 +1041,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         _buildActionTile(
           DynamicLocalizationHelper.getText({
+            'tr': 'Profil Resmini Değiştir',
+            'en': 'Change Profile Photo',
+            'ar': 'تغيير صورة الملف الشخصي',
+            'id': 'Ganti Foto Profil',
+            'ur': 'پروفائل تصویر تبدیل کریں',
+            'bn': 'প্রোফাইল ছবি পরিবর্তন করুন',
+            'ms': 'Tukar Foto Profil',
+            'fa': 'تغییر عکس پروفایل',
+            'fr': 'Changer la Photo de Profil',
+            'zh': '更改头像',
+            'ja': 'プロフィール写真を変更',
+            'ru': 'Изменить Фото Профиля',
+            'de': 'Profilfoto ändern',
+            'sw': 'Badilisha Picha ya Wasifu',
+            'ha': 'Canja Hoton Martaba',
+          }),
+          Icons.photo_camera,
+          Colors.purple,
+          () => _pickAndUploadAvatar(),
+        ),
+        const SizedBox(height: 8),
+        _buildActionTile(
+          DynamicLocalizationHelper.getText({
             'tr': 'Kullanıcı Adını Düzenle',
             'en': 'Edit Username',
             'ar': 'تعديل اسم المستخدم',
@@ -1042,7 +1235,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               borderSide: BorderSide(color: widget.themeConfig.accentColor, width: 2),
             ),
           ),
-          maxLength: 50,
+          maxLength: _usernameMaxLen,
         ),
         actions: [
           TextButton(
@@ -1054,10 +1247,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                await _updateUsername(controller.text);
-                Navigator.pop(context);
+              final validation = _validateUsername(controller.text);
+              if (validation != null) {
+                _showErrorSnackBar(validation);
+                return;
               }
+              final ok = await _updateUsername(controller.text.trim());
+              if (ok && mounted) Navigator.pop(context);
             },
             child: Text(
               DynamicLocalizationHelper.save,
@@ -1115,7 +1311,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               borderSide: BorderSide(color: widget.themeConfig.accentColor, width: 2),
             ),
           ),
-          maxLength: 100,
+          maxLength: _displayNameMaxLen,
         ),
         actions: [
           TextButton(
@@ -1127,10 +1323,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                await _updateDisplayName(controller.text);
-                Navigator.pop(context);
+              final validation = _validateDisplayName(controller.text);
+              if (validation != null) {
+                _showErrorSnackBar(validation);
+                return;
               }
+              final ok = await _updateDisplayName(controller.text.trim());
+              if (ok && mounted) Navigator.pop(context);
             },
             child: Text(
               DynamicLocalizationHelper.save,
@@ -1142,9 +1341,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _updateUsername(String username) async {
-    if (_userProfile == null) return;
+  Future<bool> _updateUsername(String username) async {
+    if (_userProfile == null) return false;
     final updatedProfile = _userProfile!.copyWith(username: username);
+    final canUploadCloud = await _settingsService.getShowInLeaderboard();
+    if (!canUploadCloud) {
+      _saveProfileToLocal(updatedProfile);
+      setState(() => _userProfile = updatedProfile);
+      if (mounted) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.removeCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Paylaşım kapalı: kullanıcı adı yalnızca yerel kaydedildi.',
+                'en': 'Sharing is off: username was saved locally only.',
+                'ar': 'المشاركة مغلقة: تم حفظ اسم المستخدم محليًا فقط.',
+                'id': 'Berbagi nonaktif: nama pengguna hanya disimpan lokal.',
+                'ur': 'شیئرنگ بند ہے: صارف نام صرف مقامی طور پر محفوظ ہوا۔',
+                'bn': 'শেয়ারিং বন্ধ: ইউজারনেম শুধু লোকালি সেভ হয়েছে।',
+                'ms': 'Perkongsian dimatikan: nama pengguna disimpan secara tempatan sahaja.',
+                'fa': 'اشتراک غیرفعال است: نام کاربری فقط به‌صورت محلی ذخیره شد.',
+                'fr': 'Partage désactivé : le nom d’utilisateur a été enregistré localement uniquement.',
+                'zh': '分享已关闭：用户名仅保存在本地。',
+                'ja': '共有オフ：ユーザー名はローカル保存のみです。',
+                'ru': 'Публикация выключена: имя пользователя сохранено только локально.',
+                'de': 'Freigabe ist aus: Benutzername wurde nur lokal gespeichert.',
+                'sw': 'Ushiriki umezimwa: jina la mtumiaji limehifadhiwa ndani pekee.',
+                'ha': 'An kashe rabawa: an adana sunan mai amfani a gida kawai.',
+              }),
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return true;
+    }
     try {
       await _supabaseService.updateUserProfile(updatedProfile);
       setState(() => _userProfile = updatedProfile);
@@ -1175,8 +1409,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       }
+      return true;
     } catch (e) {
       print('Error updating username: $e');
+      if (e is PostgrestException && e.code == '23505') {
+        if (mounted) {
+          _showErrorSnackBar(DynamicLocalizationHelper.getText({
+            'tr': 'Bu kullanıcı adı zaten kullanılıyor. Lütfen başka bir ad seçin.',
+            'en': 'This username is already taken. Please choose another one.',
+            'ar': 'اسم المستخدم هذا مستخدم بالفعل. الرجاء اختيار اسم آخر.',
+            'id': 'Nama pengguna ini sudah dipakai. Silakan pilih nama lain.',
+            'ur': 'یہ صارف نام پہلے سے استعمال ہو رہا ہے۔ براہ کرم دوسرا نام منتخب کریں۔',
+            'bn': 'এই ইউজারনেমটি আগে থেকেই ব্যবহৃত হচ্ছে। অন্য একটি নাম দিন।',
+            'ms': 'Nama pengguna ini sudah digunakan. Sila pilih nama lain.',
+            'fa': 'این نام کاربری قبلاً استفاده شده است. لطفاً نام دیگری انتخاب کنید.',
+            'fr': 'Ce nom d’utilisateur est déjà utilisé. Veuillez en choisir un autre.',
+            'zh': '该用户名已被占用，请选择其他名称。',
+            'ja': 'このユーザー名は既に使用されています。別の名前を選んでください。',
+            'ru': 'Это имя пользователя уже занято. Выберите другое.',
+            'de': 'Dieser Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.',
+            'sw': 'Jina hili la mtumiaji tayari limetumika. Tafadhali chagua jingine.',
+            'ha': 'An riga an yi amfani da wannan sunan mai amfani. Ka zaɓi wani daban.',
+          }));
+        }
+        return false;
+      }
       _saveProfileToLocal(updatedProfile);
       setState(() => _userProfile = updatedProfile);
       if (mounted) {
@@ -1205,12 +1462,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       }
+      return true;
     }
   }
 
-  Future<void> _updateDisplayName(String displayName) async {
-    if (_userProfile == null) return;
+  Future<bool> _updateDisplayName(String displayName) async {
+    if (_userProfile == null) return false;
     final updatedProfile = _userProfile!.copyWith(displayName: displayName);
+    final canUploadCloud = await _settingsService.getShowInLeaderboard();
+    if (!canUploadCloud) {
+      _saveProfileToLocal(updatedProfile);
+      setState(() => _userProfile = updatedProfile);
+      if (mounted) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.removeCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              DynamicLocalizationHelper.getText({
+                'tr': 'Paylaşım kapalı: görünen ad yalnızca yerel kaydedildi.',
+                'en': 'Sharing is off: display name was saved locally only.',
+                'ar': 'المشاركة مغلقة: تم حفظ الاسم المعروض محليًا فقط.',
+                'id': 'Berbagi nonaktif: nama tampilan hanya disimpan lokal.',
+                'ur': 'شیئرنگ بند ہے: ڈسپلے نام صرف مقامی طور پر محفوظ ہوا۔',
+                'bn': 'শেয়ারিং বন্ধ: ডিসপ্লে নাম শুধু লোকালি সেভ হয়েছে।',
+                'ms': 'Perkongsian dimatikan: nama paparan disimpan secara tempatan sahaja.',
+                'fa': 'اشتراک غیرفعال است: نام نمایشی فقط به‌صورت محلی ذخیره شد.',
+                'fr': 'Partage désactivé : le nom d’affichage a été enregistré localement uniquement.',
+                'zh': '分享已关闭：显示名称仅保存在本地。',
+                'ja': '共有オフ：表示名はローカル保存のみです。',
+                'ru': 'Публикация выключена: отображаемое имя сохранено только локально.',
+                'de': 'Freigabe ist aus: Anzeigename wurde nur lokal gespeichert.',
+                'sw': 'Ushiriki umezimwa: jina la kuonyesha limehifadhiwa ndani pekee.',
+                'ha': 'An kashe rabawa: an adana sunan da ake nunawa a gida kawai.',
+              }),
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return true;
+    }
     try {
       await _supabaseService.updateUserProfile(updatedProfile);
       setState(() => _userProfile = updatedProfile);
@@ -1241,6 +1534,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       }
+      return true;
     } catch (e) {
       print('Error updating display name: $e');
       _saveProfileToLocal(updatedProfile);
@@ -1271,15 +1565,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       }
+      return true;
     }
   }
 
   Future<void> _saveProfileToLocal(UserProfile profile) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('username_${widget.currentUserId}', profile.username);
-    await prefs.setString('display_name_${widget.currentUserId}', profile.displayName ?? '');
+    await _secureStorageService.write('username_${widget.currentUserId}', profile.username);
+    await _secureStorageService.write('display_name_${widget.currentUserId}', profile.displayName ?? '');
     if (profile.avatarUrl != null) {
-      await prefs.setString('avatar_url_${widget.currentUserId}', profile.avatarUrl!);
+      await _secureStorageService.write('avatar_url_${widget.currentUserId}', profile.avatarUrl!);
     }
   }
 
@@ -1446,6 +1740,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
         await prefs.setString('language', savedLanguage.trim());
       }
+      await prefs.setInt('current_count', 0);
+      await prefs.setBool('show_in_leaderboard', false);
+      await _secureStorageService.delete('user_id_secure');
+      await _secureStorageService.delete('username_${widget.currentUserId}');
+      await _secureStorageService.delete('display_name_${widget.currentUserId}');
+      await _secureStorageService.delete('avatar_url_${widget.currentUserId}');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1597,110 +1897,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   const SizedBox(height: 24),
                   
-                  // Stats Cards
-                  Row(
-                    children: [
-                      _buildStatCard(
-                        DynamicLocalizationHelper.getText({
-                          'tr': 'Toplam Zikir',
-                          'en': 'Total Dhikr',
-                          'ar': 'مجموع الذكر',
-                          'id': 'Total Zikir',
-                          'ur': 'کل ذکر',
-                          'bn': 'মোট জিকির',
-                          'ms': 'Jumlah Zikir',
-                          'fa': 'مجموع ذکر',
-                          'fr': 'Total Dhikr',
-                          'zh': '总赞念',
-                          'ja': '総ジクル',
-                          'ru': 'Всего Зикров',
-                          'de': 'Gesamte Dhikr',
-                          'sw': 'Jumla ya Dhikr',
-                          'ha': 'Duk Cikin Gaba',
-                        }),
-                        '${_userProfile?.totalZikrs ?? 0}',
-                        Icons.trending_up,
-                        Colors.green,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatCard(
-                        DynamicLocalizationHelper.getText({
-                          'tr': 'Streak',
-                          'en': 'Streak',
-                          'ar': 'السلسلة',
-                          'id': 'Streak',
-                          'ur': 'سلسلہ',
-                          'bn': 'স্ট্রিক',
-                          'ms': 'Streak',
-                          'fa': 'سلسله',
-                          'fr': 'Série',
-                          'zh': '连续',
-                          'ja': '連続',
-                          'ru': 'Серия',
-                          'de': 'Serie',
-                          'sw': 'Mfululizo',
-                          'ha': 'Saita',
-                        }),
-                        '$_currentStreak',
-                        Icons.local_fire_department,
-                        Colors.orange,
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  Row(
-                    children: [
-                      _buildStatCard(
-                        DynamicLocalizationHelper.getText({
-                          'tr': 'Haftalık',
-                          'en': 'Weekly',
-                          'ar': 'أسبوعي',
-                          'id': 'Mingguan',
-                          'ur': 'ہفتہ وار',
-                          'bn': 'সাপ্তাহিক',
-                          'ms': 'Mingguan',
-                          'fa': 'هفتگی',
-                          'fr': 'Hebdomadaire',
-                          'zh': '每周',
-                          'ja': '週間',
-                          'ru': 'Еженедельно',
-                          'de': 'Wöchentlich',
-                          'sw': 'Kila Wiki',
-                          'ha': 'Makon Sati',
-                        }),
-                        '$_weeklyZikrs',
-                        Icons.calendar_view_week,
-                        Colors.blue,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatCard(
-                        DynamicLocalizationHelper.getText({
-                          'tr': 'Günlük Ort.',
-                          'en': 'Daily Avg.',
-                          'ar': 'المتوسط اليومي',
-                          'id': 'Rata-rata Harian',
-                          'ur': 'روزانہ اوسط',
-                          'bn': 'দৈনিক গড়',
-                          'ms': 'Purata Harian',
-                          'fa': 'میانگین روزانه',
-                          'fr': 'Moyenne Journalière',
-                          'zh': '日均',
-                          'ja': '日平均',
-                          'ru': 'Среднее Дневное',
-                          'de': 'Tagesdurchschnitt',
-                          'sw': 'Wastani wa Siku',
-                          'ha': 'Matsakaicin Tsakila',
-                        }),
-                        _calculateDailyAverage(),
-                        Icons.trending_up,
-                        Colors.blue,
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
                   
                   // Profile Actions
                   Container(
@@ -1717,8 +1914,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Text(
                           DynamicLocalizationHelper.getText({
-                            'tr': 'Profil Ayarları',
-                            'en': 'Profile Settings',
+                            'tr': 'Hesap İşlemleri',
+                            'en': 'Account Actions',
                             'ar': 'إعدادات الملف الشخصي',
                             'id': 'Pengaturan Profil',
                             'ur': 'پروفائل سیٹنگز',
@@ -1764,21 +1961,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             Text(
                               DynamicLocalizationHelper.getText({
-                                'tr': 'Kazandığım Kupalar',
-                                'en': 'My Earned Trophies',
-                                'ar': 'كؤوسي المكتسبة',
-                                'id': 'Piala yang Saya Menang',
-                                'ur': 'میری کمائے ہوئے ٹرافیاں',
-                                'bn': 'আমার অর্জিত ট্রফি',
-                                'ms': 'Piala Saya Diperoleh',
-                                'fa': 'جام های کسب شده من',
-                                'fr': 'Mes trophées gagnés',
-                                'zh': '我获得的奖杯',
-                                'ja': '獲得したトロフィー',
-                                'ru': 'Мои трофеи',
-                                'de': 'Meine Trophäen',
-                                'sw': 'Tuzo Zangu',
-                                'ha': 'Kofuna da Na Samu',
+                                'tr': 'Kupa İlerlemesi',
+                                'en': 'Trophy Progress',
+                                'ar': 'تقدم الكؤوس',
+                                'id': 'Progres Piala',
+                                'ur': 'ٹرافی پیش رفت',
+                                'bn': 'ট্রফি অগ্রগতি',
+                                'ms': 'Kemajuan Trofi',
+                                'fa': 'پیشرفت جام‌ها',
+                                'fr': 'Progression des trophées',
+                                'zh': '奖杯进度',
+                                'ja': 'トロフィー進捗',
+                                'ru': 'Прогресс трофеев',
+                                'de': 'Trophäenfortschritt',
+                                'sw': 'Maendeleo ya Nyara',
+                                'ha': 'Ci gaban Kofuna',
                               }),
                               style: GoogleFonts.notoSans(
                                 fontSize: 16,
@@ -1799,17 +1996,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 8),
                         Text(
                           (_unlockedCups.values.any((v) => v))
-                              ? '${_unlockedCups.values.where((v) => v).length} ${DynamicLocalizationHelper.getText({'tr': 'kupa kazanıldı', 'en': 'trophies earned'})}'
+                              ? '${_unlockedCups.values.where((v) => v).length}/5 ${DynamicLocalizationHelper.getText({
+                                  'tr': 'kupa ilerlemesi tamamlandı',
+                                  'en': 'trophy progress completed',
+                                  'ar': 'اكتمل تقدم الكؤوس',
+                                  'id': 'progres piala selesai',
+                                  'ur': 'ٹرافی پیش رفت مکمل',
+                                  'bn': 'ট্রফি অগ্রগতি সম্পন্ন',
+                                  'ms': 'kemajuan trofi selesai',
+                                  'fa': 'پیشرفت جام‌ها تکمیل شد',
+                                  'fr': 'progression des trophées terminée',
+                                  'zh': '奖杯进度已完成',
+                                  'ja': 'トロフィー進捗が完了',
+                                  'ru': 'прогресс трофеев завершен',
+                                  'de': 'Trophäenfortschritt abgeschlossen',
+                                  'sw': 'maendeleo ya nyara yamekamilika',
+                                  'ha': 'an kammala ci gaban kofuna',
+                                })}'
                               : DynamicLocalizationHelper.getText({
-                                  'tr': 'Henüz kupa kazanılmadı (0)',
-                                  'en': 'No trophies earned yet (0)',
-                                  'ar': 'لم يتم الفوز بعد (0)',
-                                  'id': 'Belum ada piala (0)',
-                                  'fa': 'هنوز جامی کسب نشده (0)',
-                                  'zh': '暂无奖杯 (0)',
-                                  'ja': 'まだトロフィーなし (0)',
-                                  'ru': 'Пока нет трофеев (0)',
-                                  'de': 'Noch keine Trophäen (0)',
+                                  'tr': 'Kupa ilerlemesi henüz başlamadı (0/5)',
+                                  'en': 'Trophy progress has not started yet (0/5)',
+                                  'ar': 'لم يبدأ تقدم الكؤوس بعد (0/5)',
+                                  'id': 'Progres piala belum dimulai (0/5)',
+                                  'ur': 'ٹرافی پیش رفت ابھی شروع نہیں ہوئی (0/5)',
+                                  'bn': 'ট্রফি অগ্রগতি এখনো শুরু হয়নি (0/5)',
+                                  'ms': 'Kemajuan trofi belum bermula (0/5)',
+                                  'fa': 'پیشرفت جام‌ها هنوز شروع نشده است (0/5)',
+                                  'fr': 'La progression des trophées n’a pas encore commencé (0/5)',
+                                  'zh': '奖杯进度尚未开始 (0/5)',
+                                  'ja': 'トロフィー進捗はまだ開始されていません (0/5)',
+                                  'ru': 'Прогресс трофеев еще не начался (0/5)',
+                                  'de': 'Der Trophäenfortschritt hat noch nicht begonnen (0/5)',
+                                  'sw': 'Maendeleo ya nyara bado hayajaanza (0/5)',
+                                  'ha': 'Ci gaban kofuna bai fara ba tukuna (0/5)',
                                 }),
                           style: GoogleFonts.notoSans(
                             fontSize: 13,

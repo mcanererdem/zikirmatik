@@ -31,6 +31,8 @@ class SupabaseService {
     defaultValue: '',
   );
 
+  bool get isInitialized => _isInitialized;
+
   Future<void> initialize() async {
     if (_isInitialized) return;
     if (_supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty) {
@@ -85,6 +87,46 @@ class SupabaseService {
     return uuid;
   }
 
+  String _defaultUsernameForUuid(String uuid) {
+    final short = uuid.replaceAll('-', '');
+    final suffix = short.length >= 10 ? short.substring(0, 10) : short;
+    return 'user_$suffix';
+  }
+
+  Future<bool> _ensureUserRow(String userId) async {
+    if (!_isInitialized) return false;
+    final uuid = toUuid(userId);
+    try {
+      final existing = await _supabase
+          .from('users')
+          .select('id')
+          .eq('id', uuid)
+          .maybeSingle();
+      if (existing != null) return false;
+
+      await _supabase.from('users').insert({
+        'id': uuid,
+        'username': _defaultUsernameForUuid(uuid),
+        'display_name': null,
+        'total_zikrs': 0,
+        'show_in_leaderboard': false,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+      print('Supabase: created missing users row for $uuid');
+      return true;
+    } catch (e) {
+      // Yarış durumlarında duplicate gelebilir; yalnızca loglayıp devam et.
+      print('Supabase: ensure user row skipped ($e)');
+      return false;
+    }
+  }
+
+  Future<bool> ensureUserExists(String userId) async {
+    if (!_isInitialized) return false;
+    return _ensureUserRow(userId);
+  }
+
   // Kullanıcı profili işlemleri
   Future<UserProfile?> getUserProfile(String userId) async {
     try {
@@ -126,7 +168,7 @@ class SupabaseService {
             'total_zikrs': profile.totalZikrs,
             'last_zikr_date': profile.lastZikrDate?.toIso8601String(),
             'updated_at': DateTime.now().toIso8601String(),
-          })
+          }, onConflict: 'id')
           .select()
           .single();
       
@@ -152,6 +194,7 @@ class SupabaseService {
         return;
       }
       final uuid = toUuid(userId);
+      await _ensureUserRow(userId);
       await _supabase
           .from('users')
           .update({
@@ -183,6 +226,9 @@ class SupabaseService {
 
     final uuid = toUuid(userId);
     try {
+      if (show) {
+        await _ensureUserRow(userId);
+      }
       await _supabase.rpc(
         'set_leaderboard_visibility',
         params: {
@@ -199,6 +245,10 @@ class SupabaseService {
   // Kupa (Achievement) işlemleri
   Future<List<Map<String, dynamic>>> getUserAchievements(String userId) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, returning empty achievements.');
+        return [];
+      }
       final uuid = toUuid(userId);
       final response = await _supabase
           .from('user_achievements')
@@ -219,6 +269,7 @@ class SupabaseService {
         print('Supabase not initialized, skipping unlockAchievement.');
         return;
       }
+      await _ensureUserRow(userId);
       final uuid = toUuid(userId);
       await _supabase
           .from('user_achievements')
@@ -233,20 +284,54 @@ class SupabaseService {
     }
   }
 
+  Future<void> syncAchievementsFromTotal(String userId, int totalZikrs) async {
+    if (!_isInitialized) return;
+    await _ensureUserRow(userId);
+    final uuid = toUuid(userId);
+    final List<String> earned = [];
+    if (totalZikrs >= 100) earned.add('bronze_kupa');
+    if (totalZikrs >= 500) earned.add('silver_kupa');
+    if (totalZikrs >= 1000) earned.add('gold_kupa');
+    if (totalZikrs >= 5000) earned.add('diamond_kupa');
+    if (totalZikrs >= 10000) earned.add('platinum_kupa');
+    if (earned.isEmpty) return;
+
+    try {
+      final rows = earned
+          .map((id) => {
+                'user_id': uuid,
+                'achievement_id': id,
+                'unlocked_at': DateTime.now().toIso8601String(),
+              })
+          .toList();
+      await _supabase
+          .from('user_achievements')
+          .upsert(rows, onConflict: 'user_id,achievement_id');
+    } catch (e) {
+      print('Error syncing achievements from total: $e');
+    }
+  }
+
   // Leaderboard işlemleri
   Future<void> updateDailyLeaderboard(String userId, int zikrCount) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, skipping daily leaderboard update.');
+        return;
+      }
+      await _ensureUserRow(userId);
+      final uuid = toUuid(userId);
       final today = DateTime.now();
       final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
       
       await _supabase
           .from('leaderboard_daily')
           .upsert({
-            'user_id': userId,
+            'user_id': uuid,
             'date': todayStr,
             'daily_count': zikrCount,
             'updated_at': DateTime.now().toIso8601String(),
-          });
+          }, onConflict: 'user_id,date');
     } catch (e) {
       print('Error updating daily leaderboard: $e');
     }
@@ -254,6 +339,12 @@ class SupabaseService {
 
   Future<void> updateWeeklyLeaderboard(String userId, int zikrCount) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, skipping weekly leaderboard update.');
+        return;
+      }
+      await _ensureUserRow(userId);
+      final uuid = toUuid(userId);
       final now = DateTime.now();
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final weekStr = '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
@@ -261,11 +352,11 @@ class SupabaseService {
       await _supabase
           .from('leaderboard_weekly')
           .upsert({
-            'user_id': userId,
+            'user_id': uuid,
             'week_start': weekStr,
             'weekly_count': zikrCount,
             'updated_at': DateTime.now().toIso8601String(),
-          });
+          }, onConflict: 'user_id,week_start');
     } catch (e) {
       print('Error updating weekly leaderboard: $e');
     }
@@ -273,22 +364,29 @@ class SupabaseService {
 
   Future<void> updateMonthlyLeaderboard(String userId, int zikrCount) async {
     try {
+      if (!_isInitialized) {
+        print('Supabase not initialized, skipping monthly leaderboard update.');
+        return;
+      }
+      await _ensureUserRow(userId);
+      final uuid = toUuid(userId);
       final now = DateTime.now();
       final monthStart = '${now.year}-${now.month.toString().padLeft(2, '0')}-01';
       await _supabase
           .from('leaderboard_monthly')
           .upsert({
-            'user_id': userId,
+            'user_id': uuid,
             'month_start': monthStart,
             'monthly_count': zikrCount,
             'updated_at': DateTime.now().toIso8601String(),
-          });
+          }, onConflict: 'user_id,month_start');
     } catch (e) {
       print('Error updating monthly leaderboard: $e');
     }
   }
 
   Future<List<Map<String, dynamic>>> getDailyLeaderboard({int limit = 50}) async {
+    if (!_isInitialized) return [];
     try {
       await _ensureAnonForLeaderboard();
       final today = DateTime.now();
@@ -341,6 +439,7 @@ class SupabaseService {
   }
 
   Future<List<Map<String, dynamic>>> getWeeklyLeaderboard({int limit = 50}) async {
+    if (!_isInitialized) return [];
     try {
       await _ensureAnonForLeaderboard();
       final now = DateTime.now();
@@ -392,6 +491,7 @@ class SupabaseService {
   }
 
   Future<List<Map<String, dynamic>>> getMonthlyLeaderboard({int limit = 50}) async {
+    if (!_isInitialized) return [];
     try {
       await _ensureAnonForLeaderboard();
       final now = DateTime.now();
@@ -444,6 +544,7 @@ class SupabaseService {
 
   Future<int> getUserRank(String userId) async {
     try {
+      if (!_isInitialized) return 0;
       final response = await _supabase
           .from('users')
           .select('total_zikrs')
@@ -471,6 +572,7 @@ class SupabaseService {
 
   /// Leaderboard istekleri anon ile gitsin; oturum varsa RLS sadece kendi satırını döndürebilir (tek kişi). Önce oturumu kapatıyoruz.
   Future<void> _ensureAnonForLeaderboard() async {
+    if (!_isInitialized) return;
     try {
       final session = _supabase.auth.currentSession;
       if (session != null) {
@@ -537,6 +639,37 @@ class SupabaseService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getCupLeaderboard({int limit = 50}) async {
+    if (!_isInitialized) return [];
+    try {
+      await _ensureAnonForLeaderboard();
+      final response = await _supabase.rpc(
+        'get_leaderboard_by_cups',
+        params: {'lim': limit},
+      );
+      final rows = List<Map<String, dynamic>>.from(response as List);
+      print('Leaderboard fetch: cups returned ${rows.length} users');
+      return rows.map((row) => {
+            'user_id': _idToString(row['id']),
+            'username': row['username'] ?? '',
+            'display_name': row['display_name'],
+            'avatar_url': row['avatar_url'],
+            'total_zikrs': row['total_zikrs'] ?? 0,
+            'cup_count': row['cup_count'] ?? 0,
+            'bronze_count': row['bronze_count'] ?? 0,
+            'silver_count': row['silver_count'] ?? 0,
+            'gold_count': row['gold_count'] ?? 0,
+            'diamond_count': row['diamond_count'] ?? 0,
+            'platinum_count': row['platinum_count'] ?? 0,
+            'top_cup': row['top_cup'],
+          }).toList();
+    } catch (e) {
+      print('Error getting cup leaderboard: $e');
+      if (_isNetworkError(e)) rethrow;
+      return [];
+    }
+  }
+
   /// Profil fotoğrafı için boyut küçültme: max 512px, JPEG kalite 82, ~200KB altı hedeflenir.
   Uint8List? _resizeAvatarBytes(Uint8List bytes) {
     try {
@@ -568,6 +701,10 @@ class SupabaseService {
 
       final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
       Uint8List rawBytes = await imageFile.readAsBytes();
+      final decoded = img.decodeImage(rawBytes);
+      if (decoded == null) {
+        throw Exception('Geçersiz veya bozuk görsel dosyası. Lütfen farklı bir dosya seçin.');
+      }
 
       if (rawBytes.length > 10 * 1024 * 1024) {
         print('❌ File too large: ${rawBytes.length} bytes');

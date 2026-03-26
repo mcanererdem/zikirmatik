@@ -20,6 +20,7 @@ A simple, user-friendly, and accessible digital tasbih (dhikr counter) app with 
 - 🔥 **Streak Tracking:** Consecutive day/week/month achievement series
 - 📊 **Advanced Statistics:** Daily, weekly, monthly charts with detailed analysis
 - 🏅 **Leaderboard:** Global and daily rankings with Supabase integration
+- 🧩 **Cup Breakdown:** Total cups + per-type cup badges (bronze/silver/gold/diamond/platinum)
 
 ### Modern Features
 - 📱 **Home Screen Widget:** Quick access via Android home screen widget with live sync
@@ -190,6 +191,12 @@ Detailed guides for uploading to Google Play Store:
 
 - **[STORE_LISTING.md](STORE_LISTING.md)** — Google Play Store listing info, descriptions, screenshots
 - **[PRIVACY_POLICY.md](PRIVACY_POLICY.md)** — Privacy policy and data handling
+
+### Data Handling Notes (for Store Console drafts)
+
+- Leaderboard sharing is opt-in and off by default.
+- Statistics such as most productive hour are on-device aggregate estimates.
+- Export files are data-focused and do not include mandatory legal branding text.
 
 ### Release Build
 

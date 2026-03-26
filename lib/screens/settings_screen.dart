@@ -1385,6 +1385,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.of(ctx).pop();
               setState(() => _isLeaderboardEnabled = true);
               _settingsService.saveShowInLeaderboard(true);
+              _pushCurrentStatsToLeaderboard();
               _supabaseService
                   .setLeaderboardVisibility(widget.currentUserId, true)
                   .catchError((_) {});
@@ -1409,6 +1410,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _pushCurrentStatsToLeaderboard() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      final dailyCount = await _settingsService.getDailyCount(DateTime.now());
+      final weeklyCount = await _settingsService.getWeeklyCount();
+      final monthlyCount = await _settingsService.getMonthlyCount();
+
+      await _supabaseService.updateUserZikrCount(
+        widget.currentUserId,
+        totalZikrs,
+        updateLeaderboard: true,
+        dailyCount: dailyCount,
+        weeklyCount: weeklyCount,
+        monthlyCount: monthlyCount,
+      );
+    } catch (e) {
+      print('Error pushing current stats to leaderboard: $e');
+    }
   }
 
   void _showThankYouDialog() {

@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show Platform;
+import 'package:crypto/crypto.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
@@ -32,6 +33,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   bool _isExporting = false;
   bool _isImporting = false;
   String _statusMessage = '';
+  static const int _maxImportBytes = 1024 * 1024; // 1MB
 
   @override
   Widget build(BuildContext context) {
@@ -498,7 +500,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final exportData = {
+      final payload = {
         'userId': widget.currentUserId,
         'exportDate': DateTime.now().toIso8601String(),
         'appVersion': '1.0.0',
@@ -525,6 +527,11 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             'tts': prefs.getBool('tts_enabled') ?? false,
           },
         },
+      };
+      final payloadString = jsonEncode(payload);
+      final exportData = {
+        ...payload,
+        'checksum': sha256.convert(utf8.encode(payloadString)).toString(),
       };
 
       // Geçici dizine yaz, sonra paylaş menüsü ile kullanıcı İndirilenler'e veya istediği yere kaydetsin
@@ -573,7 +580,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     });
     try {
       final prefs = await SharedPreferences.getInstance();
-      final exportData = {
+      final payload = {
         'userId': widget.currentUserId,
         'exportDate': DateTime.now().toIso8601String(),
         'appVersion': '1.0.0',
@@ -600,6 +607,11 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             'tts': prefs.getBool('tts_enabled') ?? false,
           },
         },
+      };
+      final payloadString = jsonEncode(payload);
+      final exportData = {
+        ...payload,
+        'checksum': sha256.convert(utf8.encode(payloadString)).toString(),
       };
       final fileName = 'zikirmatik_backup_${DateTime.now().millisecondsSinceEpoch}.json';
       final bytes = Uint8List.fromList(utf8.encode(jsonEncode(exportData)));
@@ -678,42 +690,66 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
       if (result != null && result.files.first.path != null) {
         final file = File(result.files.first.path!);
+        final fileSize = await file.length();
+        if (fileSize > _maxImportBytes) {
+          if (mounted) {
+            setState(() {
+              _statusMessage = '❌ ${DynamicLocalizationHelper.getText({
+                'tr': 'Dosya çok büyük. En fazla 1MB destekleniyor.',
+                'en': 'File too large. Maximum supported size is 1MB.',
+              })}';
+            });
+          }
+          return;
+        }
         final content = await file.readAsString();
         
         print('📁 Importing from: ${file.path}');
         
         // JSON verisini parse et
         final importData = jsonDecode(content);
-        
-        // Verileri SharedPreferences'a kaydet
-        final prefs = await SharedPreferences.getInstance();
-        final data = importData['data'];
-        
-        // Zikir sayıları
-        final zikirCounts = data['zikirCounts'];
-        await prefs.setInt('total_zikrs_${widget.currentUserId}', zikirCounts['total_zikrs'] ?? 0);
-        await prefs.setInt('current_count', zikirCounts['current_count'] ?? 0);
-        if (zikirCounts['last_zikr_date'] != null) {
-          await prefs.setString('last_zikr_date_${widget.currentUserId}', zikirCounts['last_zikr_date']);
+        final validationError = _validateImportData(importData);
+        if (validationError != null) {
+          if (mounted) {
+            setState(() => _statusMessage = '❌ $validationError');
+          }
+          return;
         }
         
-        // Başarılar
-        final achievements = data['achievements'];
-        await prefs.setBool('bronze_kupa_unlocked_${widget.currentUserId}', achievements['bronze_kupa_unlocked'] ?? false);
-        await prefs.setBool('silver_kupa_unlocked_${widget.currentUserId}', achievements['silver_kupa_unlocked'] ?? false);
-        await prefs.setBool('gold_kupa_unlocked_${widget.currentUserId}', achievements['gold_kupa_unlocked'] ?? false);
-        await prefs.setBool('diamond_kupa_unlocked_${widget.currentUserId}', achievements['diamond_kupa_unlocked'] ?? false);
-        await prefs.setBool('platinum_kupa_unlocked_${widget.currentUserId}', achievements['platinum_kupa_unlocked'] ?? false);
+        // Verileri SharedPreferences'a atomik şekilde kaydet
+        final prefs = await SharedPreferences.getInstance();
+        final data = importData['data'];
+        final zikirCounts = data['zikirCounts'] as Map<String, dynamic>;
+        final achievements = data['achievements'] as Map<String, dynamic>;
+        final settings = data['settings'] as Map<String, dynamic>;
         
-        // Ayarlar
-        final settings = data['settings'];
-        await prefs.setString('theme_id', settings['theme'] ?? 'dark_blue');
-        await prefs.setString('language_code', settings['language'] ?? 'tr');
-        await prefs.setBool('vibration_enabled', settings['vibration'] ?? true);
-        await prefs.setBool('sound_enabled', settings['sound'] ?? true);
-        await prefs.setBool('confetti_enabled', settings['confetti'] ?? true);
-        await prefs.setBool('reminder_enabled', settings['reminder'] ?? false);
-        await prefs.setBool('tts_enabled', settings['tts'] ?? false);
+        final writes = <Future<bool>>[];
+        writes.add(
+          prefs.setInt('total_zikrs_${widget.currentUserId}', _safeInt(zikirCounts['total_zikrs'], max: 100000000)),
+        );
+        writes.add(
+          prefs.setInt('current_count', _safeInt(zikirCounts['current_count'], max: 100000000)),
+        );
+        final lastDate = zikirCounts['last_zikr_date']?.toString();
+        if (lastDate != null && lastDate.isNotEmpty) {
+          writes.add(prefs.setString('last_zikr_date_${widget.currentUserId}', lastDate));
+        }
+        
+        writes.add(prefs.setBool('bronze_kupa_unlocked_${widget.currentUserId}', _safeBool(achievements['bronze_kupa_unlocked'])));
+        writes.add(prefs.setBool('silver_kupa_unlocked_${widget.currentUserId}', _safeBool(achievements['silver_kupa_unlocked'])));
+        writes.add(prefs.setBool('gold_kupa_unlocked_${widget.currentUserId}', _safeBool(achievements['gold_kupa_unlocked'])));
+        writes.add(prefs.setBool('diamond_kupa_unlocked_${widget.currentUserId}', _safeBool(achievements['diamond_kupa_unlocked'])));
+        writes.add(prefs.setBool('platinum_kupa_unlocked_${widget.currentUserId}', _safeBool(achievements['platinum_kupa_unlocked'])));
+        
+        writes.add(prefs.setString('theme_id', _safeString(settings['theme'], fallback: 'dark_blue', maxLen: 40)));
+        writes.add(prefs.setString('language_code', _safeString(settings['language'], fallback: 'tr', maxLen: 10)));
+        writes.add(prefs.setBool('vibration_enabled', _safeBool(settings['vibration'], fallback: true)));
+        writes.add(prefs.setBool('sound_enabled', _safeBool(settings['sound'], fallback: true)));
+        writes.add(prefs.setBool('confetti_enabled', _safeBool(settings['confetti'], fallback: true)));
+        writes.add(prefs.setBool('reminder_enabled', _safeBool(settings['reminder'])));
+        writes.add(prefs.setBool('tts_enabled', _safeBool(settings['tts'])));
+
+        await Future.wait(writes);
         
         if (mounted) {
           setState(() {
@@ -740,5 +776,75 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         });
       }
     }
+  }
+
+  String? _validateImportData(dynamic root) {
+    if (root is! Map<String, dynamic>) {
+      return DynamicLocalizationHelper.getText({
+        'tr': 'Geçersiz dosya biçimi.',
+        'en': 'Invalid file format.',
+      });
+    }
+    final requiredRoot = ['userId', 'exportDate', 'appVersion', 'data', 'checksum'];
+    for (final key in requiredRoot) {
+      if (!root.containsKey(key)) {
+        return DynamicLocalizationHelper.getText({
+          'tr': 'Yedek dosyası eksik alan içeriyor.',
+          'en': 'Backup file has missing fields.',
+        });
+      }
+    }
+    if (root['data'] is! Map<String, dynamic>) {
+      return DynamicLocalizationHelper.getText({
+        'tr': 'Veri bloğu bozuk.',
+        'en': 'Data block is corrupted.',
+      });
+    }
+    final data = root['data'] as Map<String, dynamic>;
+    if (data['zikirCounts'] is! Map<String, dynamic> ||
+        data['achievements'] is! Map<String, dynamic> ||
+        data['settings'] is! Map<String, dynamic>) {
+      return DynamicLocalizationHelper.getText({
+        'tr': 'Yedek dosyası şema doğrulamasından geçemedi.',
+        'en': 'Backup schema validation failed.',
+      });
+    }
+    final payload = {
+      'userId': root['userId'],
+      'exportDate': root['exportDate'],
+      'appVersion': root['appVersion'],
+      'data': root['data'],
+    };
+    final expected = sha256.convert(utf8.encode(jsonEncode(payload))).toString();
+    if (root['checksum']?.toString() != expected) {
+      return DynamicLocalizationHelper.getText({
+        'tr': 'Dosya bütünlüğü doğrulanamadı (checksum).',
+        'en': 'File integrity check failed (checksum).',
+      });
+    }
+    return null;
+  }
+
+  int _safeInt(dynamic v, {int max = 2147483647}) {
+    final parsed = v is int ? v : int.tryParse(v?.toString() ?? '') ?? 0;
+    if (parsed < 0) return 0;
+    if (parsed > max) return max;
+    return parsed;
+  }
+
+  bool _safeBool(dynamic v, {bool fallback = false}) {
+    if (v is bool) return v;
+    if (v is String) {
+      final s = v.toLowerCase();
+      if (s == 'true') return true;
+      if (s == 'false') return false;
+    }
+    return fallback;
+  }
+
+  String _safeString(dynamic v, {required String fallback, int maxLen = 255}) {
+    final s = v?.toString().trim() ?? '';
+    if (s.isEmpty) return fallback;
+    return s.length > maxLen ? s.substring(0, maxLen) : s;
   }
 }

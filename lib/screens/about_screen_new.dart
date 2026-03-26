@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
+import '../utils/dynamic_localization_helper.dart';
 
 class AboutScreenNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -30,7 +31,23 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         backgroundColor: widget.themeConfig.primaryColor,
         elevation: 0,
         title: Text(
-          'Hakkımızda',
+          DynamicLocalizationHelper.getText({
+            'tr': 'Hakkımızda',
+            'en': 'About',
+            'ar': 'حول التطبيق',
+            'id': 'Tentang',
+            'ur': 'ہمارے بارے میں',
+            'bn': 'অ্যাপ সম্পর্কে',
+            'ms': 'Perihal',
+            'fa': 'درباره برنامه',
+            'fr': 'À propos',
+            'zh': '关于',
+            'ja': 'このアプリについて',
+            'ru': 'О приложении',
+            'de': 'Über die App',
+            'sw': 'Kuhusu',
+            'ha': 'Game da app',
+          }),
           style: GoogleFonts.notoSans(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -127,7 +144,23 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 8),
           
           Text(
-            'Versiyon ${widget.appVersion}',
+            '${DynamicLocalizationHelper.getText({
+              'tr': 'Sürüm',
+              'en': 'Version',
+              'ar': 'الإصدار',
+              'id': 'Versi',
+              'ur': 'ورژن',
+              'bn': 'সংস্করণ',
+              'ms': 'Versi',
+              'fa': 'نسخه',
+              'fr': 'Version',
+              'zh': '版本',
+              'ja': 'バージョン',
+              'ru': 'Версия',
+              'de': 'Version',
+              'sw': 'Toleo',
+              'ha': 'Sigar',
+            })} ${widget.appVersion}',
             style: GoogleFonts.notoSans(
               color: Colors.white70,
               fontSize: 16,
@@ -137,7 +170,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           Text(
-            'Modern bir zikir sayacı uygulaması. Kullanıcı dostu arayüzü, zikir takibi, kupa sistemi ve daha birçok özellik sunar.',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Modern bir zikir sayacı uygulaması. Zikir takibi, kupa ilerlemesi, istatistikler, yedekleme ve çoklu dil desteği sunar.',
+              'en': 'A modern dhikr counter app with dhikr tracking, trophy progress, statistics, backup, and multi-language support.',
+            }),
             style: GoogleFonts.notoSans(
               color: Colors.white70,
               fontSize: 14,
@@ -164,7 +200,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Geliştirici',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Geliştirici',
+              'en': 'Developer',
+            }),
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 18,
@@ -175,7 +214,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           _buildInfoItem(
-            'Ad',
+            DynamicLocalizationHelper.getText({'tr': 'Ad', 'en': 'Name'}),
             'Caner Erdem',
             Icons.person,
           ),
@@ -201,7 +240,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 12),
           
           _buildInfoItem(
-            'E-posta',
+            DynamicLocalizationHelper.getText({'tr': 'E-posta', 'en': 'Email'}),
             'tasbih.counter.zikirmatik@gmail.com',
             Icons.email,
             () => _launchEmail('tasbih.counter.zikirmatik@gmail.com'),
@@ -277,7 +316,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Özellikler',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Özellikler',
+              'en': 'Features',
+            }),
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 18,
@@ -287,14 +329,30 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           
           const SizedBox(height: 16),
           
-          _buildFeatureItem('🎯 Zikir Sayma', 'Basit ve etkili zikir sayma arayüzü'),
-          _buildFeatureItem('🏆 Kupa Sistemi', 'Başarımları ödüllendirin'),
-          _buildFeatureItem('📊 İstatistikler', 'Detaylı zikir takibi ve analizler'),
-          _buildFeatureItem('🎨 Temalar', 'Çoklu tema seçeneği'),
-          _buildFeatureItem('🌍 Çoklu Dil', 'Farklı dil desteği'),
-          _buildFeatureItem('🔔 Bildirimler', 'Hatırlatıcı bildirimler'),
-          _buildFeatureItem('💾 Veri Yedekleme', 'İçe/Dışa aktar özelliği'),
-          _buildFeatureItem('📱 Widget Desteği', 'Ana ekran widget'),
+          _buildFeatureItem(
+            DynamicLocalizationHelper.getText({'tr': '🎯 Zikir Sayacı', 'en': '🎯 Dhikr Counter'}),
+            DynamicLocalizationHelper.getText({'tr': 'Hızlı ve sade sayaç deneyimi', 'en': 'Fast and simple counting experience'}),
+          ),
+          _buildFeatureItem(
+            DynamicLocalizationHelper.getText({'tr': '🏆 Kupa İlerlemesi', 'en': '🏆 Trophy Progress'}),
+            DynamicLocalizationHelper.getText({'tr': 'Kademeli kupa hedefleri ve ilerleme görünümü', 'en': 'Tiered trophy goals with progress visibility'}),
+          ),
+          _buildFeatureItem(
+            DynamicLocalizationHelper.getText({'tr': '📊 İstatistikler', 'en': '📊 Statistics'}),
+            DynamicLocalizationHelper.getText({'tr': 'Günlük/haftalık/aylık analiz ekranları', 'en': 'Daily/weekly/monthly analytics views'}),
+          ),
+          _buildFeatureItem(
+            DynamicLocalizationHelper.getText({'tr': '☁️ Leaderboard Senkronu', 'en': '☁️ Leaderboard Sync'}),
+            DynamicLocalizationHelper.getText({'tr': 'Paylaşım açıkken bulut eşleme ve sıralama', 'en': 'Cloud sync and ranking when sharing is enabled'}),
+          ),
+          _buildFeatureItem(
+            DynamicLocalizationHelper.getText({'tr': '💾 İçe/Dışa Aktar', 'en': '💾 Import/Export'}),
+            DynamicLocalizationHelper.getText({'tr': 'Yedekleme, geri yükleme ve veri taşınabilirliği', 'en': 'Backup, restore, and data portability'}),
+          ),
+          _buildFeatureItem(
+            DynamicLocalizationHelper.getText({'tr': '🌍 Çoklu Dil + Tema', 'en': '🌍 Multi-language + Themes'}),
+            DynamicLocalizationHelper.getText({'tr': 'Kişiselleştirilebilir arayüz deneyimi', 'en': 'Customizable interface experience'}),
+          ),
         ],
       ),
     );
@@ -361,7 +419,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           Text(
-            'Teşekkürler',
+            DynamicLocalizationHelper.getText({'tr': 'Teşekkürler', 'en': 'Thank You'}),
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 18,
@@ -372,7 +430,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 8),
           
           Text(
-            'Zikirmatik\'ı kullandığınız için teşekkür ederiz. Umarız uygulama ibadetlerinizi kolaylaştırır ve manevi hayatınıza değer katar.',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Uygulamayı kullandığınız için teşekkür ederiz. Geri bildirimlerinizle uygulamayı sürekli geliştiriyoruz.',
+              'en': 'Thank you for using the app. We continuously improve it with your feedback.',
+            }),
             style: GoogleFonts.notoSans(
               color: Colors.white70,
               fontSize: 14,
@@ -399,7 +460,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Yasal Bilgiler',
+            DynamicLocalizationHelper.getText({
+              'tr': 'Yasal Bilgiler',
+              'en': 'Legal',
+            }),
             style: GoogleFonts.notoSans(
               color: Colors.white,
               fontSize: 18,
@@ -410,24 +474,24 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
           const SizedBox(height: 16),
           
           _buildLegalItem(
-            'Gizlilik Politikası',
-            'Verilerinizin nasıl korunduğunu öğrenin',
+            DynamicLocalizationHelper.getText({'tr': 'Gizlilik Politikası', 'en': 'Privacy Policy'}),
+            DynamicLocalizationHelper.getText({'tr': 'Verilerinizin nasıl işlendiğini öğrenin', 'en': 'Learn how your data is handled'}),
             () => _launchUrl('https://mcanererdem.github.io/zikirmatik/privacy'),
           ),
           
           const SizedBox(height: 12),
           
           _buildLegalItem(
-            'Kullanım Koşulları',
-            'Uygulama kullanım kuralları',
+            DynamicLocalizationHelper.getText({'tr': 'Kullanım Koşulları', 'en': 'Terms of Use'}),
+            DynamicLocalizationHelper.getText({'tr': 'Uygulama kullanım koşulları', 'en': 'Application usage terms'}),
             () => _launchEmail('tasbih.counter.zikirmatik@gmail.com'),
           ),
           
           const SizedBox(height: 12),
           
           _buildLegalItem(
-            'Lisans',
-            'Açık kaynak lisansı',
+            DynamicLocalizationHelper.getText({'tr': 'Lisans', 'en': 'License'}),
+            DynamicLocalizationHelper.getText({'tr': 'Açık kaynak lisans bilgisi', 'en': 'Open source license details'}),
             () => _launchUrl('https://github.com/mcanererdem/zikirmatik/blob/main/LICENSE'),
           ),
         ],
@@ -490,7 +554,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: email,
-      query: 'subject=Zikirmatik Hakkında',
+      query: 'subject=${Uri.encodeComponent(DynamicLocalizationHelper.getText({'tr': 'Zikirmatik Hakkında', 'en': 'About Zikirmatik'}))}',
     );
     
     if (await canLaunchUrl(emailUri)) {

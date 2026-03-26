@@ -8,12 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:math';
-import 'package:fl_chart/fl_chart.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
-import '../services/settings_service.dart';
 
 class StatisticsScreenNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -38,7 +35,6 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   int _longestStreak = 0; // Geriye dönük uyumluluk için
   DateTime? _lastZikrDate;
   bool _isLoading = true;
-  String _currentLanguage = 'tr'; // Dil değişkeni eklendi
   
   // Yeni özellikler
   int _weeklyZikrs = 0;
@@ -50,6 +46,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   Map<String, int> _hourlyDistribution = {};
   String _mostProductiveDay = '';
   String _mostProductiveHour = '';
+  int _activeDaysCount = 0;
 
   String _getStatisticsTitle() {
     return DynamicLocalizationHelper.statistics;
@@ -77,16 +74,10 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
       final prefs = await SharedPreferences.getInstance();
       final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
       final lastZikrDateStr = prefs.getString('last_zikr_date_${widget.currentUserId}');
-      final currentLanguage = prefs.getString('language') ?? 'tr'; // Dil yükle
-      
       DateTime? lastZikrDate;
       if (lastZikrDateStr != null) {
         lastZikrDate = DateTime.parse(lastZikrDateStr);
       }
-      
-      setState(() {
-        _currentLanguage = currentLanguage; // Dil güncelle
-      });
       
       // Gelişmiş streak hesaplaması
       int currentStreak = 0;
@@ -104,24 +95,23 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
         longestStreak = (totalZikrs / 100).floor(); // Her 100 zikirde 1 gün varsayımı
       }
       
-      // Haftalık ve aylık veriler
-      final weeklyZikrs = _calculateWeeklyZikrs(prefs);
-      final monthlyZikrs = _calculateMonthlyZikrs(prefs);
+      // Haftalık ve aylık veriler (gerçek local sayaçlardan)
+      final weeklyData = _generateWeeklyData(prefs);
+      final monthlyData = _generateMonthlyData(prefs);
+      final weeklyZikrs = weeklyData.fold<int>(0, (sum, item) => sum + ((item['zikrs'] as int?) ?? 0));
+      final monthlyZikrs = monthlyData.isNotEmpty ? ((monthlyData.last['zikrs'] as int?) ?? 0) : 0;
       final yearlyZikrs = _calculateYearlyZikrs(prefs);
       
-      // Günlük ortalama
-      final dailyAverage = _calculateDailyAverage(totalZikrs);
-      
-      // Haftalık ve aylık veri listeleri
-      final weeklyData = _generateWeeklyData();
-      final monthlyData = _generateMonthlyData();
+      // Günlük ortalama (ilk aktivite gününe göre)
+      final dailyAverage = _calculateDailyAverage(totalZikrs, prefs);
       
       // Saatlik dağılım
-      final hourlyDistribution = _generateHourlyDistribution();
+      final hourlyDistribution = _generateHourlyDistribution(prefs);
       
       // En verimli gün ve saat
       final mostProductiveDay = _findMostProductiveDay();
       final mostProductiveHour = _findMostProductiveHour();
+      final activeDaysCount = _calculateActiveDaysCount(prefs);
       
       setState(() {
         _totalZikrs = totalZikrs;
@@ -137,6 +127,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
         _hourlyDistribution = hourlyDistribution;
         _mostProductiveDay = mostProductiveDay;
         _mostProductiveHour = mostProductiveHour;
+        _activeDaysCount = activeDaysCount;
         _isLoading = false;
       });
       
@@ -151,33 +142,51 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
   }
 
   // Yeni yardımcı metodlar
-  int _calculateWeeklyZikrs(SharedPreferences prefs) {
-    final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
-    return (totalZikrs * 0.3).round(); // Yaklaşık %30'u bu hafta
-  }
-
-  int _calculateMonthlyZikrs(SharedPreferences prefs) {
-    final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
-    return (totalZikrs * 0.7).round(); // Yaklaşık %70'i bu ay
-  }
-
   int _calculateYearlyZikrs(SharedPreferences prefs) {
-    final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
-    return totalZikrs; // Toplam zikirler (yıl başında sıfırlanmadı)
+    int yearly = 0;
+    final now = DateTime.now();
+    for (final key in prefs.getKeys()) {
+      if (!key.startsWith('daily_count_')) continue;
+      final parts = key.split('_');
+      if (parts.length < 6) continue;
+      final year = int.tryParse(parts[2]);
+      if (year == now.year) {
+        yearly += prefs.getInt(key) ?? 0;
+      }
+    }
+    return yearly;
   }
 
-  double _calculateDailyAverage(int totalZikrs) {
-    final days = max(1, DateTime.now().difference(DateTime(2024, 1, 1)).inDays);
-    return totalZikrs / days;
+  double _calculateDailyAverage(int totalZikrs, SharedPreferences prefs) {
+    DateTime? firstDate;
+    for (final key in prefs.getKeys()) {
+      if (!key.startsWith('daily_count_')) continue;
+      final parts = key.split('_');
+      if (parts.length < 6) continue;
+      final y = int.tryParse(parts[2]);
+      final m = int.tryParse(parts[3]);
+      final d = int.tryParse(parts[4]);
+      if (y == null || m == null || d == null) continue;
+      final value = prefs.getInt(key) ?? 0;
+      if (value <= 0) continue;
+      final date = DateTime(y, m, d);
+      if (firstDate == null || date.isBefore(firstDate)) {
+        firstDate = date;
+      }
+    }
+    if (firstDate == null) return totalZikrs.toDouble();
+    final activeDays = DateTime.now().difference(firstDate).inDays + 1;
+    return totalZikrs / (activeDays <= 0 ? 1 : activeDays);
   }
 
-  List<Map<String, dynamic>> _generateWeeklyData() {
+  List<Map<String, dynamic>> _generateWeeklyData(SharedPreferences prefs) {
     final now = DateTime.now();
     final weekData = <Map<String, dynamic>>[];
     
     for (int i = 6; i >= 0; i--) {
       final date = now.subtract(Duration(days: i));
-      final zikrs = Random().nextInt(100); // Simüle edilmiş veri
+      final key = 'daily_count_${date.year}_${date.month}_${date.day}';
+      final zikrs = prefs.getInt(key) ?? 0;
       weekData.add({
         'day': _getDayName(date.weekday),
         'date': date,
@@ -188,13 +197,14 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     return weekData;
   }
 
-  List<Map<String, dynamic>> _generateMonthlyData() {
+  List<Map<String, dynamic>> _generateMonthlyData(SharedPreferences prefs) {
     final now = DateTime.now();
     final monthData = <Map<String, dynamic>>[];
     
     for (int i = 11; i >= 0; i--) {
       final date = DateTime(now.year, now.month - i, 1);
-      final zikrs = Random().nextInt(500); // Simüle edilmiş veri
+      final key = 'monthly_${date.year}_${date.month}';
+      final zikrs = prefs.getInt(key) ?? 0;
       monthData.add({
         'month': _getMonthName(date.month),
         'date': date,
@@ -205,62 +215,47 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     return monthData;
   }
 
-  Map<String, int> _generateHourlyDistribution() {
+  Map<String, int> _generateHourlyDistribution(SharedPreferences prefs) {
     final distribution = <String, int>{};
     
     for (int hour = 0; hour < 24; hour++) {
-      distribution['$hour:00'] = Random().nextInt(50); // Simüle edilmiş veri
+      final key = 'hourly_count_${widget.currentUserId}_$hour';
+      distribution['$hour:00'] = prefs.getInt(key) ?? 0;
     }
     
     return distribution;
   }
 
   String _findMostProductiveDay() {
-    if (_weeklyData.isEmpty) return DynamicLocalizationHelper.getText({
-      'tr': 'Pazartesi',
-      'en': 'Monday',
-      'ar': 'الاثنين',
-      'id': 'Senin',
-      'ur': 'پیر',
-      'bn': 'সোমবার',
-      'ms': 'Isnin',
-      'fa': 'دوشنبه',
-      'fr': 'Lundi',
-      'zh': '星期一',
-      'ja': '月曜日',
-      'ru': 'Понедельник',
-      'de': 'Montag',
-      'sw': 'Jumatatu',
-      'ha': 'Litinin',
-    });
+    if (_weeklyData.isEmpty) {
+      return '-';
+    }
     
     final maxEntry = _weeklyData.reduce((a, b) => 
         (a['zikrs'] as int) > (b['zikrs'] as int) ? a : b);
+    if ((maxEntry['zikrs'] as int? ?? 0) <= 0) {
+      return '-';
+    }
     return maxEntry['day'] as String;
   }
 
   String _findMostProductiveHour() {
-    if (_hourlyDistribution.isEmpty) return DynamicLocalizationHelper.getText({
-      'tr': '06:00',
-      'en': '06:00',
-      'ar': '06:00',
-      'id': '06:00',
-      'ur': '06:00',
-      'bn': '06:00',
-      'ms': '06:00',
-      'fa': '06:00',
-      'fr': '06:00',
-      'zh': '06:00',
-      'ja': '06:00',
-      'ru': '06:00',
-      'de': '06:00',
-      'sw': '06:00',
-      'ha': '06:00',
-    });
+    if (_hourlyDistribution.isEmpty) return '-';
     
     final maxEntry = _hourlyDistribution.entries.reduce((a, b) => 
         a.value > b.value ? a : b);
+    if (maxEntry.value <= 0) return '-';
     return maxEntry.key;
+  }
+
+  int _calculateActiveDaysCount(SharedPreferences prefs) {
+    int activeDays = 0;
+    for (final key in prefs.getKeys()) {
+      if (!key.startsWith('daily_count_')) continue;
+      final value = prefs.getInt(key) ?? 0;
+      if (value > 0) activeDays++;
+    }
+    return activeDays;
   }
 
   String _getDayName(int weekday) {
@@ -333,7 +328,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
       // JSON formatında veriyi string'e çevir
       String jsonStats = _formatStatsAsJson(stats);
 
-      final fileName = 'zikirmatik_istatistik_${DateTime.now().millisecondsSinceEpoch}.json';
+      final fileName = 'statistics_${DateTime.now().millisecondsSinceEpoch}.json';
 
       // 1) Önce platformun uygun "Downloads" dizinine yazmayı dene.
       // 2) Yazma başarısız olursa (Android scoped storage/izin) kullanıcıya kaydetme yeri seçtir.
@@ -480,7 +475,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
 
   Future<void> _shareStats(String filePath) async {
     try {
-      await Share.shareXFiles([XFile(filePath)], text: 'Zikirmatik İstatistikleri');
+      await Share.shareXFiles([XFile(filePath)]);
     } catch (e) {
       print('Error sharing statistics: $e');
       if (mounted) {
@@ -607,139 +602,173 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                DynamicLocalizationHelper.getText({
-                  'tr': 'Toplam',
-                  'en': 'Total',
-                  'ar': 'المجموع',
-                  'id': 'Total',
-                  'ur': 'کل',
-                  'bn': 'মোট',
-                  'ms': 'Jumlah',
-                  'fa': 'مجموع',
-                  'fr': 'Total',
-                  'zh': '总计',
-                  'ja': '合計',
-                  'ru': 'Всего',
-                  'de': 'Gesamt',
-                  'sw': 'Jumla',
-                  'ha': 'Duka Cikin',
-                }), 
-                '$_totalZikrs', 
-                Icons.auto_awesome
+              Expanded(
+                child: _buildCoreStatCard(
+                  icon: Icons.auto_awesome,
+                  value: '$_totalZikrs',
+                  title: DynamicLocalizationHelper.getText({
+                    'tr': 'Toplam',
+                    'en': 'Total',
+                    'ar': 'المجموع',
+                    'id': 'Total',
+                    'ur': 'کل',
+                    'bn': 'মোট',
+                    'ms': 'Jumlah',
+                    'fa': 'مجموع',
+                    'fr': 'Total',
+                    'zh': '总计',
+                    'ja': '合計',
+                    'ru': 'Всего',
+                    'de': 'Gesamt',
+                    'sw': 'Jumla',
+                    'ha': 'Duka Cikin',
+                  }),
+                  subtitle: DynamicLocalizationHelper.getText({
+                    'tr': 'Tüm zikirler',
+                    'en': 'All dhikr',
+                    'ar': 'كل الأذكار',
+                    'id': 'Semua zikir',
+                    'ur': 'تمام اذکار',
+                    'bn': 'সকল জিকির',
+                    'ms': 'Semua zikir',
+                    'fa': 'کل ذکرها',
+                    'fr': 'Tous les dhikr',
+                    'zh': '全部赞念',
+                    'ja': 'すべてのジクル',
+                    'ru': 'Все зикры',
+                    'de': 'Alle Dhikr',
+                    'sw': 'Dhikr zote',
+                    'ha': 'Dukkan zikiri',
+                  }),
+                ),
               ),
-              _buildStatItem(
-                DynamicLocalizationHelper.getText({
-                  'tr': 'Haftalık',
-                  'en': 'Weekly',
-                  'ar': 'أسبوعي',
-                  'id': 'Mingguan',
-                  'ur': 'ہفتہ وار',
-                  'bn': 'সাপ্তাহিক',
-                  'ms': 'Mingguan',
-                  'fa': 'هفتگی',
-                  'fr': 'Hebdomadaire',
-                  'zh': '每周',
-                  'ja': '週間',
-                  'ru': 'Еженедельно',
-                  'de': 'Wöchentlich',
-                  'sw': 'Kila Wiki',
-                  'ha': 'Makon Sati',
-                }), 
-                '$_weeklyZikrs', 
-                Icons.date_range
-              ),
-              _buildStatItem(
-                DynamicLocalizationHelper.getText({
-                  'tr': 'Aylık',
-                  'en': 'Monthly',
-                  'ar': 'شهري',
-                  'id': 'Bulanan',
-                  'ur': 'ماہانہ',
-                  'bn': 'মাসিক',
-                  'ms': 'Bulanan',
-                  'fa': 'ماهانه',
-                  'fr': 'Mensuel',
-                  'zh': '每月',
-                  'ja': '月次',
-                  'ru': 'Ежемесячно',
-                  'de': 'Monatlich',
-                  'sw': 'Kila Mwezi',
-                  'ha': 'Wata',
-                }), 
-                '$_monthlyZikrs', 
-                Icons.calendar_month
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildCoreStatCard(
+                  icon: Icons.date_range,
+                  value: '$_weeklyZikrs',
+                  title: DynamicLocalizationHelper.getText({
+                    'tr': 'Haftalık',
+                    'en': 'Weekly',
+                    'ar': 'أسبوعي',
+                    'id': 'Mingguan',
+                    'ur': 'ہفتہ وار',
+                    'bn': 'সাপ্তাহিক',
+                    'ms': 'Mingguan',
+                    'fa': 'هفتگی',
+                    'fr': 'Hebdomadaire',
+                    'zh': '每周',
+                    'ja': '週間',
+                    'ru': 'Еженедельно',
+                    'de': 'Wöchentlich',
+                    'sw': 'Kila Wiki',
+                    'ha': 'Makon Sati',
+                  }),
+                  subtitle: DynamicLocalizationHelper.getText({
+                    'tr': 'Son 7 gün',
+                    'en': 'Last 7 days',
+                    'ar': 'آخر 7 أيام',
+                    'id': '7 hari terakhir',
+                    'ur': 'گزشتہ 7 دن',
+                    'bn': 'শেষ ৭ দিন',
+                    'ms': '7 hari terakhir',
+                    'fa': '۷ روز اخیر',
+                    'fr': '7 derniers jours',
+                    'zh': '最近 7 天',
+                    'ja': '直近7日間',
+                    'ru': 'Последние 7 дней',
+                    'de': 'Letzte 7 Tage',
+                    'sw': 'Siku 7 zilizopita',
+                    'ha': 'Kwanaki 7 da suka wuce',
+                  }),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                DynamicLocalizationHelper.getText({
-                  'tr': 'Günlük Ort.',
-                  'en': 'Daily Avg.',
-                  'ar': 'المتوسط اليومي',
-                  'id': 'Rata-rata Harian',
-                  'ur': 'روزانہ اوسط',
-                  'bn': 'দৈনিক গড়',
-                  'ms': 'Purata Harian',
-                  'fa': 'میانگین روزانه',
-                  'fr': 'Moyenne Journalière',
-                  'zh': '日均',
-                  'ja': '日平均',
-                  'ru': 'Среднее Дневное',
-                  'de': 'Tagesdurchschnitt',
-                  'sw': 'Wastani wa Siku',
-                  'ha': 'Matsakaicin Tsakila',
-                }), 
-                '${_dailyAverage.toStringAsFixed(1)}', 
-                Icons.trending_up
+              Expanded(
+                child: _buildCoreStatCard(
+                  icon: Icons.calendar_month,
+                  value: '$_monthlyZikrs',
+                  title: DynamicLocalizationHelper.getText({
+                    'tr': 'Aylık',
+                    'en': 'Monthly',
+                    'ar': 'شهري',
+                    'id': 'Bulanan',
+                    'ur': 'ماہانہ',
+                    'bn': 'মাসিক',
+                    'ms': 'Bulanan',
+                    'fa': 'ماهانه',
+                    'fr': 'Mensuel',
+                    'zh': '每月',
+                    'ja': '月次',
+                    'ru': 'Ежемесячно',
+                    'de': 'Monatlich',
+                    'sw': 'Kila Mwezi',
+                    'ha': 'Wata',
+                  }),
+                  subtitle: DynamicLocalizationHelper.getText({
+                    'tr': 'Bu ay',
+                    'en': 'This month',
+                    'ar': 'هذا الشهر',
+                    'id': 'Bulan ini',
+                    'ur': 'اس ماہ',
+                    'bn': 'এই মাস',
+                    'ms': 'Bulan ini',
+                    'fa': 'این ماه',
+                    'fr': 'Ce mois-ci',
+                    'zh': '本月',
+                    'ja': '今月',
+                    'ru': 'Этот месяц',
+                    'de': 'Dieser Monat',
+                    'sw': 'Mwezi huu',
+                    'ha': 'Wannan wata',
+                  }),
+                ),
               ),
-              _buildStatItem(
-                DynamicLocalizationHelper.getText({
-                  'tr': 'Streak',
-                  'en': 'Streak',
-                  'ar': 'السلسلة',
-                  'id': 'Streak',
-                  'ur': 'سلسلہ',
-                  'bn': 'স্ট্রিক',
-                  'ms': 'Streak',
-                  'fa': 'سلسله',
-                  'fr': 'Série',
-                  'zh': '连续',
-                  'ja': '連続',
-                  'ru': 'Серия',
-                  'de': 'Serie',
-                  'sw': 'Mfululizo',
-                  'ha': 'Saita',
-                }), 
-                '$_currentStreak', 
-                Icons.local_fire_department
-              ),
-              _buildStatItem(
-                DynamicLocalizationHelper.getText({
-                  'tr': 'Seviye',
-                  'en': 'Level',
-                  'ar': 'المستوى',
-                  'id': 'Level',
-                  'ur': 'لیول',
-                  'bn': 'স্তর',
-                  'ms': 'Tahap',
-                  'fa': 'سطح',
-                  'fr': 'Niveau',
-                  'zh': '等级',
-                  'ja': 'レベル',
-                  'ru': 'Уровень',
-                  'de': 'Stufe',
-                  'sw': 'Kiwango',
-                  'ha': 'Matsayi',
-                }), 
-                '${_calculateUserLevel()}', 
-                Icons.star
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildCoreStatCard(
+                  icon: Icons.trending_up,
+                  value: _dailyAverage <= 0 ? '0.0' : _dailyAverage.toStringAsFixed(1),
+                  title: DynamicLocalizationHelper.getText({
+                    'tr': 'Günlük Ort.',
+                    'en': 'Daily Avg.',
+                    'ar': 'المتوسط اليومي',
+                    'id': 'Rata-rata Harian',
+                    'ur': 'روزانہ اوسط',
+                    'bn': 'দৈনিক গড়',
+                    'ms': 'Purata Harian',
+                    'fa': 'میانگین روزانه',
+                    'fr': 'Moyenne Journalière',
+                    'zh': '日均',
+                    'ja': '日平均',
+                    'ru': 'Среднее Дневное',
+                    'de': 'Tagesdurchschnitt',
+                    'sw': 'Wastani wa Siku',
+                    'ha': 'Matsakaicin Tsakila',
+                  }),
+                  subtitle: DynamicLocalizationHelper.getText({
+                    'tr': 'Aktif gün ortalaması',
+                    'en': 'Active-day average',
+                    'ar': 'متوسط الأيام النشطة',
+                    'id': 'Rata-rata hari aktif',
+                    'ur': 'فعال دنوں کی اوسط',
+                    'bn': 'সক্রিয় দিনের গড়',
+                    'ms': 'Purata hari aktif',
+                    'fa': 'میانگین روزهای فعال',
+                    'fr': 'Moyenne des jours actifs',
+                    'zh': '活跃日均值',
+                    'ja': 'アクティブ日平均',
+                    'ru': 'Среднее за активные дни',
+                    'de': 'Aktive-Tage-Durchschnitt',
+                    'sw': 'Wastani wa siku hai',
+                    'ha': 'Matsakaicin ranakun aiki',
+                  }),
+                ),
               ),
             ],
           ),
@@ -748,32 +777,61 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     );
   }
 
-  Widget _buildStatItem(String title, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: widget.themeConfig.accentColor, size: 24),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: GoogleFonts.notoSans(
-            color: widget.themeConfig.textColor,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+  Widget _buildCoreStatCard({
+    required IconData icon,
+    required String value,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: widget.themeConfig.accentColor, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: GoogleFonts.notoSans(
+              color: widget.themeConfig.textColor.withValues(alpha: 0.78),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: GoogleFonts.notoSans(
-            color: widget.themeConfig.textColor.withOpacity(0.7),
-            fontSize: 12,
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: GoogleFonts.notoSans(
+              color: widget.themeConfig.textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.notoSans(
+              color: widget.themeConfig.textColor.withValues(alpha: 0.62),
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildWeeklyChart() {
+    final maxZikrs = _weeklyData.fold<int>(0, (max, item) {
+      final v = item['zikrs'] as int? ?? 0;
+      return v > max ? v : max;
+    });
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -846,7 +904,9 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: FractionallySizedBox(
-                            heightFactor: (data['zikrs'] as int) / 100.0,
+                            heightFactor: maxZikrs <= 0
+                                ? 0.0
+                                : ((data['zikrs'] as int?) ?? 0) / maxZikrs,
                             child: Container(
                               decoration: BoxDecoration(
                                 color: widget.themeConfig.accentColor.withOpacity(0.8),
@@ -954,6 +1014,34 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
             }), 
             _mostProductiveHour
           ),
+          if (_mostProductiveHour != '-') ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                DynamicLocalizationHelper.getText({
+                  'tr': 'Not: Bu değer cihaz içi toplulaştırılmış sayaçlardan üretilen tahmini bilgidir.',
+                  'en': 'Note: This value is an estimate produced from on-device aggregated counters.',
+                  'ar': 'ملاحظة: هذه القيمة تقديرية ومشتقة من عدادات مجمعة على الجهاز.',
+                  'id': 'Catatan: Nilai ini adalah estimasi dari penghitung agregat di perangkat.',
+                  'ur': 'نوٹ: یہ قدر ڈیوائس کے مجموعی کاؤنٹرز سے تیار کردہ تخمینی معلومات ہے۔',
+                  'bn': 'নোট: এটি ডিভাইসের সমষ্টিগত কাউন্টার থেকে তৈরি একটি আনুমানিক মান।',
+                  'ms': 'Nota: Nilai ini ialah anggaran daripada kaunter agregat pada peranti.',
+                  'fa': 'توجه: این مقدار یک برآورد مبتنی بر شمارنده‌های تجمیعی داخل دستگاه است.',
+                  'fr': 'Note: cette valeur est une estimation issue des compteurs agrégés sur l’appareil.',
+                  'zh': '说明：该值为基于设备本地汇总计数的估算结果。',
+                  'ja': '注: この値は端末内の集計カウンターから算出した推定値です。',
+                  'ru': 'Примечание: это оценка на основе агрегированных счетчиков на устройстве.',
+                  'de': 'Hinweis: Dieser Wert ist eine Schätzung aus aggregierten Geräte-Zählern.',
+                  'sw': 'Kumbuka: Thamani hii ni makadirio kutoka kwa vihesabu vilivyojumlishwa ndani ya kifaa.',
+                  'ha': 'Lura: Wannan kimantawa ce daga kididdigar da aka tara a cikin na’ura.',
+                }),
+                style: GoogleFonts.notoSans(
+                  color: widget.themeConfig.textColor.withOpacity(0.7),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
           _buildDetailRow(
             DynamicLocalizationHelper.getText({
               'tr': 'Son Zikir',
@@ -1010,9 +1098,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
               'sw': 'Jumla ya Siku',
               'ha': 'Dukkan Sako',
             }), 
-            _lastZikrDate != null 
-              ? '${DateTime.now().difference(_lastZikrDate!).inDays + 1}'
-              : '0'),
+            '$_activeDaysCount'),
         ],
       ),
     );

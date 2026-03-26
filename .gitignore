@@ -54,6 +54,14 @@ screenshots/
 # SCREENSHOT_GUIDE.md
 # STORE_LISTING_PREP.md
 
+# Internal/security docs (do not publish in public repo)
+DATA_FLOW_AND_COMPLIANCE.md
+*_INTERNAL.md
+SECURITY_NOTES.md
+
+# Local Cursor artifacts (do not publish)
+.cursor/
+
 # Logs
 *.log
 

@@ -29,20 +29,41 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   List<Map<String, dynamic>> _leaderboard = [];
   Map<String, dynamic>? _currentUserProfile;
   int _currentUserRank = 0;
+  bool _isCurrentUserVisible = false;
   bool _isLoading = true;
   late AnimationController _slideAnimationController;
   late AnimationController _fadeAnimationController;
   late Animation<double> _fadeAnimation;
   String _selectedPeriod = 'all'; // all, daily, weekly, monthly
+  String _leaderboardMode = 'zikr'; // zikr, cups
+  String _selectedCupTab = 'total'; // total, bronze, silver, gold, diamond, platinum
   bool _showOfflineBanner = false;
   bool _offlineBannerAlreadyShown = false; // Sadece ilk ağ hatasında bir kez göster
+  DateTime? _lastManualRefreshAt;
+  bool _isRefreshCoolingDown = false;
 
   final SupabaseService _supabaseService = SupabaseService();
+  final SettingsService _settingsService = SettingsService();
 
   /// Önbellek: sayfa her açıldığında yeniden indirmemek için (dönem -> liste).
   static final Map<String, List<Map<String, dynamic>>> _leaderboardCache = {};
   static const Duration _cacheMaxAge = Duration(minutes: 5);
   static final Map<String, DateTime> _leaderboardCacheTime = {};
+  static DateTime? _globalLeaderboardFetchAt;
+  static const Duration _minCloudSyncInterval = Duration(minutes: 2);
+  static const Duration _minRefreshInterval = Duration(seconds: 4);
+
+  void _showShortSnack(String message) {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 2),
+        content: Text(message),
+      ),
+    );
+  }
 
   static bool _isNetworkError(dynamic e) {
     final s = e.toString().toLowerCase();
@@ -97,7 +118,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       curve: Curves.easeOut,
     ));
     
-    _loadLeaderboard();
+    _initialLoad();
   }
 
   @override
@@ -108,24 +129,114 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Future<void> _refreshLeaderboard() async {
-    _leaderboardCache.remove(_selectedPeriod);
-    _leaderboardCacheTime.remove(_selectedPeriod);
+    final now = DateTime.now();
+    if (_lastManualRefreshAt != null) {
+      final elapsed = now.difference(_lastManualRefreshAt!);
+      if (elapsed < _minRefreshInterval) {
+        final waitSec = (_minRefreshInterval - elapsed).inSeconds + 1;
+        if (mounted) {
+          _showShortSnack(
+            DynamicLocalizationHelper.getText({
+              'tr': 'Çok hızlı yenileme. Lütfen $waitSec sn bekleyin.',
+              'en': 'Refreshing too quickly. Please wait $waitSec sec.',
+              'ar': 'تحديث سريع جدًا. يرجى الانتظار $waitSec ثانية.',
+              'id': 'Terlalu cepat menyegarkan. Tunggu $waitSec detik.',
+              'ur': 'بہت تیزی سے ریفریش ہو رہا ہے۔ براہ کرم $waitSec سیکنڈ انتظار کریں۔',
+              'bn': 'খুব দ্রুত রিফ্রেশ হচ্ছে। অনুগ্রহ করে $waitSec সেকেন্ড অপেক্ষা করুন।',
+              'ms': 'Penyegaran terlalu laju. Sila tunggu $waitSec saat.',
+              'fa': 'نوسازی خیلی سریع است. لطفا $waitSec ثانیه صبر کنید.',
+              'fr': 'Rafraîchissement trop rapide. Attendez $waitSec s.',
+              'zh': '刷新太频繁，请等待 $waitSec 秒。',
+              'ja': '更新が速すぎます。$waitSec 秒待ってください。',
+              'ru': 'Слишком частое обновление. Подождите $waitSec сек.',
+              'de': 'Zu schnelles Aktualisieren. Bitte $waitSec Sek. warten.',
+              'sw': 'Unasasisha haraka sana. Tafadhali subiri sek $waitSec.',
+              'ha': 'Kana sabuntawa da sauri sosai. Da fatan a jira sakan $waitSec.',
+            }),
+          );
+        }
+        return;
+      }
+    }
+    _lastManualRefreshAt = now;
+    setState(() => _isRefreshCoolingDown = true);
+    _leaderboardCache.clear();
+    _leaderboardCacheTime.clear();
+    _globalLeaderboardFetchAt = null;
     setState(() {
       _isLoading = true;
       _showOfflineBanner = false;
     });
     _slideAnimationController.reset();
     _fadeAnimationController.reset();
-    await _loadLeaderboard();
+    await _initialLoad();
+    if (mounted) {
+      Future.delayed(_minRefreshInterval, () {
+        if (mounted) setState(() => _isRefreshCoolingDown = false);
+      });
+    }
+  }
+
+  Future<void> _initialLoad() async {
+    final shouldFetch = _globalLeaderboardFetchAt == null || _leaderboardCache.isEmpty;
+    if (shouldFetch) {
+      await _maybeSyncCloudBeforeLoad();
+      await _fetchAndCacheAllDatasets();
+      _globalLeaderboardFetchAt = DateTime.now();
+    }
+    await _showSelectedFromCache();
+  }
+
+  Future<void> _maybeSyncCloudBeforeLoad() async {
+    try {
+      if (!_supabaseService.isInitialized) return;
+      final enabled = await _settingsService.getShowInLeaderboard();
+      if (!enabled) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'leaderboard_last_cloud_sync_${widget.currentUserId}';
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      final lastMs = prefs.getInt(key) ?? 0;
+      if (nowMs - lastMs < _minCloudSyncInterval.inMilliseconds) {
+        return;
+      }
+      final created = await _supabaseService.ensureUserExists(widget.currentUserId);
+      if (created) {
+        // no-op: sekme geçişlerinde ekstra bilgilendirme gösterme
+      }
+
+      final totalZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      final dailyCount = await _settingsService.getDailyCount(DateTime.now());
+      final weeklyCount = await _settingsService.getWeeklyCount();
+      final monthlyCount = await _settingsService.getMonthlyCount();
+      await _supabaseService.updateUserZikrCount(
+        widget.currentUserId,
+        totalZikrs,
+        updateLeaderboard: true,
+        dailyCount: dailyCount,
+        weeklyCount: weeklyCount,
+        monthlyCount: monthlyCount,
+      );
+      await prefs.setInt(key, nowMs);
+    } catch (e) {
+      print('Leaderboard pre-load sync skipped: $e');
+    }
   }
 
   /// Ham listeyi mevcut kullanıcı zikri/rank ile birleştirip state günceller. Önbelleğe yazmaz.
   Future<void> _applyLeaderboardData(List<Map<String, dynamic>> rawList) async {
     if (!mounted) return;
     final currentUuid = _supabaseService.toUuid(widget.currentUserId);
+    final showInLeaderboard = await _settingsService.getShowInLeaderboard();
     final prefs = await SharedPreferences.getInstance();
     final currentUserZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
     List<Map<String, dynamic>> leaderboardData = List<Map<String, dynamic>>.from(rawList);
+    if (!showInLeaderboard) {
+      leaderboardData = leaderboardData.where((user) {
+        final uid = user['user_id']?.toString() ?? '';
+        return uid != widget.currentUserId && uid != currentUuid;
+      }).toList();
+    }
 
     final existingUserIndex = leaderboardData.indexWhere(
       (user) => user['user_id'] == widget.currentUserId || user['user_id'] == currentUuid,
@@ -134,18 +245,40 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     if (existingUserIndex != -1) {
       currentUserProfile = Map<String, dynamic>.from(leaderboardData[existingUserIndex]);
       currentUserProfile['total_zikrs'] = currentUserZikrs;
+      currentUserProfile['cup_count'] = currentUserProfile['cup_count'] ?? 0;
+      currentUserProfile['bronze_count'] = currentUserProfile['bronze_count'] ?? 0;
+      currentUserProfile['silver_count'] = currentUserProfile['silver_count'] ?? 0;
+      currentUserProfile['gold_count'] = currentUserProfile['gold_count'] ?? 0;
+      currentUserProfile['diamond_count'] = currentUserProfile['diamond_count'] ?? 0;
+      currentUserProfile['platinum_count'] = currentUserProfile['platinum_count'] ?? 0;
       leaderboardData[existingUserIndex] = currentUserProfile;
-    } else {
+    } else if (showInLeaderboard) {
       currentUserProfile = {
         'user_id': widget.currentUserId,
         'username': 'User_${widget.currentUserId.length >= 8 ? widget.currentUserId.substring(0, 8) : widget.currentUserId}',
         'display_name': _getZikrDefaultDisplayName(),
         'total_zikrs': currentUserZikrs,
+        'cup_count': 0,
+        'bronze_count': 0,
+        'silver_count': 0,
+        'gold_count': 0,
+        'diamond_count': 0,
+        'platinum_count': 0,
         'rank': 999,
       };
       leaderboardData.add(currentUserProfile);
+    } else {
+      currentUserProfile = <String, dynamic>{};
     }
-    leaderboardData.sort((a, b) => (b['total_zikrs'] as int).compareTo(a['total_zikrs'] as int));
+    leaderboardData.sort((a, b) {
+      if (_leaderboardMode == 'cups') {
+        final bMetric = _cupMetricValue(b);
+        final aMetric = _cupMetricValue(a);
+        if (bMetric != aMetric) return bMetric.compareTo(aMetric);
+        return ((b['total_zikrs'] ?? 0) as int).compareTo((a['total_zikrs'] ?? 0) as int);
+      }
+      return ((b['total_zikrs'] ?? 0) as int).compareTo((a['total_zikrs'] ?? 0) as int);
+    });
     final userRank = leaderboardData.indexWhere((u) => u['user_id'] == widget.currentUserId || u['user_id'] == currentUuid) + 1;
     currentUserProfile['rank'] = userRank;
 
@@ -155,6 +288,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       _leaderboard = leaderboardData;
       _currentUserProfile = currentUserProfile;
       _currentUserRank = userRank;
+      _isCurrentUserVisible =
+          showInLeaderboard &&
+          currentUserProfile.isNotEmpty &&
+          userRank > 0 &&
+          leaderboardData.any((u) {
+            final uid = u['user_id']?.toString() ?? '';
+            return uid == widget.currentUserId || uid == currentUuid;
+          });
       _isLoading = false;
       _showOfflineBanner = false;
       _offlineBannerAlreadyShown = false;
@@ -163,47 +304,45 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     _fadeAnimationController.forward();
   }
 
-  Future<void> _loadLeaderboard({String? period}) async {
-    final effectivePeriod = period ?? _selectedPeriod;
-    final cached = _leaderboardCache[effectivePeriod];
-    final cacheValid = cached != null &&
-        cached.isNotEmpty &&
-        (DateTime.now().difference(_leaderboardCacheTime[effectivePeriod]!) <= _cacheMaxAge);
-
-    if (cacheValid) {
-      await _applyLeaderboardData(List<Map<String, dynamic>>.from(cached));
-      return;
+  int _cupMetricValue(Map<String, dynamic> row) {
+    switch (_selectedCupTab) {
+      case 'bronze':
+        return (row['bronze_count'] ?? 0) as int;
+      case 'silver':
+        return (row['silver_count'] ?? 0) as int;
+      case 'gold':
+        return (row['gold_count'] ?? 0) as int;
+      case 'diamond':
+        return (row['diamond_count'] ?? 0) as int;
+      case 'platinum':
+        return (row['platinum_count'] ?? 0) as int;
+      case 'total':
+      default:
+        return (row['cup_count'] ?? 0) as int;
     }
+  }
 
-    final hadCache = cached != null && cached.isNotEmpty;
-    if (hadCache) {
-      await _applyLeaderboardData(List<Map<String, dynamic>>.from(cached));
-    } else {
-      setState(() => _isLoading = true);
-    }
-
+  Future<void> _fetchAndCacheAllDatasets() async {
     try {
-      List<Map<String, dynamic>> leaderboardData;
-      switch (effectivePeriod) {
-        case 'all':
-          leaderboardData = await _supabaseService.getAllTimeLeaderboard(limit: 50);
-          break;
-        case 'daily':
-          leaderboardData = await _supabaseService.getDailyLeaderboard(limit: 50);
-          break;
-        case 'weekly':
-          leaderboardData = await _supabaseService.getWeeklyLeaderboard(limit: 50);
-          break;
-        case 'monthly':
-          leaderboardData = await _supabaseService.getMonthlyLeaderboard(limit: 50);
-          break;
-        default:
-          leaderboardData = await _supabaseService.getDailyLeaderboard(limit: 50);
-      }
-      if (!mounted) return;
-      _leaderboardCache[effectivePeriod] = List<Map<String, dynamic>>.from(leaderboardData);
-      _leaderboardCacheTime[effectivePeriod] = DateTime.now();
-      await _applyLeaderboardData(leaderboardData);
+      final now = DateTime.now();
+      final all = await _supabaseService.getAllTimeLeaderboard(limit: 50);
+      final daily = await _supabaseService.getDailyLeaderboard(limit: 50);
+      final weekly = await _supabaseService.getWeeklyLeaderboard(limit: 50);
+      final monthly = await _supabaseService.getMonthlyLeaderboard(limit: 50);
+      final cups = await _supabaseService.getCupLeaderboard(limit: 50);
+
+      _leaderboardCache['all'] = List<Map<String, dynamic>>.from(all);
+      _leaderboardCache['daily'] = List<Map<String, dynamic>>.from(daily);
+      _leaderboardCache['weekly'] = List<Map<String, dynamic>>.from(weekly);
+      _leaderboardCache['monthly'] = List<Map<String, dynamic>>.from(monthly);
+      _leaderboardCache['cups'] = List<Map<String, dynamic>>.from(cups);
+      _leaderboardCacheTime['all'] = now;
+      _leaderboardCacheTime['daily'] = now;
+      _leaderboardCacheTime['weekly'] = now;
+      _leaderboardCacheTime['monthly'] = now;
+      _leaderboardCacheTime['cups'] = now;
+
+      // sekme degisiminde ek bilgilendirme yok
     } catch (e) {
       if (_isNetworkError(e) && mounted && !_offlineBannerAlreadyShown) {
         setState(() {
@@ -211,11 +350,36 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           _offlineBannerAlreadyShown = true;
         });
       }
-      if (hadCache && mounted) {
-        setState(() => _isLoading = false);
-        return;
+      if (_leaderboardCache.isEmpty) {
+        await _loadLocalLeaderboard();
       }
-      _loadLocalLeaderboard();
+    }
+  }
+
+  Future<void> _showSelectedFromCache() async {
+    final selectedKey = _leaderboardMode == 'cups' ? 'cups' : _selectedPeriod;
+    final cached = _leaderboardCache[selectedKey];
+    final cacheTime = _leaderboardCacheTime[selectedKey];
+    final cacheValid = cached != null &&
+        cached.isNotEmpty &&
+        cacheTime != null &&
+        (DateTime.now().difference(cacheTime) <= _cacheMaxAge);
+
+    if (cacheValid) {
+      await _applyLeaderboardData(List<Map<String, dynamic>>.from(cached));
+      return;
+    }
+
+    if (_leaderboardCache.isNotEmpty) {
+      // Veri mevcut ama seçilen segment boşsa spinner'da kalmayalım.
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -226,6 +390,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       
       final prefs = await SharedPreferences.getInstance();
       final currentUserZikrs = prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
+      final showInLeaderboard = await _settingsService.getShowInLeaderboard();
       
       print('Current user local zikrs: $currentUserZikrs');
       
@@ -237,15 +402,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         {'user_id': 'sample5', 'username': 'Mustafa', 'display_name': 'Mustafa Çelik', 'total_zikrs': 400, 'rank': 5},
       ];
       
-      final currentUserProfile = {
+      final currentUserProfile = <String, dynamic>{
         'user_id': widget.currentUserId,
         'username': 'User_${widget.currentUserId.substring(0, 8)}',
         'display_name': _getZikrDefaultDisplayName(),
         'total_zikrs': currentUserZikrs,
         'rank': 999,
       };
-      
-      final allUsers = [...sampleData, currentUserProfile];
+
+      final allUsers = List<Map<String, dynamic>>.from(sampleData);
+      if (showInLeaderboard) {
+        allUsers.add(currentUserProfile);
+      }
       allUsers.sort((a, b) => (b['total_zikrs'] as int).compareTo(a['total_zikrs'] as int));
       
       final userRank = allUsers.indexWhere((user) => user['user_id'] == widget.currentUserId) + 1;
@@ -254,8 +422,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       setState(() {
         _leaderboardData = allUsers;
         _leaderboard = allUsers;
-        _currentUserProfile = currentUserProfile;
+        _currentUserProfile = showInLeaderboard ? currentUserProfile : <String, dynamic>{};
         _currentUserRank = userRank;
+        _isCurrentUserVisible =
+            showInLeaderboard &&
+            userRank > 0 &&
+            allUsers.any((u) => u['user_id'] == widget.currentUserId);
         _isLoading = false;
         // _showOfflineBanner zaten catch'te set edildi
       });
@@ -292,7 +464,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: widget.themeConfig.textColor),
-            onPressed: _isLoading ? null : () => _refreshLeaderboard(),
+            onPressed: (_isLoading || _isRefreshCoolingDown) ? null : () => _refreshLeaderboard(),
             tooltip: DynamicLocalizationHelper.getText({
               'tr': 'Yenile',
               'en': 'Refresh',
@@ -313,8 +485,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         child: Column(
           children: [
             if (_showOfflineBanner) _buildOfflineBanner(),
-            _buildPeriodSelector(),
-            _buildPeriodLabel(),
+            _buildModeSelector(),
+            if (_leaderboardMode == 'zikr') _buildPeriodSelector(),
+            if (_leaderboardMode == 'cups') _buildCupTypeSelector(),
             Expanded(
               child: _isLoading
                   ? Center(
@@ -324,7 +497,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     )
                   : Column(
                       children: [
-                        if (_currentUserProfile != null) _buildCurrentUserCard(),
+                        if (_isCurrentUserVisible && _currentUserProfile != null) _buildCurrentUserCard(),
                         Expanded(
                           child: SlideTransition(
                             position: Tween<Offset>(
@@ -513,36 +686,93 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildPeriodLabel() {
-    final now = DateTime.now();
-    String rangeText;
-    switch (_selectedPeriod) {
-      case 'all':
-        rangeText = DynamicLocalizationHelper.getText({'tr': 'Tüm zamanlar', 'en': 'All time'});
-        break;
-      case 'daily':
-        rangeText = '${DynamicLocalizationHelper.getText({'tr': 'Bugün', 'en': 'Today'})}: ${now.day}.${now.month}.${now.year}';
-        break;
-      case 'weekly':
-        final weekStart = now.subtract(Duration(days: now.weekday - 1));
-        final weekEnd = weekStart.add(const Duration(days: 6));
-        rangeText = '${DynamicLocalizationHelper.getText({'tr': 'Bu hafta', 'en': 'This week'})}: ${weekStart.day}.${weekStart.month}-${weekEnd.day}.${weekEnd.month}';
-        break;
-      case 'monthly':
-        final monthStart = DateTime(now.year, now.month, 1);
-        final monthEnd = DateTime(now.year, now.month + 1, 0);
-        rangeText = '${DynamicLocalizationHelper.getText({'tr': 'Bu ay', 'en': 'This month'})}: ${monthStart.day}.${monthStart.month}-${monthEnd.day}.${monthEnd.month}.${now.year}';
-        break;
-      default:
-        rangeText = '';
-    }
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 8),
-      child: Text(
-        rangeText,
-        style: GoogleFonts.notoSans(
-          fontSize: 12,
-          color: widget.themeConfig.textColor.withOpacity(0.7),
+  Widget _buildModeSelector() {
+    final zikrLabel = DynamicLocalizationHelper.getText({
+      'tr': 'Zikir Sıralaması',
+      'en': 'Dhikr Ranking',
+      'ar': 'ترتيب الذكر',
+      'id': 'Peringkat Zikir',
+      'ur': 'ذکر درجہ بندی',
+      'bn': 'জিকির র‌্যাঙ্কিং',
+      'ms': 'Kedudukan Zikir',
+      'fa': 'رتبه‌بندی ذکر',
+      'fr': 'Classement Dhikr',
+      'zh': '赞念排行',
+      'ja': 'ジクル順位',
+      'ru': 'Рейтинг зикра',
+      'de': 'Dhikr-Rangliste',
+      'sw': 'Orodha ya Dhikr',
+      'ha': 'Matsayin Zikiri',
+    });
+    final cupLabel = DynamicLocalizationHelper.getText({
+      'tr': 'Kupa Sıralaması',
+      'en': 'Cup Ranking',
+      'ar': 'ترتيب الكؤوس',
+      'id': 'Peringkat Piala',
+      'ur': 'کپ درجہ بندی',
+      'bn': 'কাপ র‌্যাঙ্কিং',
+      'ms': 'Kedudukan Piala',
+      'fa': 'رتبه‌بندی جام‌ها',
+      'fr': 'Classement Coupes',
+      'zh': '奖杯排行',
+      'ja': 'カップ順位',
+      'ru': 'Рейтинг кубков',
+      'de': 'Pokal-Rangliste',
+      'sw': 'Orodha ya Kombe',
+      'ha': 'Matsayin Kofuna',
+    });
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: widget.themeConfig.textColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildModeChip(zikrLabel, 'zikr'),
+          ),
+          Expanded(
+            child: _buildModeChip(cupLabel, 'cups'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeChip(String label, String value) {
+    final selected = _leaderboardMode == value;
+    return GestureDetector(
+      onTap: () {
+        if (_leaderboardMode == value) return;
+        setState(() {
+          _leaderboardMode = value;
+        });
+        _showSelectedFromCache();
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: selected
+              ? LinearGradient(
+                  colors: [
+                    widget.themeConfig.accentColor,
+                    widget.themeConfig.accentColor.withOpacity(0.8),
+                  ],
+                )
+              : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.notoSans(
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            color: selected ? Colors.white : widget.themeConfig.textColor.withOpacity(0.8),
+          ),
         ),
       ),
     );
@@ -557,9 +787,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           if (_selectedPeriod == value) return;
           setState(() {
             _selectedPeriod = value;
-            _isLoading = true;
           });
-          _loadLeaderboard(period: value);
+          _showSelectedFromCache();
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -590,14 +819,75 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
+  Widget _buildCupTypeSelector() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: widget.themeConfig.textColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildCupTypeChip(DynamicLocalizationHelper.getText({'tr': 'Toplam Kupa', 'en': 'Total Cups', 'ar': 'إجمالي الكؤوس', 'id': 'Total Piala', 'ur': 'کل کپ', 'bn': 'মোট কাপ', 'ms': 'Jumlah Piala', 'fa': 'مجموع جام‌ها', 'fr': 'Coupes Totales', 'zh': '总奖杯', 'ja': '合計カップ', 'ru': 'Всего кубков', 'de': 'Gesamtpokale', 'sw': 'Jumla ya Kombe', 'ha': 'Jimillar Kofuna'}), 'total'),
+            _buildCupTypeChip(DynamicLocalizationHelper.getText({'tr': 'Bronz', 'en': 'Bronze', 'ar': 'برونزي', 'id': 'Perunggu', 'ur': 'کانسی', 'bn': 'ব্রোঞ্জ', 'ms': 'Gangsa', 'fa': 'برنز', 'fr': 'Bronze', 'zh': '青铜', 'ja': 'ブロンズ', 'ru': 'Бронза', 'de': 'Bronze', 'sw': 'Shaba', 'ha': 'Tagulla'}), 'bronze'),
+            _buildCupTypeChip(DynamicLocalizationHelper.getText({'tr': 'Gümüş', 'en': 'Silver', 'ar': 'فضي', 'id': 'Perak', 'ur': 'چاندی', 'bn': 'রূপা', 'ms': 'Perak', 'fa': 'نقره', 'fr': 'Argent', 'zh': '白银', 'ja': 'シルバー', 'ru': 'Серебро', 'de': 'Silber', 'sw': 'Fedha', 'ha': 'Azurfa'}), 'silver'),
+            _buildCupTypeChip(DynamicLocalizationHelper.getText({'tr': 'Altın', 'en': 'Gold', 'ar': 'ذهبي', 'id': 'Emas', 'ur': 'سونا', 'bn': 'সোনা', 'ms': 'Emas', 'fa': 'طلا', 'fr': 'Or', 'zh': '黄金', 'ja': 'ゴールド', 'ru': 'Золото', 'de': 'Gold', 'sw': 'Dhahabu', 'ha': 'Zinariya'}), 'gold'),
+            _buildCupTypeChip(DynamicLocalizationHelper.getText({'tr': 'Elmas', 'en': 'Diamond', 'ar': 'ألماسي', 'id': 'Berlian', 'ur': 'ہیرا', 'bn': 'হীরা', 'ms': 'Berlian', 'fa': 'الماس', 'fr': 'Diamant', 'zh': '钻石', 'ja': 'ダイヤ', 'ru': 'Алмаз', 'de': 'Diamant', 'sw': 'Almasi', 'ha': 'Lu\'ulu\'u'}), 'diamond'),
+            _buildCupTypeChip(DynamicLocalizationHelper.getText({'tr': 'Platin', 'en': 'Platinum', 'ar': 'بلاتيني', 'id': 'Platina', 'ur': 'پلاٹینم', 'bn': 'প্লাটিনাম', 'ms': 'Platinum', 'fa': 'پلاتین', 'fr': 'Platine', 'zh': '铂金', 'ja': 'プラチナ', 'ru': 'Платина', 'de': 'Platin', 'sw': 'Platinamu', 'ha': 'Platinum'}), 'platinum'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCupTypeChip(String label, String value) {
+    final selected = _selectedCupTab == value;
+    return GestureDetector(
+      onTap: () {
+        if (_selectedCupTab == value) return;
+        setState(() => _selectedCupTab = value);
+        _showSelectedFromCache();
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: selected
+              ? LinearGradient(
+                  colors: [
+                    widget.themeConfig.accentColor,
+                    widget.themeConfig.accentColor.withOpacity(0.8),
+                  ],
+                )
+              : null,
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.notoSans(
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            color: selected ? Colors.white : widget.themeConfig.textColor.withOpacity(0.8),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCurrentUserCard() {
-    if (_currentUserProfile == null || _currentUserProfile!.isEmpty) {
+    if (!_isCurrentUserVisible ||
+        _currentUserRank <= 0 ||
+        _currentUserProfile == null ||
+        _currentUserProfile!.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -605,7 +895,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             widget.themeConfig.primaryColor.withOpacity(0.8),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: widget.themeConfig.accentColor.withOpacity(0.3),
@@ -617,8 +907,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
               gradient: widget.themeConfig.buttonGradient,
               shape: BoxShape.circle,
@@ -634,14 +924,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               child: Text(
                 '#$_currentUserRank',
                 style: GoogleFonts.notoSans(
-                  fontSize: 18,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: widget.themeConfig.textColor,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -665,43 +955,54 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     'ha': 'Kai',
                   }),
                   style: GoogleFonts.notoSans(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: widget.themeConfig.textColor,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  '${_currentUserProfile!['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
-                    'tr': 'zikir',
-                    'en': 'dhikr',
-                    'ar': 'ذكر',
-                    'id': 'zikir',
-                    'ur': 'ذکر',
-                    'bn': 'জিকির',
-                    'ms': 'zikir',
-                    'fa': 'ذکر',
-                    'fr': 'dhikr',
-                    'zh': '赞念',
-                    'ja': 'ジクル',
-                    'ru': 'зикр',
-                    'de': 'Dhikr',
-                    'sw': 'dhikr',
-                    'ha': 'zikiri',
-                  })}',
+                  _leaderboardMode == 'cups'
+                      ? '${_currentUserProfile!['cup_count'] ?? 0} ${DynamicLocalizationHelper.getText({
+                          'tr': 'kupa',
+                          'en': 'cups',
+                          'ar': 'كؤوس',
+                          'id': 'piala',
+                        })}'
+                      : '${_currentUserProfile!['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
+                          'tr': 'zikir',
+                          'en': 'dhikr',
+                          'ar': 'ذكر',
+                          'id': 'zikir',
+                          'ur': 'ذکر',
+                          'bn': 'জিকির',
+                          'ms': 'zikir',
+                          'fa': 'ذکر',
+                          'fr': 'dhikr',
+                          'zh': '赞念',
+                          'ja': 'ジクル',
+                          'ru': 'зикр',
+                          'de': 'Dhikr',
+                          'sw': 'dhikr',
+                          'ha': 'zikiri',
+                        })}',
                   style: GoogleFonts.notoSans(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: widget.themeConfig.textColor.withOpacity(0.8),
                   ),
                 ),
+                if (_leaderboardMode == 'cups') ...[
+                  const SizedBox(height: 4),
+                  _buildCupBadges(_currentUserProfile!),
+                ],
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: widget.themeConfig.accentColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               DynamicLocalizationHelper.getText({
@@ -711,7 +1012,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 'id': 'Peringkat',
               }) + ': $_currentUserRank',
               style: GoogleFonts.notoSans(
-                fontSize: 12,
+                fontSize: 11,
                 color: widget.themeConfig.textColor,
                 fontWeight: FontWeight.w500,
               ),
@@ -766,7 +1067,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildLeaderboardItem(Map<String, dynamic> user, int rank, bool isCurrentUser) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         gradient: isCurrentUser 
             ? LinearGradient(
@@ -781,7 +1082,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   widget.themeConfig.primaryColor.withOpacity(0.8),
                 ],
               ),
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(12),
         border: isCurrentUser 
             ? Border.all(
                 color: widget.themeConfig.accentColor,
@@ -792,19 +1093,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           BoxShadow(
             color: (isCurrentUser ? widget.themeConfig.accentColor : widget.themeConfig.primaryColor)
                 .withOpacity(0.2),
-            blurRadius: 10,
-            spreadRadius: 1,
+            blurRadius: 6,
+            spreadRadius: 0.5,
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
             _buildRankBadge(rank),
-            const SizedBox(width: 15),
+            const SizedBox(width: 10),
             _buildUserAvatar(user),
-            const SizedBox(width: 15),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -818,34 +1119,55 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       return _getZikrDefaultDisplayName();
                     })(),
                     style: GoogleFonts.notoSans(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: widget.themeConfig.textColor,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
-                      Icon(
-                        Icons.trending_up,
-                        size: 14,
-                        color: widget.themeConfig.textColor.withOpacity(0.7),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${user['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
-                          'tr': 'zikir',
-                          'en': 'dhikr',
-                          'ar': 'ذكر',
-                          'id': 'zikir',
-                        })}',
-                        style: GoogleFonts.notoSans(
-                          fontSize: 12,
-                          color: widget.themeConfig.textColor.withOpacity(0.8),
+                      if (_leaderboardMode == 'cups') ...[
+                        Icon(
+                          Icons.workspace_premium,
+                          size: 14,
+                          color: Colors.amber.shade400,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${user['cup_count'] ?? 0} ${DynamicLocalizationHelper.getText({
+                            'tr': 'kupa',
+                            'en': 'cups',
+                            'ar': 'كؤوس',
+                            'id': 'piala',
+                          })}',
+                          style: GoogleFonts.notoSans(
+                            fontSize: 11,
+                            color: widget.themeConfig.textColor.withOpacity(0.8),
+                          ),
+                        ),
+                      ] else ...[
+                        Icon(
+                          Icons.trending_up,
+                          size: 14,
+                          color: widget.themeConfig.textColor.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${user['total_zikrs'] ?? 0} ${DynamicLocalizationHelper.getText({
+                            'tr': 'zikir',
+                            'en': 'dhikr',
+                            'ar': 'ذكر',
+                            'id': 'zikir',
+                          })}',
+                          style: GoogleFonts.notoSans(
+                            fontSize: 11,
+                            color: widget.themeConfig.textColor.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
                       if (user['current_streak'] != null && user['current_streak'] > 0) ...[
                         const SizedBox(width: 12),
                         Icon(
@@ -864,10 +1186,44 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       ],
                     ],
                   ),
+                  if (_leaderboardMode == 'cups') ...[
+                    const SizedBox(height: 4),
+                    _buildCupBadges(user),
+                  ],
+                  if (_leaderboardMode == 'cups' && user['top_cup'] != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      _getCupLabel(user['top_cup']?.toString()),
+                      style: GoogleFonts.notoSans(
+                        fontSize: 11,
+                        color: widget.themeConfig.textColor.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            if (rank <= 3) _buildTrophyIcon(rank),
+            if (isCurrentUser)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: widget.themeConfig.accentColor.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  DynamicLocalizationHelper.getText({
+                    'tr': 'Sen',
+                    'en': 'You',
+                    'ar': 'أنت',
+                    'id': 'Anda',
+                  }),
+                  style: GoogleFonts.notoSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: widget.themeConfig.textColor,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -893,8 +1249,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     }
 
     return Container(
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -906,7 +1262,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         boxShadow: [
           BoxShadow(
             color: badgeColor.withOpacity(0.5),
-            blurRadius: 8,
+            blurRadius: 5,
             spreadRadius: 1,
           ),
         ],
@@ -915,12 +1271,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         child: rank <= 3 
             ? Text(
                 rankText,
-                style: const TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 16),
               )
             : Text(
                 rankText,
                 style: GoogleFonts.notoSans(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: widget.themeConfig.textColor,
                 ),
@@ -935,15 +1291,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final initialName = (name != null && name.trim().isNotEmpty) ? name.trim() : 'Anonymous';
     
     return Container(
-      width: 45,
-      height: 45,
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
         gradient: widget.themeConfig.buttonGradient,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
             color: widget.themeConfig.accentColor.withOpacity(0.3),
-            blurRadius: 8,
+            blurRadius: 5,
             spreadRadius: 1,
           ),
         ],
@@ -952,8 +1308,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ? ClipOval(
               child: Image.network(
                 avatarUrl,
-                width: 45,
-                height: 45,
+                width: 36,
+                height: 36,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return _buildAvatarInitial(initialName);
@@ -971,7 +1327,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: Text(
         initial,
         style: GoogleFonts.notoSans(
-          fontSize: 18,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -979,25 +1335,53 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildTrophyIcon(int rank) {
-    IconData icon;
-    Color color;
-    
-    if (rank == 1) {
-      icon = Icons.emoji_events;
-      color = Colors.amber;
-    } else if (rank == 2) {
-      icon = Icons.emoji_events;
-      color = Colors.grey.shade300;
-    } else {
-      icon = Icons.emoji_events;
-      color = Colors.brown.shade300;
+  String _getCupLabel(String? cupId) {
+    switch (cupId) {
+      case 'bronze_kupa':
+        return DynamicLocalizationHelper.getText({'tr': 'En yüksek kupa: Bronz', 'en': 'Top cup: Bronze'});
+      case 'silver_kupa':
+        return DynamicLocalizationHelper.getText({'tr': 'En yüksek kupa: Gümüş', 'en': 'Top cup: Silver'});
+      case 'gold_kupa':
+        return DynamicLocalizationHelper.getText({'tr': 'En yüksek kupa: Altın', 'en': 'Top cup: Gold'});
+      case 'diamond_kupa':
+        return DynamicLocalizationHelper.getText({'tr': 'En yüksek kupa: Elmas', 'en': 'Top cup: Diamond'});
+      case 'platinum_kupa':
+        return DynamicLocalizationHelper.getText({'tr': 'En yüksek kupa: Platin', 'en': 'Top cup: Platinum'});
+      default:
+        return DynamicLocalizationHelper.getText({'tr': 'En yüksek kupa: Yok', 'en': 'Top cup: None'});
     }
+  }
 
-    return Icon(
-      icon,
-      color: color,
-      size: 24,
+  Widget _buildCupBadges(Map<String, dynamic> user) {
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      children: [
+        _buildCupBadge('🥉', (user['bronze_count'] ?? 0).toString()),
+        _buildCupBadge('🥈', (user['silver_count'] ?? 0).toString()),
+        _buildCupBadge('🥇', (user['gold_count'] ?? 0).toString()),
+        _buildCupBadge('💎', (user['diamond_count'] ?? 0).toString()),
+        _buildCupBadge('🏆', (user['platinum_count'] ?? 0).toString()),
+      ],
+    );
+  }
+
+  Widget _buildCupBadge(String emoji, String count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: widget.themeConfig.accentColor.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: widget.themeConfig.accentColor.withOpacity(0.25)),
+      ),
+      child: Text(
+        '$emoji $count',
+        style: GoogleFonts.notoSans(
+          fontSize: 10,
+          color: widget.themeConfig.textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }
