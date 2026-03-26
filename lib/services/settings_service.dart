@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 class SettingsService {
   static const String _themeKey = 'theme_id';
   static const String _languageKey = 'language_code';
+  static const String _legacyLanguageKey = 'language';
   static const String _vibrationKey = 'vibration_enabled';
   static const String _soundKey = 'sound_enabled';
   static const String _customZikrsKey = 'custom_zikrs';
@@ -46,16 +47,27 @@ class SettingsService {
   Future<void> saveLanguage(String languageCode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_languageKey, languageCode);
+    // Legacy compatibility (older code reads from `language` key).
+    await prefs.setString(_legacyLanguageKey, languageCode);
     print('🔧 SettingsService: Language saved to SharedPreferences: $languageCode');
     
     // Doğru kaydedildiğini kontrol et
     final savedLanguage = prefs.getString(_languageKey);
-    print('🔧 SettingsService: Verification - saved language: $savedLanguage');
+    print('🔧 SettingsService: Verification - saved language_code: $savedLanguage');
   }
 
   Future<String> getLanguage() async {
     final prefs = await SharedPreferences.getInstance();
-    final language = prefs.getString(_languageKey) ?? 'en'; // Default İngilizce
+    // Prefer `language_code`; fallback to legacy `language`.
+    final languageCode = prefs.getString(_languageKey);
+    final legacyLanguage = prefs.getString(_legacyLanguageKey);
+    final language = languageCode ?? legacyLanguage ?? 'en'; // Default English
+
+    // If only legacy key exists, resync the new key for consistency.
+    if (languageCode == null && legacyLanguage != null && legacyLanguage.trim().isNotEmpty) {
+      await prefs.setString(_languageKey, legacyLanguage.trim());
+    }
+
     print('🔧 SettingsService: Language retrieved from SharedPreferences: $language');
     return language;
   }

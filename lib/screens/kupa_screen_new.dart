@@ -73,7 +73,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         'platinum_kupa': prefs.getBool('platinum_kupa_unlocked_${widget.currentUserId}') ?? false,
       };
 
-      final currentLanguage = prefs.getString('language') ?? 'tr';
+      final currentLanguage = prefs.getString('language_code') ?? prefs.getString('language') ?? 'tr';
 
       setState(() {
         _totalZikrs = totalZikrs;

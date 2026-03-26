@@ -240,7 +240,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
     final prefs = await SharedPreferences.getInstance();
     final animationSpeed = prefs.getInt('animation_speed') ?? 0;
-    final currentLanguage = prefs.getString('language') ?? 'tr';
+    final currentLanguage = languageCode;
     // Profil/görünen ad: profil ekranında düzenlenen değer
     _profileDisplayName = await _secureStorageService.readWithMigration(
       secureKey: 'display_name_$_currentUserId',
@@ -344,8 +344,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   Future<void> _refreshLanguage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentLanguage = prefs.getString('language') ?? 'tr';
+    final currentLanguage = await _settingsService.getLanguage();
     
     print('🏠 _refreshLanguage called');
     print('🏠 Current _currentLanguage: $_currentLanguage');

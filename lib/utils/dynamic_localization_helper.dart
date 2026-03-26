@@ -7,11 +7,14 @@ class DynamicLocalizationHelper {
   
   static Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
-    _currentLanguage = prefs.getString('language') ?? 'tr';
+    final code = prefs.getString('language_code') ?? prefs.getString('language');
+    _currentLanguage = code ?? 'tr';
   }
   
   static Future<void> setLanguage(String language) async {
     final prefs = await SharedPreferences.getInstance();
+    // Keep both keys in sync since parts of the app read different legacy keys.
+    await prefs.setString('language_code', language);
     await prefs.setString('language', language);
     _currentLanguage = language;
     print('🌐 DynamicLocalizationHelper: Language set to $language');

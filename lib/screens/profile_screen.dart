@@ -1719,7 +1719,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final prefs = await SharedPreferences.getInstance();
       // Uygulama dilini (kullanıcı verisi değil) koru.
       final savedLanguageCode = prefs.getString('language_code');
-      final savedLanguage = prefs.getString('language');
+      final legacyLanguage = prefs.getString('language');
+      final savedLanguage = savedLanguageCode ?? legacyLanguage;
       final localAvatarPath = prefs.getString('avatar_path_${widget.currentUserId}');
       if (localAvatarPath != null && localAvatarPath.isNotEmpty) {
         try {
@@ -1734,8 +1735,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await prefs.clear();
 
       // Dil ayarlarını geri yükle (hesap silme sadece kullanıcı verisini etkilesin).
-      if (savedLanguageCode != null && savedLanguageCode.trim().isNotEmpty) {
-        await prefs.setString('language_code', savedLanguageCode.trim());
+      if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
+        await prefs.setString('language_code', savedLanguage.trim());
       }
       if (savedLanguage != null && savedLanguage.trim().isNotEmpty) {
         await prefs.setString('language', savedLanguage.trim());
