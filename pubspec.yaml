@@ -64,6 +64,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/white_misbah.png"
+  image_path: "assets/icons/app_icon_new.png"
   adaptive_icon_background: "#0B3A8C"
-  adaptive_icon_foreground: "assets/icons/white_misbah.png"
+  adaptive_icon_foreground: "assets/icons/app_icon_new.png"
