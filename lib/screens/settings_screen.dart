@@ -151,7 +151,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(width: 10),
           Text(
-            widget.localizations.settings,
+            DynamicLocalizationHelper.settings,
             style: GoogleFonts.notoSans(
               color: widget.themeConfig.textColor,
               fontSize: 24,
@@ -164,10 +164,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   static const Map<String, Map<String, String>> _themeNames = {
-    'ocean_blue': {'tr': 'Gece Yarısı', 'en': 'Midnight Blue', 'ar': 'منتصف الليل', 'id': 'Tengah Malam', 'ur': 'نصف شب', 'bn': 'মধ্যরাত্রি', 'ms': 'Tengah Malam', 'fa': 'نیمه‌شب', 'fr': 'Minuit', 'zh': '午夜', 'ja': 'ミッドナイト', 'ru': 'Полночь', 'de': 'Mitternacht', 'sw': 'Usiku wa Manane', 'ha': 'Tsakar Dare'},
-    'emerald_green': {'tr': 'Zümrüt Ormanı', 'en': 'Emerald Forest', 'ar': 'أخضر الزمرد', 'id': 'Hijau Zamrud', 'ur': 'زمردی سبز', 'bn': 'পান্না সবুজ', 'ms': 'Hijau Zamrud', 'fa': 'سبز زمردی', 'fr': 'Vert Émeraude', 'zh': '翠绿色', 'ja': 'エメラルドグリーン', 'ru': 'Изумрудный', 'de': 'Smaragdgrün', 'sw': 'Kijani', 'ha': 'Green Emerald'},
-    'rose_pink': {'tr': 'Gül Bahçesi', 'en': 'Rose Garden', 'ar': 'وردي الورد', 'id': 'Pink Mawar', 'ur': 'گلاب', 'bn': 'গোলাপ', 'ms': 'Pink Mawar', 'fa': 'رز', 'fr': 'Jardin de roses', 'zh': '玫瑰园', 'ja': 'ローズ', 'ru': 'Розовый сад', 'de': 'Rosengarten', 'sw': 'Waridi', 'ha': 'Fure'},
-    'pure_dark': {'tr': 'Gece', 'en': 'Dark', 'ar': 'داكن', 'id': 'Gelap', 'ur': 'گہرا', 'bn': 'ডার্ক', 'ms': 'Gelap', 'fa': 'تیره', 'fr': 'Sombre', 'zh': '深色', 'ja': 'ダーク', 'ru': 'Тёмный', 'de': 'Dunkel', 'sw': 'Giza', 'ha': 'Duhu'},
+    'ocean_blue': {'tr': 'Azur Gece', 'en': 'Azure Night', 'ar': 'ليلة لازوردية', 'id': 'Malam Azure', 'ur': 'ازور رات', 'bn': 'অ্যাজুর রাত', 'ms': 'Malam Azure', 'fa': 'شب لاجوردی', 'fr': 'Nuit Azur', 'zh': '蔚蓝之夜', 'ja': 'アズールナイト', 'ru': 'Лазурная Ночь', 'de': 'Azur Nacht', 'sw': 'Usiku wa Samawati', 'ha': 'Daren Azure'},
+    'emerald_green': {'tr': 'Yeşil Vadi', 'en': 'Verdant', 'ar': 'أخضر يانع', 'id': 'Hijau Segar', 'ur': 'سرسبز', 'bn': 'সজীব সবুজ', 'ms': 'Hijau Segar', 'fa': 'سبزِ شاداب', 'fr': 'Verdoyant', 'zh': '青翠', 'ja': 'ヴァーダント', 'ru': 'Сочная Зелень', 'de': 'Sattes Grün', 'sw': 'Kijani Kibichi', 'ha': 'Kore Mai Yawa'},
+    'rose_pink': {'tr': 'Gün Batımı Gülü', 'en': 'Sunset Rose', 'ar': 'وردة الغروب', 'id': 'Mawar Senja', 'ur': 'غروب گلاب', 'bn': 'সানসেট রোজ', 'ms': 'Mawar Senja', 'fa': 'رزِ غروب', 'fr': 'Rose du Crépuscule', 'zh': '晚霞玫瑰', 'ja': 'サンセットローズ', 'ru': 'Роза Заката', 'de': 'Abendrose', 'sw': 'Waridi la Jioni', 'ha': 'Furen Faduwar Rana'},
+    'pure_dark': {'tr': 'Grafit', 'en': 'Graphite', 'ar': 'جرافيت', 'id': 'Grafit', 'ur': 'گریفائٹ', 'bn': 'গ্রাফাইট', 'ms': 'Grafit', 'fa': 'گرافیت', 'fr': 'Graphite', 'zh': '石墨', 'ja': 'グラファイト', 'ru': 'Графит', 'de': 'Graphit', 'sw': 'Grafiti', 'ha': 'Graphite'},
   };
 
   String _getThemeDisplayName(String themeId) {
