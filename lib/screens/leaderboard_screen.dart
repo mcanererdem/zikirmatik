@@ -900,18 +900,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildPeriodSelector() {
-    return SizedBox(
-      height: 40,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(
-          _leaderboardHorizontalInset,
-          0,
-          _leaderboardHorizontalInset,
-          _selectorBottomGap,
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        _leaderboardHorizontalInset,
+        0,
+        _leaderboardHorizontalInset,
+        _selectorBottomGap,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 40),
           child: Row(
             children: [
               _buildPeriodChip(
@@ -1131,7 +1131,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               color: isSelected
                   ? widget.themeConfig.accentColor
                   : widget.themeConfig.textColor.withOpacity(0.9),
-              height: 1.1,
+              height: 1.2,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -1145,9 +1145,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   Widget _buildCupTypeSelector() {
     final cupLabel =
         (Map<String, String> m) => DynamicLocalizationHelper.getText(m);
-    return SizedBox(
-      height: 40,
-      child: Container(
+    return Container(
       margin: const EdgeInsets.fromLTRB(
         _leaderboardHorizontalInset,
         0,
@@ -1157,8 +1155,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: [
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 40),
+          child: Row(
+            children: [
             _buildCupTabChip(
                 cupLabel({
                   'tr': 'Toplam',
@@ -1273,10 +1273,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   'ha': 'Platinum',
                 }),
                 'platinum'),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -1316,7 +1316,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               color: isSelected
                   ? widget.themeConfig.accentColor
                   : tc.withOpacity(0.9),
-              height: 1.1,
+              height: 1.2,
             ),
             textAlign: TextAlign.center,
           ),

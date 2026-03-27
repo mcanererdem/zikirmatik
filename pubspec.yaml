@@ -2,7 +2,7 @@ name: zikirmatik_app
 description: A modern and user-friendly zikirmatik application.
 author: Caner Erdem
 publish_to: 'none'
-version: 1.2.3+16
+version: 1.2.4+17
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
