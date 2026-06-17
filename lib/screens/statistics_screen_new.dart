@@ -133,10 +133,10 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
         _isLoading = false;
       });
       
-      print('Statistics loaded: total=$totalZikrs, weekly=$weeklyZikrs, monthly=$monthlyZikrs');
+      debugPrint('Statistics loaded: total=$totalZikrs, weekly=$weeklyZikrs, monthly=$monthlyZikrs');
       
     } catch (e) {
-      print('Error loading statistics: $e');
+      debugPrint('Error loading statistics: $e');
       setState(() {
         _isLoading = false;
       });
@@ -431,7 +431,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
         );
       }
     } catch (e) {
-      print('Error exporting statistics: $e');
+      debugPrint('Error exporting statistics: $e');
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         messenger.showSnackBar(
@@ -479,7 +479,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     try {
       await Share.shareXFiles([XFile(filePath)]);
     } catch (e) {
-      print('Error sharing statistics: $e');
+      debugPrint('Error sharing statistics: $e');
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         messenger.showSnackBar(

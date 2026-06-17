@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -48,9 +49,9 @@ class SupabaseService {
       );
       _supabase = Supabase.instance.client;
       _isInitialized = true;
-      print('Supabase initialized successfully');
+      debugPrint('Supabase initialized successfully');
     } catch (e) {
-      print('Error initializing Supabase: $e');
+      debugPrint('Error initializing Supabase: $e');
       rethrow;
     }
   }
@@ -113,11 +114,11 @@ class SupabaseService {
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
       });
-      print('Supabase: created missing users row for $uuid');
+      debugPrint('Supabase: created missing users row for $uuid');
       return true;
     } catch (e) {
       // Yarış durumlarında duplicate gelebilir; yalnızca loglayıp devam et.
-      print('Supabase: ensure user row skipped ($e)');
+      debugPrint('Supabase: ensure user row skipped ($e)');
       return false;
     }
   }
@@ -131,7 +132,7 @@ class SupabaseService {
   Future<UserProfile?> getUserProfile(String userId) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, returning null user profile.');
+        debugPrint('Supabase not initialized, returning null user profile.');
         return null;
       }
       final uuid = toUuid(userId);
@@ -146,7 +147,7 @@ class SupabaseService {
       }
       return null;
     } catch (e) {
-      print('Error getting user profile: $e');
+      debugPrint('Error getting user profile: $e');
       return null;
     }
   }
@@ -154,7 +155,7 @@ class SupabaseService {
   Future<UserProfile> updateUserProfile(UserProfile profile) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, skipping remote updateUserProfile.');
+        debugPrint('Supabase not initialized, skipping remote updateUserProfile.');
         return profile;
       }
       final uuid = toUuid(profile.userId);
@@ -174,7 +175,7 @@ class SupabaseService {
       
       return UserProfile.fromJson(response);
     } catch (e) {
-      print('Error updating user profile: $e');
+      debugPrint('Error updating user profile: $e');
       rethrow;
     }
   }
@@ -190,7 +191,7 @@ class SupabaseService {
   }) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, skipping updateUserZikrCount.');
+        debugPrint('Supabase not initialized, skipping updateUserZikrCount.');
         return;
       }
       final uuid = toUuid(userId);
@@ -213,7 +214,7 @@ class SupabaseService {
         await updateMonthlyLeaderboard(userId, monthlyCount ?? zikrCount);
       }
     } catch (e) {
-      print('Error updating zikr count: $e');
+      debugPrint('Error updating zikr count: $e');
     }
   }
 
@@ -237,7 +238,7 @@ class SupabaseService {
         },
       );
     } catch (e) {
-      print('Error setting leaderboard visibility: $e');
+      debugPrint('Error setting leaderboard visibility: $e');
       rethrow;
     }
   }
@@ -246,7 +247,7 @@ class SupabaseService {
   Future<List<Map<String, dynamic>>> getUserAchievements(String userId) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, returning empty achievements.');
+        debugPrint('Supabase not initialized, returning empty achievements.');
         return [];
       }
       final uuid = toUuid(userId);
@@ -258,7 +259,7 @@ class SupabaseService {
       
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error getting user achievements: $e');
+      debugPrint('Error getting user achievements: $e');
       return [];
     }
   }
@@ -266,7 +267,7 @@ class SupabaseService {
   Future<void> unlockAchievement(String userId, String achievementId) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, skipping unlockAchievement.');
+        debugPrint('Supabase not initialized, skipping unlockAchievement.');
         return;
       }
       await _ensureUserRow(userId);
@@ -279,7 +280,7 @@ class SupabaseService {
             'unlocked_at': DateTime.now().toIso8601String(),
           });
     } catch (e) {
-      print('Error unlocking achievement: $e');
+      debugPrint('Error unlocking achievement: $e');
       rethrow;
     }
   }
@@ -308,7 +309,7 @@ class SupabaseService {
           .from('user_achievements')
           .upsert(rows, onConflict: 'user_id,achievement_id');
     } catch (e) {
-      print('Error syncing achievements from total: $e');
+      debugPrint('Error syncing achievements from total: $e');
     }
   }
 
@@ -316,7 +317,7 @@ class SupabaseService {
   Future<void> updateDailyLeaderboard(String userId, int zikrCount) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, skipping daily leaderboard update.');
+        debugPrint('Supabase not initialized, skipping daily leaderboard update.');
         return;
       }
       await _ensureUserRow(userId);
@@ -333,14 +334,14 @@ class SupabaseService {
             'updated_at': DateTime.now().toIso8601String(),
           }, onConflict: 'user_id,date');
     } catch (e) {
-      print('Error updating daily leaderboard: $e');
+      debugPrint('Error updating daily leaderboard: $e');
     }
   }
 
   Future<void> updateWeeklyLeaderboard(String userId, int zikrCount) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, skipping weekly leaderboard update.');
+        debugPrint('Supabase not initialized, skipping weekly leaderboard update.');
         return;
       }
       await _ensureUserRow(userId);
@@ -358,14 +359,14 @@ class SupabaseService {
             'updated_at': DateTime.now().toIso8601String(),
           }, onConflict: 'user_id,week_start');
     } catch (e) {
-      print('Error updating weekly leaderboard: $e');
+      debugPrint('Error updating weekly leaderboard: $e');
     }
   }
 
   Future<void> updateMonthlyLeaderboard(String userId, int zikrCount) async {
     try {
       if (!_isInitialized) {
-        print('Supabase not initialized, skipping monthly leaderboard update.');
+        debugPrint('Supabase not initialized, skipping monthly leaderboard update.');
         return;
       }
       await _ensureUserRow(userId);
@@ -381,7 +382,7 @@ class SupabaseService {
             'updated_at': DateTime.now().toIso8601String(),
           }, onConflict: 'user_id,month_start');
     } catch (e) {
-      print('Error updating monthly leaderboard: $e');
+      debugPrint('Error updating monthly leaderboard: $e');
     }
   }
 
@@ -401,7 +402,7 @@ class SupabaseService {
           .limit(limit);
       
       final rows = List<Map<String, dynamic>>.from(response);
-      print('Leaderboard fetch: daily ($todayStr) returned ${rows.length} users');
+      debugPrint('Leaderboard fetch: daily ($todayStr) returned ${rows.length} users');
       return rows.map((row) {
         final users = row['users'];
         final userMap = users is Map ? Map<String, dynamic>.from(users) : <String, dynamic>{};
@@ -414,7 +415,7 @@ class SupabaseService {
         };
       }).toList();
     } catch (e) {
-      print('Error getting daily leaderboard: $e');
+      debugPrint('Error getting daily leaderboard: $e');
       try {
         final response = await _supabase
             .from('users')
@@ -431,7 +432,7 @@ class SupabaseService {
           'total_zikrs': user['total_zikrs'] ?? 0,
         }).toList();
       } catch (fallbackError) {
-        print('Fallback leaderboard also failed: $fallbackError');
+        debugPrint('Fallback leaderboard also failed: $fallbackError');
         if (_isNetworkError(e) || _isNetworkError(fallbackError)) rethrow;
         return [];
       }
@@ -453,7 +454,7 @@ class SupabaseService {
           .order('weekly_count', ascending: false)
           .limit(limit);
       final rows = List<Map<String, dynamic>>.from(response);
-      print('Leaderboard fetch: weekly ($weekStartStr) returned ${rows.length} users');
+      debugPrint('Leaderboard fetch: weekly ($weekStartStr) returned ${rows.length} users');
       return rows.map((row) {
         final users = row['users'];
         final userMap = users is Map ? Map<String, dynamic>.from(users) : <String, dynamic>{};
@@ -466,7 +467,7 @@ class SupabaseService {
         };
       }).toList();
     } catch (e) {
-      print('Error getting weekly leaderboard: $e');
+      debugPrint('Error getting weekly leaderboard: $e');
       try {
         final response = await _supabase
             .from('users')
@@ -483,7 +484,7 @@ class SupabaseService {
           'total_zikrs': user['total_zikrs'] ?? 0,
         }).toList();
       } catch (fallbackError) {
-        print('Fallback weekly leaderboard also failed: $fallbackError');
+        debugPrint('Fallback weekly leaderboard also failed: $fallbackError');
         if (_isNetworkError(e) || _isNetworkError(fallbackError)) rethrow;
         return [];
       }
@@ -505,7 +506,7 @@ class SupabaseService {
           .order('monthly_count', ascending: false)
           .limit(limit);
       final rows = List<Map<String, dynamic>>.from(response);
-      print('Leaderboard fetch: monthly ($monthStartStr) returned ${rows.length} users');
+      debugPrint('Leaderboard fetch: monthly ($monthStartStr) returned ${rows.length} users');
       return rows.map((row) {
         final users = row['users'];
         final userMap = users is Map ? Map<String, dynamic>.from(users) : <String, dynamic>{};
@@ -518,7 +519,7 @@ class SupabaseService {
         };
       }).toList();
     } catch (e) {
-      print('Error getting monthly leaderboard: $e');
+      debugPrint('Error getting monthly leaderboard: $e');
       try {
         final response = await _supabase
             .from('users')
@@ -535,7 +536,7 @@ class SupabaseService {
           'total_zikrs': user['total_zikrs'] ?? 0,
         }).toList();
       } catch (fallbackError) {
-        print('Fallback monthly leaderboard also failed: $fallbackError');
+        debugPrint('Fallback monthly leaderboard also failed: $fallbackError');
         if (_isNetworkError(e) || _isNetworkError(fallbackError)) rethrow;
         return [];
       }
@@ -555,7 +556,7 @@ class SupabaseService {
       
       return userIndex >= 0 ? userIndex + 1 : 0;
     } catch (e) {
-      print('Error getting user rank: $e');
+      debugPrint('Error getting user rank: $e');
       return 0;
     }
   }
@@ -565,7 +566,7 @@ class SupabaseService {
     try {
       return await getDailyLeaderboard(limit: limit);
     } catch (e) {
-      print('Error getting leaderboard: $e');
+      debugPrint('Error getting leaderboard: $e');
       return [];
     }
   }
@@ -578,7 +579,7 @@ class SupabaseService {
       if (session != null) {
         await _supabase.auth.signOut();
         await Future.delayed(const Duration(milliseconds: 150));
-        print('Leaderboard: Oturum kapatıldı, istek anon ile gidecek (tüm kullanıcılar görünsün).');
+        debugPrint('Leaderboard: Oturum kapatıldı, istek anon ile gidecek (tüm kullanıcılar görünsün).');
       }
     } catch (_) {}
   }
@@ -602,7 +603,7 @@ class SupabaseService {
       final response = await _supabase.rpc('get_leaderboard_all_time', params: {'lim': limit});
       final users = List<Map<String, dynamic>>.from(response as List);
       if (users.isNotEmpty) {
-        print('Leaderboard fetch: RPC returned ${users.length} users');
+        debugPrint('Leaderboard fetch: RPC returned ${users.length} users');
         return users.map((user) => {
             'user_id': _idToString(user['id']),
             'username': user['username'] ?? '',
@@ -612,7 +613,7 @@ class SupabaseService {
           }).toList();
       }
     } catch (e) {
-      print('Leaderboard RPC failed ($e), fallback to users table');
+      debugPrint('Leaderboard RPC failed ($e), fallback to users table');
     }
 
     await _ensureAnonForLeaderboard();
@@ -624,7 +625,7 @@ class SupabaseService {
           .order('total_zikrs', ascending: false)
           .limit(limit);
       final users = List<Map<String, dynamic>>.from(response);
-      print('Leaderboard fetch: table returned ${users.length} users');
+      debugPrint('Leaderboard fetch: table returned ${users.length} users');
       return users.map((user) => {
           'user_id': _idToString(user['id']),
           'username': user['username'] ?? '',
@@ -633,7 +634,7 @@ class SupabaseService {
           'total_zikrs': user['total_zikrs'] ?? 0,
         }).toList();
     } catch (e) {
-      print('Error getting all-time leaderboard: $e');
+      debugPrint('Error getting all-time leaderboard: $e');
       if (_isNetworkError(e)) rethrow;
       return [];
     }
@@ -648,7 +649,7 @@ class SupabaseService {
         params: {'lim': limit},
       );
       final rows = List<Map<String, dynamic>>.from(response as List);
-      print('Leaderboard fetch: cups returned ${rows.length} users');
+      debugPrint('Leaderboard fetch: cups returned ${rows.length} users');
       return rows.map((row) => {
             'user_id': _idToString(row['id']),
             'username': row['username'] ?? '',
@@ -664,7 +665,7 @@ class SupabaseService {
             'top_cup': row['top_cup'],
           }).toList();
     } catch (e) {
-      print('Error getting cup leaderboard: $e');
+      debugPrint('Error getting cup leaderboard: $e');
       if (_isNetworkError(e)) rethrow;
       return [];
     }
@@ -692,10 +693,10 @@ class SupabaseService {
       if (!_isInitialized) {
         throw Exception('Supabase yapılandırılmamış. Profil fotoğrafı sadece yerel kaydedilebilir.');
       }
-      print('📸 Starting avatar upload...');
+      debugPrint('📸 Starting avatar upload...');
 
       if (imageFile.path.isEmpty) {
-        print('❌ Empty file path');
+        debugPrint('❌ Empty file path');
         throw Exception('Resim dosyası seçilemedi. Lütfen tekrar deneyin.');
       }
 
@@ -707,7 +708,7 @@ class SupabaseService {
       }
 
       if (rawBytes.length > 10 * 1024 * 1024) {
-        print('❌ File too large: ${rawBytes.length} bytes');
+        debugPrint('❌ File too large: ${rawBytes.length} bytes');
         throw Exception('Resim dosyası çok büyük. Lütfen 10MB\'dan küçük bir resim seçin.');
       }
 
@@ -716,7 +717,7 @@ class SupabaseService {
         throw Exception('Resim çok büyük. Lütfen daha küçük bir resim seçin.');
       }
 
-      print('📤 Uploading file: $fileName, size: ${fileBytes.length} bytes');
+      debugPrint('📤 Uploading file: $fileName, size: ${fileBytes.length} bytes');
 
       final uploadResponse = await _supabase.storage
           .from('avatars')
@@ -729,19 +730,19 @@ class SupabaseService {
             ),
           );
       
-      print('✅ Upload successful: ${uploadResponse}');
+      debugPrint('✅ Upload successful: ${uploadResponse}');
       
       // Public URL oluştur
       final publicUrl = _supabase.storage
           .from('avatars')
           .getPublicUrl(fileName);
       
-      print('✅ Public URL: $publicUrl');
+      debugPrint('✅ Public URL: $publicUrl');
       return publicUrl;
       
     } catch (e, stack) {
-      print('❌ Avatar upload error: $e');
-      print('Stack: $stack');
+      debugPrint('❌ Avatar upload error: $e');
+      debugPrint('Stack: $stack');
       final isLateError = e.toString().contains('LateInitializationError');
       final isNotConfigured = e.toString().contains('yapılandırılmamış') || e.toString().contains('not set');
       String errorMessage = 'Profil fotoğrafı yüklenemedi. ';
@@ -780,7 +781,7 @@ class SupabaseService {
         params: {'user_id': uuid},
       );
     } catch (e) {
-      print('Error deleting user account: $e');
+      debugPrint('Error deleting user account: $e');
       rethrow;
     }
   }

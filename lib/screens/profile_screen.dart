@@ -180,10 +180,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
       
-      print('👤 User profile loaded: ${userProfile?.displayName ?? 'Unknown'}');
-      print('🖼️ Avatar URL: $avatarUrl');
+      debugPrint('👤 User profile loaded: ${userProfile?.displayName ?? 'Unknown'}');
+      debugPrint('🖼️ Avatar URL: $avatarUrl');
     } catch (e) {
-      print('Error loading user profile: $e');
+      debugPrint('Error loading user profile: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -254,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       setState(() => _isLoading = true);
       
-      print('📸 Avatar selection starting...');
+      debugPrint('📸 Avatar selection starting...');
       
       // Image picker'ı çalıştır
       final ImagePicker picker = ImagePicker();
@@ -266,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       
       if (image != null) {
-        print('📸 Image selected: ${image.path}');
+        debugPrint('📸 Image selected: ${image.path}');
         final pathLower = image.path.toLowerCase();
         final validExt = pathLower.endsWith('.jpg') ||
             pathLower.endsWith('.jpeg') ||
@@ -350,7 +350,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final avatarUrl = await _supabaseService.uploadAvatar(image);
         
         if (avatarUrl != null) {
-          print('✅ Avatar successfully uploaded: $avatarUrl');
+          debugPrint('✅ Avatar successfully uploaded: $avatarUrl');
           await _updateUserProfile(avatarUrl);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -386,15 +386,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           }
         } else {
-          print('❌ Avatar upload failed; saving locally.');
+          debugPrint('❌ Avatar upload failed; saving locally.');
           await _saveAvatarLocally(image!);
         }
       } else {
-        print('📸 No image selected');
+        debugPrint('📸 No image selected');
       }
       
     } catch (e) {
-      print('❌ Avatar selection error: $e');
+      debugPrint('❌ Avatar selection error: $e');
       _showErrorSnackBar(
         DynamicLocalizationHelper.getText({
               'tr': 'Profil fotoğrafı seçilemedi:',
@@ -532,7 +532,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } catch (e) {
-      print('❌ Local avatar save error: $e');
+      debugPrint('❌ Local avatar save error: $e');
       if (mounted) {
         _showErrorSnackBar(
           DynamicLocalizationHelper.getText({
@@ -646,7 +646,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         var photosStatus = await Permission.photos.request();
         var storageStatus = await Permission.storage.request();
         
-        print('📸 Permission check - Photos: $photosStatus, Storage: $storageStatus');
+        debugPrint('📸 Permission check - Photos: $photosStatus, Storage: $storageStatus');
         
         if (photosStatus.isGranted || storageStatus.isGranted) {
           return true;
@@ -662,7 +662,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       return true;
     } catch (e) {
-      print('📸 Permission check error: $e');
+      debugPrint('📸 Permission check error: $e');
       return false;
     }
   }
@@ -689,7 +689,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _userProfile = updatedProfile;
         });
         
-        print('✅ Avatar URL kaydedildi: $avatarUrl');
+        debugPrint('✅ Avatar URL kaydedildi: $avatarUrl');
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -717,7 +717,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } catch (e) {
-      print('❌ Avatar güncelleme hatası: $e');
+      debugPrint('❌ Avatar güncelleme hatası: $e');
       
       // Supabase hatası olursa local storage'a kaydet
       try {
@@ -756,7 +756,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       } catch (localError) {
-        print('❌ Local storage hatası: $localError');
+        debugPrint('❌ Local storage hatası: $localError');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -1411,7 +1411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       return true;
     } catch (e) {
-      print('Error updating username: $e');
+      debugPrint('Error updating username: $e');
       if (e is PostgrestException && e.code == '23505') {
         if (mounted) {
           _showErrorSnackBar(DynamicLocalizationHelper.getText({
@@ -1536,7 +1536,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       return true;
     } catch (e) {
-      print('Error updating display name: $e');
+      debugPrint('Error updating display name: $e');
       _saveProfileToLocal(updatedProfile);
       setState(() => _userProfile = updatedProfile);
       if (mounted) {
@@ -1613,7 +1613,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     } catch (e) {
-      print('Error refreshing profile: $e');
+      debugPrint('Error refreshing profile: $e');
       setState(() => _isLoading = false);
       
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1705,14 +1705,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } catch (e) {
         // İnternet yoksa ya da RLS hatası varsa burası çalışır.
         // Bu durumda en azından yerel verileri temizliyoruz.
-        print('Cloud delete failed: $e');
+        debugPrint('Cloud delete failed: $e');
       }
 
       // Hesap silme sonrası bildirim planlarını temizle.
       try {
         await _notificationService.cancelReminderNotifications();
       } catch (e) {
-        print('Reminder cancel failed: $e');
+        debugPrint('Reminder cancel failed: $e');
       }
 
       // Local verileri temizle (cihaz bazlı hesap akışı için yeterli).
@@ -1729,7 +1729,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             await f.delete();
           }
         } catch (e) {
-          print('Local avatar delete failed: $e');
+          debugPrint('Local avatar delete failed: $e');
         }
       }
       await prefs.clear();
@@ -1794,7 +1794,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Ana sayfaya dön
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     } catch (e) {
-      print('Error deleting account: $e');
+      debugPrint('Error deleting account: $e');
       setState(() => _isLoading = false);
       
       ScaffoldMessenger.of(context).showSnackBar(

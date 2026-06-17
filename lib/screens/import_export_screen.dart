@@ -540,7 +540,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       final file = File('${dir.path}/$fileName');
 
       await file.writeAsString(jsonEncode(exportData));
-      print('✅ Export file created: ${file.path}');
+      debugPrint('✅ Export file created: ${file.path}');
 
       final shareText = DynamicLocalizationHelper.getText({
         'tr': 'Zikirmatik yedek dosyam. İndirilenler\'e veya istediğiniz yere kaydedebilirsiniz.',
@@ -558,7 +558,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         });
       }
     } catch (e) {
-      print('❌ Export error: $e');
+      debugPrint('❌ Export error: $e');
       if (mounted) {
         setState(() {
           _statusMessage = '❌ ${_msg('export_write_error')}: $e';
@@ -650,7 +650,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         }
       }
     } catch (e) {
-      print('Export to Downloads error: $e');
+      debugPrint('Export to Downloads error: $e');
       if (mounted) {
         setState(() {
           _statusMessage = '❌ ${DynamicLocalizationHelper.getText({'tr': 'Kaydetme hatası', 'en': 'Save error', 'ar': 'خطأ في الحفظ', 'id': 'Kesalahan menyimpan', 'zh': '保存错误', 'ja': '保存エラー', 'ru': 'Ошибка сохранения', 'de': 'Speicherfehler', 'fr': 'Erreur d\'enregistrement'})}: $e';
@@ -704,7 +704,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         }
         final content = await file.readAsString();
         
-        print('📁 Importing from: ${file.path}');
+        debugPrint('📁 Importing from: ${file.path}');
         
         // JSON verisini parse et
         final importData = jsonDecode(content);

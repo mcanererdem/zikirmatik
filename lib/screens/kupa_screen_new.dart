@@ -142,7 +142,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
       _persistUnlockedCups(prefs);
       
     } catch (e) {
-      print('Error refreshing kupa screen: $e');
+      debugPrint('Error refreshing kupa screen: $e');
     }
   }
 
@@ -639,7 +639,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading zikr count: $e');
+      debugPrint('Error loading zikr count: $e');
       setState(() {
         _isLoading = false;
       });

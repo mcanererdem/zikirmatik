@@ -6,23 +6,28 @@ class CounterLogic {
   final SettingsService _settingsService = SettingsService();
   
   Future<void> incrementCounter(int currentCount, String? selectedZikrId) async {
-    await _settingsService.saveCurrentCount(currentCount);
-    await _settingsService.updateStreak();
-    await WidgetService.updateWidget(currentCount);
+    final List<Future<dynamic>> futures = [
+      _settingsService.saveCurrentCount(currentCount),
+      _settingsService.updateStreak(),
+      WidgetService.updateWidget(currentCount),
+    ];
 
     final today = DateTime.now();
     final todayCount = await _settingsService.getDailyCount(today);
-    await _settingsService.saveDailyCount(today, todayCount + 1);
-    await _settingsService.incrementWeeklyCount();
-    await _settingsService.incrementMonthlyCount();
-    await _settingsService.incrementTotalCount(1);
+    
+    futures.add(_settingsService.saveDailyCount(today, todayCount + 1));
+    futures.add(_settingsService.incrementWeeklyCount());
+    futures.add(_settingsService.incrementMonthlyCount());
+    futures.add(_settingsService.incrementTotalCount(1));
     
     if (selectedZikrId != null) {
       for (var type in ['daily', 'weekly', 'monthly']) {
         final period = _settingsService.getPeriodKey(type);
-        await _settingsService.incrementZikrCount(selectedZikrId, period);
+        futures.add(_settingsService.incrementZikrCount(selectedZikrId, period));
       }
     }
+
+    await Future.wait(futures);
   }
 
   Future<Map<String, dynamic>> updateGoalProgress(List<Goal> goals, String? selectedZikrId) async {
@@ -63,6 +68,6 @@ class CounterLogic {
 
   Future<void> resetCounter() async {
     await _settingsService.saveCurrentCount(0);
-    await WidgetService.updateWidget(0);
+    await WidgetService.updateWidgetImmediate();
   }
 }

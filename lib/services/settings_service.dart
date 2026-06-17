@@ -49,11 +49,11 @@ class SettingsService {
     await prefs.setString(_languageKey, languageCode);
     // Legacy compatibility (older code reads from `language` key).
     await prefs.setString(_legacyLanguageKey, languageCode);
-    print('🔧 SettingsService: Language saved to SharedPreferences: $languageCode');
+    debugPrint('🔧 SettingsService: Language saved to SharedPreferences: $languageCode');
     
     // Doğru kaydedildiğini kontrol et
     final savedLanguage = prefs.getString(_languageKey);
-    print('🔧 SettingsService: Verification - saved language_code: $savedLanguage');
+    debugPrint('🔧 SettingsService: Verification - saved language_code: $savedLanguage');
   }
 
   Future<String> getLanguage() async {
@@ -68,7 +68,7 @@ class SettingsService {
       await prefs.setString(_languageKey, legacyLanguage.trim());
     }
 
-    print('🔧 SettingsService: Language retrieved from SharedPreferences: $language');
+    debugPrint('🔧 SettingsService: Language retrieved from SharedPreferences: $language');
     return language;
   }
 

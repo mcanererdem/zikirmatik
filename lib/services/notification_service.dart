@@ -34,10 +34,10 @@ class NotificationService {
       final String timezoneName = await FlutterTimezone.getLocalTimezone();
       final location = tz.getLocation(timezoneName);
       tz.setLocalLocation(location);
-      print('Timezone set to: $timezoneName');
+      debugPrint('Timezone set to: $timezoneName');
     } catch (e) {
       // Eğer cihaz timezone bilgisini vermezse, varsayılan local kalır.
-      print('Failed to set local timezone, using default: $e');
+      debugPrint('Failed to set local timezone, using default: $e');
     }
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -56,7 +56,7 @@ class NotificationService {
       settings,
       onDidReceiveNotificationResponse: (response) {
         // Payload ileride gerektiğinde kullanılabilir
-        print('Bildirim tıklandı: ${response.payload}');
+        debugPrint('Bildirim tıklandı: ${response.payload}');
       },
     );
     
@@ -64,7 +64,7 @@ class NotificationService {
     
     // İzinleri kontrol et
     bool? granted = await androidImpl?.requestNotificationsPermission();
-    print('Bildirim izni verildi: $granted');
+    debugPrint('Bildirim izni verildi: $granted');
     
     // Bildirim kanallarını oluştur (hatırlatıcılar bu kanalı kullanır)
     const androidChannel = AndroidNotificationChannel(
@@ -87,13 +87,13 @@ class NotificationService {
       enableLights: true,
     );
     await androidImpl?.createNotificationChannel(zikrChannel);
-    print('Bildirim kanalları oluşturuldu');
+    debugPrint('Bildirim kanalları oluşturuldu');
     
     // Ayarları yükle
     await _loadSettings();
     
     _isInitialized = true;
-    print('Bildirim servisi başlatıldı');
+    debugPrint('Bildirim servisi başlatıldı');
   }
 
   /// Android 12+ tam saat bildirimleri için exact alarm izni (ayarlar diyaloğundan çağrılır)
@@ -113,7 +113,7 @@ class NotificationService {
       final minute = prefs.getInt('daily_reminder_minute') ?? 0;
       _dailyReminderTime = TimeOfDay(hour: hour, minute: minute);
     } catch (e) {
-      print('Bildirim ayarları yükleme hatası: $e');
+      debugPrint('Bildirim ayarları yükleme hatası: $e');
     }
   }
 
@@ -126,7 +126,7 @@ class NotificationService {
       await prefs.setInt('daily_reminder_hour', _dailyReminderTime.hour);
       await prefs.setInt('daily_reminder_minute', _dailyReminderTime.minute);
     } catch (e) {
-      print('Bildirim ayarları kaydetme hatası: $e');
+      debugPrint('Bildirim ayarları kaydetme hatası: $e');
     }
   }
 
@@ -138,10 +138,10 @@ class NotificationService {
     required DateTime scheduledDate,
   }) async {
     try {
-      print('Scheduling notification: $title at $scheduledDate');
+      debugPrint('Scheduling notification: $title at $scheduledDate');
       
       final tz.TZDateTime scheduledDateTZ = tz.TZDateTime.from(scheduledDate, tz.local);
-      print('Timezone converted date: $scheduledDateTZ');
+      debugPrint('Timezone converted date: $scheduledDateTZ');
       
       await _notifications.zonedSchedule(
         id,
@@ -167,9 +167,9 @@ class NotificationService {
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
       
-      print('Notification scheduled successfully');
+      debugPrint('Notification scheduled successfully');
     } catch (e) {
-      print('Error scheduling notification: $e');
+      debugPrint('Error scheduling notification: $e');
     }
   }
 
@@ -197,7 +197,7 @@ class NotificationService {
         ),
       );
     } catch (e) {
-      print('Kupa bildirimi hatası: $e');
+      debugPrint('Kupa bildirimi hatası: $e');
     }
   }
 
@@ -225,7 +225,7 @@ class NotificationService {
         ),
       );
     } catch (e) {
-      print('Zikir tamamlama bildirimi hatası: $e');
+      debugPrint('Zikir tamamlama bildirimi hatası: $e');
     }
   }
 
@@ -267,7 +267,7 @@ class NotificationService {
         ),
       );
       
-      print('Test bildirimi gösterildi');
+      debugPrint('Test bildirimi gösterildi');
       
       // 5 saniye sonra planlanmış bildirim test
       await Future.delayed(const Duration(seconds: 1));
@@ -296,10 +296,10 @@ class NotificationService {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
       
-      print('Planlanmış test bildirimi 5 saniye sonra gösterilecek');
+      debugPrint('Planlanmış test bildirimi 5 saniye sonra gösterilecek');
       
     } catch (e) {
-      print('Test bildirimi hatası: $e');
+      debugPrint('Test bildirimi hatası: $e');
     }
   }
 
@@ -325,9 +325,9 @@ class NotificationService {
           ),
         ),
       );
-      print('Anlık test bildirimi gösterildi');
+      debugPrint('Anlık test bildirimi gösterildi');
     } catch (e) {
-      print('Anlık test bildirimi hatası: $e');
+      debugPrint('Anlık test bildirimi hatası: $e');
     }
   }
 
@@ -354,9 +354,9 @@ class NotificationService {
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
-      print('Test bildirimi $seconds saniye sonra planlandı ($scheduledTz)');
+      debugPrint('Test bildirimi $seconds saniye sonra planlandı ($scheduledTz)');
     } catch (e) {
-      print('Test bildirimi planlama hatası: $e');
+      debugPrint('Test bildirimi planlama hatası: $e');
     }
   }
 
@@ -365,7 +365,7 @@ class NotificationService {
     try {
       await _notifications.cancelAll();
     } catch (e) {
-      print('Bildirimleri iptal etme hatası: $e');
+      debugPrint('Bildirimleri iptal etme hatası: $e');
     }
   }
 
@@ -378,7 +378,7 @@ class NotificationService {
         await _notifications.cancel(id);
       }
     } catch (e) {
-      print('Hatırlatıcı iptal hatası: $e');
+      debugPrint('Hatırlatıcı iptal hatası: $e');
     }
   }
 
@@ -393,7 +393,7 @@ class NotificationService {
     try {
       await cancelReminderNotifications();
       if (selectedDays.isEmpty) {
-        print('Hatırlatıcı: gün seçilmedi, planlama atlandı');
+        debugPrint('Hatırlatıcı: gün seçilmedi, planlama atlandı');
         return;
       }
       for (String day in selectedDays) {
@@ -442,9 +442,9 @@ class NotificationService {
         }
       }
       final pending = await _notifications.pendingNotificationRequests();
-      print('Hatırlatıcı planlandı. Bekleyen: ${pending.length}');
+      debugPrint('Hatırlatıcı planlandı. Bekleyen: ${pending.length}');
     } catch (e) {
-      print('Hatırlatıcı planlama hatası: $e');
+      debugPrint('Hatırlatıcı planlama hatası: $e');
     }
   }
 
@@ -486,7 +486,7 @@ class NotificationService {
     List<String>? selectedDays,
   }) async {
     if (!_zikirRemindersEnabled) {
-      print('Zikir hatırlatıcılar devre dışı');
+      debugPrint('Zikir hatırlatıcılar devre dışı');
       return;
     }
 
@@ -495,11 +495,11 @@ class NotificationService {
       await _notifications.cancel(3);
       
       final now = DateTime.now();
-      print('Current time (local): ${now.toString()}');
-      print('Scheduling reminder for $hour:$minute');
+      debugPrint('Current time (local): ${now.toString()}');
+      debugPrint('Scheduling reminder for $hour:$minute');
       
       if (selectedDays != null && selectedDays.isNotEmpty) {
-        print('Selected days: $selectedDays');
+        debugPrint('Selected days: $selectedDays');
         
         // Her seçilen gün için bildirim planla
         for (int i = 0; i < selectedDays.length; i++) {
@@ -531,7 +531,7 @@ class NotificationService {
               matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime, // Haftanın günü ve saat
             );
             
-            print('Hatırlatıcı planlandı: $title ($dayName) saat $hour:$minute - ${scheduledDate.toString()}');
+            debugPrint('Hatırlatıcı planlandı: $title ($dayName) saat $hour:$minute - ${scheduledDate.toString()}');
           }
         }
       } else {
@@ -571,18 +571,18 @@ class NotificationService {
           matchDateTimeComponents: DateTimeComponents.time, // Her gün tekrarla
         );
 
-        print('Günlük hatırlatıcı planlandı: $title saat $hour:$minute - ${scheduledDate.toString()}');
+        debugPrint('Günlük hatırlatıcı planlandı: $title saat $hour:$minute - ${scheduledDate.toString()}');
       }
       
       // Bekleyen bildirimleri kontrol et
       final pendingNotifications = await _notifications.pendingNotificationRequests();
-      print('Bekleyen bildirim sayısı: ${pendingNotifications.length}');
+      debugPrint('Bekleyen bildirim sayısı: ${pendingNotifications.length}');
       for (final notification in pendingNotifications) {
-        print('ID: ${notification.id}, Title: ${notification.title}');
+        debugPrint('ID: ${notification.id}, Title: ${notification.title}');
       }
       
     } catch (e) {
-      print('Günlük hatırlatıcı planlama hatası: $e');
+      debugPrint('Günlük hatırlatıcı planlama hatası: $e');
     }
   }
   

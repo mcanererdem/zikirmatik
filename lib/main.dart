@@ -51,8 +51,8 @@ void main() {
   // Zone uyumsuzluğunu önlemek için binding ve runApp aynı zone içinde olmalı.
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    // allowRuntimeFetching = true: İnternet varken fonts.gstatic.com'dan yüklenir. Yoksa zone hata yakalar.
-    GoogleFonts.config.allowRuntimeFetching = true;
+    // allowRuntimeFetching = false: Do not fetch fonts from web, use embedded assets.
+    GoogleFonts.config.allowRuntimeFetching = false;
 
     HomeWidget.registerInteractivityCallback(backgroundCallback);
 

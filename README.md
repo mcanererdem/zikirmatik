@@ -214,6 +214,11 @@ Available at: `https://mcanererdem.github.io/zikirmatik/privacy_policy.html`
 
 ## Performance & Optimization ⚡
 
+### Performance Improvements
+- **Widget Updates Debouncing:** App updates on home widget are throttled and debounced by 300ms to eliminate haptic tap lag.
+- **Concurrent Disk Writes:** Counter increment writes to SharedPreferences are executed in parallel (`Future.wait`) for near-zero UI delay.
+- **Consolidated Localizations:** Removed translation map duplication to reduce app footprint and ensure correct locale fallbacks.
+
 ### Animation Speed Control
 - **Off (0):** All animations disabled for maximum performance
 - **Slow (1):** Relaxed animations for accessibility
@@ -243,4 +248,4 @@ Released under the MIT License.
 
 Made with love and dedication ❤️
 
-**Version 1.2.1 - Modern dhikr counter with cloud sync, smart reminders and leaderboard improvements**
+**Version 1.2.5 - Modern dhikr counter with cloud sync, smart reminders, leaderboard improvements and high-performance optimizations**

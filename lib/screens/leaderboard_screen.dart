@@ -265,7 +265,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       );
       await prefs.setInt(key, nowMs);
     } catch (e) {
-      print('Leaderboard pre-load sync skipped: $e');
+      debugPrint('Leaderboard pre-load sync skipped: $e');
     }
   }
 
@@ -638,15 +638,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Future<void> _loadLocalLeaderboard() async {
     try {
-      print('=== LOCAL LEADERBOARD DEBUG ===');
-      print('Loading local leaderboard...');
+      debugPrint('=== LOCAL LEADERBOARD DEBUG ===');
+      debugPrint('Loading local leaderboard...');
 
       final prefs = await SharedPreferences.getInstance();
       final currentUserZikrs =
           prefs.getInt('total_zikrs_${widget.currentUserId}') ?? 0;
       final showInLeaderboard = await _settingsService.getShowInLeaderboard();
 
-      print('Current user local zikrs: $currentUserZikrs');
+      debugPrint('Current user local zikrs: $currentUserZikrs');
 
       final sampleData = [
         {
@@ -721,16 +721,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         // _showOfflineBanner zaten catch'te set edildi
       });
 
-      print('=== LOCAL LEADERBOARD RESULTS ===');
-      print('Sample users: ${sampleData.length}');
-      print('Total users (with current): ${allUsers.length}');
-      print('Current user zikrs: $currentUserZikrs');
-      print('Current user rank: $userRank');
-      print('==============================');
+      debugPrint('=== LOCAL LEADERBOARD RESULTS ===');
+      debugPrint('Sample users: ${sampleData.length}');
+      debugPrint('Total users (with current): ${allUsers.length}');
+      debugPrint('Current user zikrs: $currentUserZikrs');
+      debugPrint('Current user rank: $userRank');
+      debugPrint('==============================');
     } catch (e) {
-      print('=== LOCAL LEADERBOARD ERROR ===');
-      print('Error loading local leaderboard: $e');
-      print('==============================');
+      debugPrint('=== LOCAL LEADERBOARD ERROR ===');
+      debugPrint('Error loading local leaderboard: $e');
+      debugPrint('==============================');
       setState(() => _isLoading = false);
     }
   }
@@ -1504,7 +1504,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       );
     }
 
-    print('_buildLeaderboardList: building ${_leaderboard.length} items');
+    debugPrint('_buildLeaderboardList: building ${_leaderboard.length} items');
     final children = <Widget>[];
     for (int index = 0; index < _leaderboard.length; index++) {
       final user = _leaderboard[index];

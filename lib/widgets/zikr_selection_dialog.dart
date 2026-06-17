@@ -99,32 +99,37 @@ class ZikrSelectionDialog extends StatelessWidget {
 
             // Zikr List
             Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Default Zikrs
-                    ...defaultZikrs.map((zikr) => _buildZikrItem(context, zikr, false)),
-
-                    if (customZikrs.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        DynamicLocalizationHelper.getText({
-                          'tr': 'Özel Zikirler',
-                          'en': 'Custom Dhikrs',
-                          'ar': 'أذكار مخصصة',
-                        }),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: themeConfig.accentColor.withOpacity(0.8),
-                          fontWeight: FontWeight.w600,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: defaultZikrs.length + (customZikrs.isNotEmpty ? customZikrs.length + 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index < defaultZikrs.length) {
+                    return _buildZikrItem(context, defaultZikrs[index], false);
+                  }
+                  final customIndex = index - defaultZikrs.length;
+                  if (customIndex == 0) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        Text(
+                          DynamicLocalizationHelper.getText({
+                            'tr': 'Özel Zikirler',
+                            'en': 'Custom Dhikrs',
+                            'ar': 'أذكار مخصصة',
+                          }),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: themeConfig.accentColor.withOpacity(0.8),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      ...customZikrs.map((zikr) => _buildZikrItem(context, zikr, true)),
-                    ],
-                  ],
-                ),
+                        const SizedBox(height: 8),
+                      ],
+                    );
+                  }
+                  return _buildZikrItem(context, customZikrs[customIndex - 1], true);
+                },
               ),
             ),
 

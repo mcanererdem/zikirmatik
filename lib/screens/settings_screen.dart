@@ -1146,8 +1146,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _changeLanguage(String language) async {
     try {
-      print('🔄 _changeLanguage started with: $language');
-      print('🔄 Current _currentLanguage before change: $_currentLanguage');
+      debugPrint('🔄 _changeLanguage started with: $language');
+      debugPrint('🔄 Current _currentLanguage before change: $_currentLanguage');
       
       // Önce SharedPreferences'e kaydet
       await _settingsService.saveLanguage(language);
@@ -1162,7 +1162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Üst widget (MyApp) dil güncellemesini alsın ki MaterialApp locale değişsin
       widget.onLanguageChanged?.call(language);
 
-      print('🌐 Language changed to: $language');
+      debugPrint('🌐 Language changed to: $language');
 
       // Ana sayfaya geri dön ve uygulamayı tamamen yenile
       if (mounted) {
@@ -1221,16 +1221,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
               onLanguageChanged: (language) {
                 // Dil değişimini callback olarak al
-                print('🔄 HomePage language callback received: $language');
+                debugPrint('🔄 HomePage language callback received: $language');
               },
             ),
           ),
         );
       }
       
-      print('🔄 Navigation completed - app should restart with new language');
+      debugPrint('🔄 Navigation completed - app should restart with new language');
     } catch (e) {
-      print('❌ Error during language change: $e');
+      debugPrint('❌ Error during language change: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1461,7 +1461,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         monthlyCount: monthlyCount,
       );
     } catch (e) {
-      print('Error pushing current stats to leaderboard: $e');
+      debugPrint('Error pushing current stats to leaderboard: $e');
     }
   }
 

@@ -36,7 +36,7 @@ import '../widgets/target_dialog.dart';
 import '../widgets/goal_dialog.dart';
 import '../widgets/notification_settings_dialog.dart';
 import '../widgets/confetti_animation.dart';
-import '../widgets/dialog_manager.dart';
+import '../utils/dialog_manager.dart';
 import '../screens/statistics_screen_new.dart';
 import '../screens/kupa_screen_new.dart';
 import '../screens/leaderboard_screen.dart';
@@ -127,7 +127,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   @override
   void initState() {
     super.initState();
-    print('🏠 HomePage initState called');
+    debugPrint('🏠 HomePage initState called');
     // Dynamic localization helper'ı başlat
     DynamicLocalizationHelper.initialize();
     
@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     // Supabase'i başlat (dart-define yoksa uygulama çökmemeli).
     unawaited(
       _supabaseService.initialize().catchError((e) {
-        print('Supabase initialize skipped: $e');
+        debugPrint('Supabase initialize skipped: $e');
       }),
     );
     
@@ -200,14 +200,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     
     if (savedUserId != null && savedUserId!.isNotEmpty) {
       _currentUserId = savedUserId;
-      print('👤 Existing user ID loaded: $_currentUserId');
+      debugPrint('👤 Existing user ID loaded: $_currentUserId');
     } else {
       // Yeni kullanıcılar için tahmin edilmesi zor rastgele UUID kullan.
       _currentUserId = _supabaseService.generateUserId();
       
       // Kaydet
       await _secureStorageService.write('user_id_secure', _currentUserId);
-      print('🎲 New random user ID generated: $_currentUserId');
+      debugPrint('🎲 New random user ID generated: $_currentUserId');
     }
   }
 
@@ -228,7 +228,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   }
 
   Future<void> _loadSettings() async {
-    print('🔄 Loading settings...');
+    debugPrint('🔄 Loading settings...');
     await WidgetService.syncWidgetCounter();
     final themeId = await _settingsService.getTheme();
     final languageCode = await _settingsService.getLanguage();
@@ -259,10 +259,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       legacyPrefsKey: 'display_name_$_currentUserId',
     );
     
-    print('🏠 HomePage _loadSettings:');
-    print('🏠 languageCode from settings: $languageCode');
-    print('🏠 currentLanguage from SharedPreferences: $currentLanguage');
-    print('🏠 Using language: $currentLanguage');
+    debugPrint('🏠 HomePage _loadSettings:');
+    debugPrint('🏠 languageCode from settings: $languageCode');
+    debugPrint('🏠 currentLanguage from SharedPreferences: $currentLanguage');
+    debugPrint('🏠 Using language: $currentLanguage');
 
     // Dynamic localization helper'ı güncelle
     await DynamicLocalizationHelper.setLanguage(currentLanguage);
@@ -291,10 +291,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     setState(() {
       // Sistem / sadece koyu moda göre tema seçimi
       _currentTheme = AppThemes.getThemeForMode(themeId, isDarkMode);
-      print('🎨 Theme loaded: $themeId (dark: $isDarkMode, themeMode: $themeMode)');
+      debugPrint('🎨 Theme loaded: $themeId (dark: $isDarkMode, themeMode: $themeMode)');
       _currentLanguage = currentLanguage; // SharedPreferences'ten gelen dil
       _localizations = AppLocalizations(currentLanguage);
-      print('🌐 Language loaded: $currentLanguage');
+      debugPrint('🌐 Language loaded: $currentLanguage');
       _isVibrationOn = vibration;
       _isSoundOn = sound;
       _isConfettiOn = confetti;
@@ -310,7 +310,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       _target = persistedTarget;
     });
     
-    print('✅ Settings loaded successfully');
+    debugPrint('✅ Settings loaded successfully');
     
     // Batch sync'i başlat
     _startBatchSync();
@@ -350,7 +350,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    print('🏠 HomePage didChangeDependencies called');
+    debugPrint('🏠 HomePage didChangeDependencies called');
     // Her sayfa değişiminde dil kontrolü yap
     _refreshLanguage();
   }
@@ -358,15 +358,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   Future<void> _refreshLanguage() async {
     final currentLanguage = await _settingsService.getLanguage();
     
-    print('🏠 _refreshLanguage called');
-    print('🏠 Current _currentLanguage: $_currentLanguage');
-    print('🏠 Language from SharedPreferences: $currentLanguage');
+    debugPrint('🏠 _refreshLanguage called');
+    debugPrint('🏠 Current _currentLanguage: $_currentLanguage');
+    debugPrint('🏠 Language from SharedPreferences: $currentLanguage');
     
     // Dynamic localization helper'ı güncelle
     await DynamicLocalizationHelper.setLanguage(currentLanguage);
     
     if (_currentLanguage != currentLanguage) {
-      print('🏠 Language changed in didChangeDependencies: $_currentLanguage -> $currentLanguage');
+      debugPrint('🏠 Language changed in didChangeDependencies: $_currentLanguage -> $currentLanguage');
       setState(() {
         _currentLanguage = currentLanguage;
         _localizations = AppLocalizations(currentLanguage);
@@ -378,9 +378,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       }
       
       // Tüm sayfaları zorla yenile
-      print('🏠 Forcing UI refresh with new language');
+      debugPrint('🏠 Forcing UI refresh with new language');
     } else {
-      print('🏠 Language unchanged, no refresh needed');
+      debugPrint('🏠 Language unchanged, no refresh needed');
     }
   }
 
@@ -398,6 +398,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       final prefs = await SharedPreferences.getInstance();
       final animationSpeed = prefs.getInt('animation_speed') ?? 2;
       _updateAnimationSpeed(animationSpeed);
+    } else if (state == AppLifecycleState.paused) {
+      // Force widget update immediately when user backgrounds the app
+      await WidgetService.updateWidgetImmediate();
     }
   }
 
@@ -441,7 +444,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     await prefs.setInt('total_zikrs_$_currentUserId', totalZikrs + 1);
     await prefs.setString('last_zikr_date_$_currentUserId', DateTime.now().toIso8601String());
     
-    print('Zikir count saved locally: ${totalZikrs + 1}');
+    debugPrint('Zikir count saved locally: ${totalZikrs + 1}');
     
     // Not: Her tıklamada cloud upload yapılmaz.
     // Cloud sync; leaderboard ekranı açılışında ve rate-limit'li refresh ile yapılır.
@@ -669,9 +672,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         await _supabaseService.updateWeeklyLeaderboard(_currentUserId, totalZikrs);
         await _supabaseService.updateMonthlyLeaderboard(_currentUserId, totalZikrs);
       }
-      print('✅ Auto-sync to leaderboard: $username ($totalZikrs zikrs)');
+      debugPrint('✅ Auto-sync to leaderboard: $username ($totalZikrs zikrs)');
     } catch (e) {
-      print('❌ Error auto-syncing to leaderboard: $e');
+      debugPrint('❌ Error auto-syncing to leaderboard: $e');
     }
   }
 
@@ -697,12 +700,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         // Sadece günlük kupaları sıfırla
         await prefs.remove('daily_warrior_unlocked_$_currentUserId');
         await prefs.setString('last_achievement_check_$_currentUserId', todayKey);
-        print('📅 Daily achievements reset for $todayKey');
+        debugPrint('📅 Daily achievements reset for $todayKey');
       }
       
       final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
       
-      print('Checking achievements for $totalZikrs zikrs');
+      debugPrint('Checking achievements for $totalZikrs zikrs');
       
       // Leaderboard senkronizasyonu (varsayılan: kapalı)
       final leaderboardEnabled = await _settingsService.getShowInLeaderboard();
@@ -721,14 +724,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       if (totalZikrs >= 100) {
         final bronzeUnlocked = prefs.getBool('bronze_kupa_unlocked_$_currentUserId') ?? false;
         if (!bronzeUnlocked) {
-          print('🥉 Bronze Kupa unlocked!');
+          debugPrint('🥉 Bronze Kupa unlocked!');
           _showAchievementNotification('🥉 Bronz Kupa Kazandınız!', '100 zikir hedefine ulaştınız!');
           await prefs.setBool('bronze_kupa_unlocked_$_currentUserId', true);
           // Supabase'e kaydet
           try {
             await _supabaseService.unlockAchievement(_currentUserId, 'bronze_kupa');
           } catch (e) {
-            print('Error saving bronze achievement to Supabase: $e');
+            debugPrint('Error saving bronze achievement to Supabase: $e');
           }
         }
       }
@@ -737,14 +740,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       if (totalZikrs >= 500) {
         final silverUnlocked = prefs.getBool('silver_kupa_unlocked_$_currentUserId') ?? false;
         if (!silverUnlocked) {
-          print('🥈 Silver Kupa unlocked!');
+          debugPrint('🥈 Silver Kupa unlocked!');
           _showAchievementNotification('🥈 Gümüş Kupa Kazandınız!', '500 zikir hedefine ulaştınız!');
           await prefs.setBool('silver_kupa_unlocked_$_currentUserId', true);
           // Supabase'e kaydet
           try {
             await _supabaseService.unlockAchievement(_currentUserId, 'silver_kupa');
           } catch (e) {
-            print('Error saving silver achievement to Supabase: $e');
+            debugPrint('Error saving silver achievement to Supabase: $e');
           }
         }
       }
@@ -753,14 +756,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       if (totalZikrs >= 1000) {
         final goldUnlocked = prefs.getBool('gold_kupa_unlocked_$_currentUserId') ?? false;
         if (!goldUnlocked) {
-          print('🥇 Gold Kupa unlocked!');
+          debugPrint('🥇 Gold Kupa unlocked!');
           _showAchievementNotification('🥇 Altın Kupa Kazandınız!', '1000 zikir hedefine ulaştınız!');
           await prefs.setBool('gold_kupa_unlocked_$_currentUserId', true);
           // Supabase'e kaydet
           try {
             await _supabaseService.unlockAchievement(_currentUserId, 'gold_kupa');
           } catch (e) {
-            print('Error saving gold achievement to Supabase: $e');
+            debugPrint('Error saving gold achievement to Supabase: $e');
           }
         }
       }
@@ -769,14 +772,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       if (totalZikrs >= 5000) {
         final diamondUnlocked = prefs.getBool('diamond_kupa_unlocked_$_currentUserId') ?? false;
         if (!diamondUnlocked) {
-          print('💎 Diamond Kupa unlocked!');
+          debugPrint('💎 Diamond Kupa unlocked!');
           _showAchievementNotification('💎 Elmas Kupa Kazandınız!', '5000 zikir hedefine ulaştınız!');
           await prefs.setBool('diamond_kupa_unlocked_$_currentUserId', true);
           // Supabase'e kaydet
           try {
             await _supabaseService.unlockAchievement(_currentUserId, 'diamond_kupa');
           } catch (e) {
-            print('Error saving diamond achievement to Supabase: $e');
+            debugPrint('Error saving diamond achievement to Supabase: $e');
           }
         }
       }
@@ -785,14 +788,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       if (totalZikrs >= 10000) {
         final platinumUnlocked = prefs.getBool('platinum_kupa_unlocked_$_currentUserId') ?? false;
         if (!platinumUnlocked) {
-          print('🏆 Platinum Kupa unlocked!');
+          debugPrint('🏆 Platinum Kupa unlocked!');
           _showAchievementNotification('🏆 Platin Kupa Kazandınız!', '10000 zikir hedefine ulaştınız!');
           await prefs.setBool('platinum_kupa_unlocked_$_currentUserId', true);
           // Supabase'e kaydet
           try {
             await _supabaseService.unlockAchievement(_currentUserId, 'platinum_kupa');
           } catch (e) {
-            print('Error saving platinum achievement to Supabase: $e');
+            debugPrint('Error saving platinum achievement to Supabase: $e');
           }
         }
       }
@@ -802,20 +805,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       if (todayZikrs >= 1000) {
         final dailyWarriorUnlocked = prefs.getBool('daily_warrior_unlocked_$_currentUserId') ?? false;
         if (!dailyWarriorUnlocked) {
-          print('⚔️ Daily Warrior unlocked!');
+          debugPrint('⚔️ Daily Warrior unlocked!');
           _showAchievementNotification('⚔️ Günlük Savaşçı!', 'Bugün 1000 zikir yaptınız!');
           await prefs.setBool('daily_warrior_unlocked_$_currentUserId', true);
           // Supabase'e kaydet
           try {
             await _supabaseService.unlockAchievement(_currentUserId, 'daily_warrior');
           } catch (e) {
-            print('Error saving daily warrior achievement to Supabase: $e');
+            debugPrint('Error saving daily warrior achievement to Supabase: $e');
           }
         }
       }
       
     } catch (e) {
-      print('Error checking achievements: $e');
+      debugPrint('Error checking achievements: $e');
     }
   }
 
@@ -870,7 +873,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         'platinum_kupa': prefs.getBool('platinum_kupa_unlocked_$_currentUserId') ?? false,
       };
     } catch (e) {
-      print('Error getting unlocked cups: $e');
+      debugPrint('Error getting unlocked cups: $e');
       return {};
     }
   }
@@ -1805,12 +1808,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   // Batch sync metotları
   void _startBatchSync() {
     _batchSyncTimer?.cancel();
-    print('⏸️ Batch cloud sync disabled by policy');
+    debugPrint('⏸️ Batch cloud sync disabled by policy');
   }
 
   void _stopBatchSync() {
     _batchSyncTimer?.cancel();
-    print('⏹️ Batch sync stopped');
+    debugPrint('⏹️ Batch sync stopped');
   }
 
   Future<void> _batchSyncToLeaderboard() async {
