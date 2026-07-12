@@ -60,14 +60,14 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
 
   Future<void> _saveSettings() async {
     try {
-      print('Saving notification settings...');
-      print('Enabled: $_isNotificationEnabled');
-      print('Morning enabled: $_morningNotification');
-      print('Evening enabled: $_eveningNotification');
-      print('Morning time: $_morningTime');
-      print('Evening time: $_eveningTime');
-      print('Selected days: $_selectedDays');
-      
+      debugPrint('Saving notification settings...');
+      debugPrint('Enabled: $_isNotificationEnabled');
+      debugPrint('Morning enabled: $_morningNotification');
+      debugPrint('Evening enabled: $_eveningNotification');
+      debugPrint('Morning time: $_morningTime');
+      debugPrint('Evening time: $_eveningTime');
+      debugPrint('Selected days: $_selectedDays');
+
       await _settingsService.saveReminderEnabled(_isNotificationEnabled);
       await _settingsService.saveNotificationDays(_selectedDays);
       await _settingsService.saveMorningNotificationTime(_morningTime);
@@ -116,9 +116,9 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
         await _notificationService.cancelReminderNotifications();
       }
 
-      print('Notification settings saved successfully');
+      debugPrint('Notification settings saved successfully');
     } catch (e) {
-      print('Error saving notification settings: $e');
+      debugPrint('Error saving notification settings: $e');
     }
   }
 

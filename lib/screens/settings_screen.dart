@@ -773,9 +773,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
               await _settingsService.saveReminderEnabled(value);
 
-              // Kullanıcı kapattıysa, daha önce planlanmış bildirimleri iptal et.
               if (!value) {
+                // Kullanıcı kapattıysa, daha önce planlanmış bildirimleri iptal et.
                 await _notificationService.cancelReminderNotifications();
+              } else {
+                // Açıldığında bildirimleri hemen planla; aksi halde uygulama
+                // yeniden başlatılana veya "Hatırlatıcı Ayarla" diyaloğundan
+                // kaydedilene kadar hiçbir bildirim planlanmıyordu.
+                final days = await _settingsService.getNotificationDays();
+                if (days.isNotEmpty) {
+                  final morningTime = await _settingsService.getMorningNotificationTime();
+                  final eveningTime = await _settingsService.getEveningNotificationTime();
+                  final morningEnabled = await _settingsService.getMorningNotificationEnabled();
+                  final eveningEnabled = await _settingsService.getEveningNotificationEnabled();
+                  await _notificationService.requestExactAlarmsPermission();
+                  await _notificationService.scheduleReminderNotifications(
+                    selectedDays: days,
+                    morningTime: morningTime,
+                    eveningTime: eveningTime,
+                    morningEnabled: morningEnabled,
+                    eveningEnabled: eveningEnabled,
+                  );
+                }
               }
             },
             activeThumbColor: widget.themeConfig.accentColor,
