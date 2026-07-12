@@ -212,11 +212,18 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.light,
         primarySwatch: Colors.blue,
         textTheme: GoogleFonts.notoSansTextTheme(),
+        // Ekranlar kendi tema rengini Scaffold.backgroundColor ile ayarlıyor;
+        // varsayılan beyaz burada kalırsa sayfa geçiş animasyonu sırasında
+        // kısa bir beyaz patlama (flash) oluyordu.
+        scaffoldBackgroundColor: const Color(0xFF0B1220),
+        canvasColor: const Color(0xFF0B1220),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.blue,
         textTheme: GoogleFonts.notoSansTextTheme(),
+        scaffoldBackgroundColor: const Color(0xFF0B1220),
+        canvasColor: const Color(0xFF0B1220),
       ),
       themeMode: _themeMode,
       home: FutureBuilder<void>(

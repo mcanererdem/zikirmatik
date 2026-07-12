@@ -1229,6 +1229,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      backgroundColor: _currentTheme.primaryColor,
       body: Container(
         width: double.infinity,
         height: double.infinity,
