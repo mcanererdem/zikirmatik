@@ -234,22 +234,50 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   Future<void> _loadSettings() async {
     debugPrint('🔄 Loading settings...');
     await WidgetService.syncWidgetCounter();
-    final themeId = await _settingsService.getTheme();
-    final languageCode = await _settingsService.getLanguage();
-    final vibration = await _settingsService.getVibration();
-    final sound = await _settingsService.getSound();
-    final confetti = await _settingsService.getConfetti();
-    final ttsEnabled = await _settingsService.getTtsEnabled();
-    final customZikrs = await _settingsService.getCustomZikrs();
-    final editedDefaultZikrs = await _settingsService.getEditedDefaultZikrs();
-    final selectedZikrId = await _settingsService.getSelectedZikr();
-    final savedCount = await _settingsService.getCurrentCount();
-    final goals = await _settingsService.getGoals();
-    final reminderEnabled = await _settingsService.getReminderEnabled();
-    await _settingsService.cleanExpiredGoals();
-    
-    // Tema modu: theme_mode (system/light/dark) — Dark seçili kalır
-    final themeMode = await _settingsService.getThemeMode();
+
+    // Goals sırayla okunmalı (cleanExpiredGoals'tan önce), ama diğer
+    // bağımsız okumalarla paralel çalışabilir.
+    Future<List<Goal>> loadGoals() async {
+      final goals = await _settingsService.getGoals();
+      await _settingsService.cleanExpiredGoals();
+      return goals;
+    }
+
+    final results = await Future.wait<dynamic>([
+      _settingsService.getTheme(),
+      _settingsService.getLanguage(),
+      _settingsService.getVibration(),
+      _settingsService.getSound(),
+      _settingsService.getConfetti(),
+      _settingsService.getTtsEnabled(),
+      _settingsService.getCustomZikrs(),
+      _settingsService.getEditedDefaultZikrs(),
+      _settingsService.getSelectedZikr(),
+      _settingsService.getCurrentCount(),
+      _settingsService.getReminderEnabled(),
+      _settingsService.getThemeMode(),
+      loadGoals(),
+      _secureStorageService.readWithMigration(
+        secureKey: 'display_name_$_currentUserId',
+        legacyPrefsKey: 'display_name_$_currentUserId',
+      ),
+    ]);
+
+    final themeId = results[0] as String;
+    final languageCode = results[1] as String;
+    final vibration = results[2] as bool;
+    final sound = results[3] as bool;
+    final confetti = results[4] as bool;
+    final ttsEnabled = results[5] as bool;
+    final customZikrs = results[6] as List<ZikrModel>;
+    final editedDefaultZikrs = results[7] as List<ZikrModel>;
+    final selectedZikrId = results[8] as String?;
+    final savedCount = results[9] as int;
+    final reminderEnabled = results[10] as bool;
+    final themeMode = results[11] as String;
+    final goals = results[12] as List<Goal>;
+    _profileDisplayName = results[13] as String?;
+
     final platformBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
     final isSystemDark = platformBrightness == Brightness.dark;
     final isDarkMode = themeMode == 'dark' || (themeMode == 'system' && isSystemDark);
@@ -257,12 +285,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final prefs = await SharedPreferences.getInstance();
     final animationSpeed = prefs.getInt('animation_speed') ?? 0;
     final currentLanguage = languageCode;
-    // Profil/görünen ad: profil ekranında düzenlenen değer
-    _profileDisplayName = await _secureStorageService.readWithMigration(
-      secureKey: 'display_name_$_currentUserId',
-      legacyPrefsKey: 'display_name_$_currentUserId',
-    );
-    
+
     debugPrint('🏠 HomePage _loadSettings:');
     debugPrint('🏠 languageCode from settings: $languageCode');
     debugPrint('🏠 currentLanguage from SharedPreferences: $currentLanguage');

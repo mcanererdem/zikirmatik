@@ -1114,21 +1114,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _currentTheme = AppThemes.getTheme(themeId);
     });
     await _settingsService.saveTheme(themeId);
-    
-    // Ana sayfaya geri dön ve uygulamayı yenile
+
+    // Ana sayfaya geri dön; HomePage zaten bu route'un .then() callback'inde
+    // _loadSettings() çağırıp temayı güncelliyor. Tüm HomePage'i (AdMob, TTS,
+    // Supabase init dahil) sıfırdan yeniden kurmaya gerek yok — bu, tema
+    // değişiminde gözlemlenen donmanın sebebiydi.
     if (mounted) {
-      // Kısa bir bekleme ekle - flash'ı azaltmak için
-      await Future.delayed(const Duration(milliseconds: 100));
-      
       Navigator.of(context).popUntil((route) => route.isFirst);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => home.HomePage(
-            onThemeModeChanged: (themeMode) {},
-          ),
-        ),
-      );
     }
   }
 
