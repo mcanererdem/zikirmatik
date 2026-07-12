@@ -1505,19 +1505,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     }
 
     debugPrint('_buildLeaderboardList: building ${_leaderboard.length} items');
-    final children = <Widget>[];
-    for (int index = 0; index < _leaderboard.length; index++) {
-      final user = _leaderboard[index];
-      final rank = index + 1;
-      final userId = user['user_id'] is String
-          ? user['user_id'] as String
-          : user['user_id']?.toString() ?? '';
-      final isCurrentUser = userId == widget.currentUserId ||
-          userId == _supabaseService.toUuid(widget.currentUserId);
-      children.add(_buildLeaderboardItem(user, rank, isCurrentUser));
-    }
 
-    return ListView(
+    return ListView.builder(
       key: ValueKey<String>(
           '${_leaderboardMode}_${_selectedCupTab}_${_leaderboard.length}'),
       padding: const EdgeInsets.fromLTRB(
@@ -1526,7 +1515,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         _leaderboardHorizontalInset,
         0,
       ),
-      children: children,
+      itemCount: _leaderboard.length,
+      itemBuilder: (context, index) {
+        final user = _leaderboard[index];
+        final rank = index + 1;
+        final userId = user['user_id'] is String
+            ? user['user_id'] as String
+            : user['user_id']?.toString() ?? '';
+        final isCurrentUser = userId == widget.currentUserId ||
+            userId == _supabaseService.toUuid(widget.currentUserId);
+        return _buildLeaderboardItem(user, rank, isCurrentUser);
+      },
     );
   }
 
@@ -2125,6 +2124,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 width: 36,
                 height: 36,
                 fit: BoxFit.cover,
+                cacheWidth: 72,
+                cacheHeight: 72,
                 errorBuilder: (_, __, ___) => _buildAvatarInitial(displayName),
               )
             : _buildAvatarInitial(displayName),

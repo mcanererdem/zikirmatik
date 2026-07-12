@@ -98,7 +98,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   bool _isTtsOn = false;
   final TtsService _ttsService = TtsService();
 
+  // Kupa/rozet önbelleği: her dokunuşta FutureBuilder ile SharedPreferences okumamak için.
+  Map<String, bool> _unlockedCups = const {};
+  String? _highestCup;
+
+  // Zikir butonu metin stili önbelleği (tema/dil/font boyutu değişmedikçe yeniden hesaplanmaz).
+  TextStyle? _zikrButtonTextStyle;
+  String? _zikrButtonStyleKey;
+
+  BoxDecoration? _cachedBackgroundDecoration;
+  ThemeConfig? _cachedBackgroundTheme;
+
   BoxDecoration _buildBackgroundDecoration() {
+    if (identical(_cachedBackgroundTheme, _currentTheme) && _cachedBackgroundDecoration != null) {
+      return _cachedBackgroundDecoration!;
+    }
     final isLightTheme = _currentTheme.textColor.computeLuminance() < 0.5;
     final generatedAsset = isLightTheme
         ? 'assets/generated/backgrounds/app_bg_light.png'
@@ -112,7 +126,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         ? _currentTheme.lightBackgroundAsset
         : _currentTheme.darkBackgroundAsset;
     final asset = themeAsset ?? generatedAsset ?? fallbackAsset;
-    return BoxDecoration(
+    final decoration = BoxDecoration(
       gradient: _currentTheme.backgroundGradient,
       image: asset != null
           ? DecorationImage(
@@ -122,6 +136,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             )
           : null,
     );
+    _cachedBackgroundTheme = _currentTheme;
+    _cachedBackgroundDecoration = decoration;
+    return decoration;
   }
 
   @override
@@ -311,7 +328,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     });
     
     debugPrint('✅ Settings loaded successfully');
-    
+
+    final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
+    _refreshCupsCache(prefs, totalZikrs);
+
     // Batch sync'i başlat
     _startBatchSync();
   }
@@ -436,19 +456,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
   void _incrementCounter() async {
     setState(() => _counter++);
+
+    // Dokunuşa anında tepki: animasyon/ses/titreşim, disk I/O'nun bitmesini beklemeden hemen tetiklenir.
+    _buttonAnimationController.forward().then((_) {
+      _buttonAnimationController.reverse();
+    });
+    _counterAnimationController.forward().then((_) => _counterAnimationController.reverse());
+    if (_isSoundOn) _audioManager.playClick();
+    if (_isVibrationOn) _feedbackManager.vibrateLight();
+
     await _counterLogic.incrementCounter(_counter, _selectedZikr?.id);
-    
+
     // Local storage'a kaydet
     final prefs = await SharedPreferences.getInstance();
     final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
     await prefs.setInt('total_zikrs_$_currentUserId', totalZikrs + 1);
     await prefs.setString('last_zikr_date_$_currentUserId', DateTime.now().toIso8601String());
-    
+
     debugPrint('Zikir count saved locally: ${totalZikrs + 1}');
-    
+
     // Not: Her tıklamada cloud upload yapılmaz.
     // Cloud sync; leaderboard ekranı açılışında ve rate-limit'li refresh ile yapılır.
-    
+
     if (_isTtsOn) {
       await _ttsService.speakZikr(_selectedZikr);
     }
@@ -486,15 +515,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
 
     // Kupa kontrolü
     await _checkAndUnlockAchievements();
-
-    _buttonAnimationController.forward().then((_) {
-      _buttonAnimationController.reverse();
-    });
-    
-    _counterAnimationController.forward().then((_) => _counterAnimationController.reverse());
-
-    if (_isSoundOn) _audioManager.playClick();
-    if (_isVibrationOn) _feedbackManager.vibrateLight();
 
     if (_counter == _target) {
       _showSuccessAnimation();
@@ -816,10 +836,39 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           }
         }
       }
-      
+
+      _refreshCupsCache(prefs, totalZikrs);
     } catch (e) {
       debugPrint('Error checking achievements: $e');
     }
+  }
+
+  // Kupa/rozet önbelleğini güncelle (header'daki FutureBuilder'ların her dokunuşta
+  // SharedPreferences'a gitmesini önlemek için).
+  void _refreshCupsCache(SharedPreferences prefs, int totalZikrs) {
+    final unlockedCups = {
+      'bronze_kupa': prefs.getBool('bronze_kupa_unlocked_$_currentUserId') ?? false,
+      'silver_kupa': prefs.getBool('silver_kupa_unlocked_$_currentUserId') ?? false,
+      'gold_kupa': prefs.getBool('gold_kupa_unlocked_$_currentUserId') ?? false,
+      'diamond_kupa': prefs.getBool('diamond_kupa_unlocked_$_currentUserId') ?? false,
+      'platinum_kupa': prefs.getBool('platinum_kupa_unlocked_$_currentUserId') ?? false,
+    };
+    final highestCup = totalZikrs >= 10000
+        ? DynamicLocalizationHelper.platinum
+        : totalZikrs >= 5000
+            ? DynamicLocalizationHelper.diamond
+            : totalZikrs >= 1000
+                ? DynamicLocalizationHelper.gold
+                : totalZikrs >= 500
+                    ? DynamicLocalizationHelper.silver
+                    : totalZikrs >= 100
+                        ? DynamicLocalizationHelper.bronze
+                        : DynamicLocalizationHelper.new_;
+    if (!mounted) return;
+    setState(() {
+      _unlockedCups = unlockedCups;
+      _highestCup = highestCup;
+    });
   }
 
   void _showAchievementNotification(String title, String message) {
@@ -861,23 +910,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     }
   }
 
-  // Kazanılmış kupaları getir
-  Future<Map<String, bool>> _getUnlockedCups() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return {
-        'bronze_kupa': prefs.getBool('bronze_kupa_unlocked_$_currentUserId') ?? false,
-        'silver_kupa': prefs.getBool('silver_kupa_unlocked_$_currentUserId') ?? false,
-        'gold_kupa': prefs.getBool('gold_kupa_unlocked_$_currentUserId') ?? false,
-        'diamond_kupa': prefs.getBool('diamond_kupa_unlocked_$_currentUserId') ?? false,
-        'platinum_kupa': prefs.getBool('platinum_kupa_unlocked_$_currentUserId') ?? false,
-      };
-    } catch (e) {
-      debugPrint('Error getting unlocked cups: $e');
-      return {};
-    }
-  }
-
   Widget _buildHeaderTrophyIcon(String assetPath, String fallbackEmoji) {
     return Padding(
       padding: const EdgeInsets.only(right: 2),
@@ -891,19 +923,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         },
       ),
     );
-  }
-
-  // Kazanılmış en yüksek kupayı hesapla
-  Future<String> _getHighestCup() async {
-    final prefs = await SharedPreferences.getInstance();
-    final totalZikrs = prefs.getInt('total_zikrs_$_currentUserId') ?? 0;
-    
-    if (totalZikrs >= 10000) return DynamicLocalizationHelper.platinum;
-    if (totalZikrs >= 5000) return DynamicLocalizationHelper.diamond;
-    if (totalZikrs >= 1000) return DynamicLocalizationHelper.gold;
-    if (totalZikrs >= 500) return DynamicLocalizationHelper.silver;
-    if (totalZikrs >= 100) return DynamicLocalizationHelper.bronze;
-    return DynamicLocalizationHelper.new_;
   }
 
   Future<int> _resolveTargetForZikr(String zikrId) async {
@@ -1119,8 +1138,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     });
   }
 
+  // Başka bir ekrana geçerken neon nabız animasyonunu durdurur; ekran görünür
+  // değilken gereksiz repaint yapılmasını önler, geri dönünce kaldığı yerden devam eder.
+  Future<dynamic> _pushWithNeonPause(BuildContext ctx, Route route) {
+    final wasAnimating = _neonAnimationController.isAnimating;
+    if (wasAnimating) _neonAnimationController.stop();
+    return Navigator.push(ctx, route).then((result) {
+      if (wasAnimating && mounted) _neonAnimationController.repeat(reverse: true);
+      return result;
+    });
+  }
+
   void _openSettings() {
-    Navigator.push(
+    _pushWithNeonPause(
       context,
       MaterialPageRoute(
         builder: (context) => SettingsScreen(
@@ -1268,7 +1298,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           Expanded(
             child: GestureDetector(
               onTap: () async {
-                await Navigator.push(
+                await _pushWithNeonPause(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ProfileScreen(
@@ -1337,44 +1367,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Kazanılmış kupaları göster
-                            FutureBuilder<Map<String, bool>>(
-                              future: _getUnlockedCups(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  final unlockedCups = snapshot.data!;
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (unlockedCups['bronze_kupa'] == true)
-                                        _buildHeaderTrophyIcon(TrophyAssets.bronze, '🥉'),
-                                      if (unlockedCups['silver_kupa'] == true)
-                                        _buildHeaderTrophyIcon(TrophyAssets.silver, '🥈'),
-                                      if (unlockedCups['gold_kupa'] == true)
-                                        _buildHeaderTrophyIcon(TrophyAssets.gold, '🥇'),
-                                      if (unlockedCups['diamond_kupa'] == true)
-                                        _buildHeaderTrophyIcon(TrophyAssets.diamond, '💎'),
-                                      if (unlockedCups['platinum_kupa'] == true)
-                                        _buildHeaderTrophyIcon(TrophyAssets.platinum, '🏆'),
-                                    ],
-                                  );
-                                }
-                                return Text('🎯', style: TextStyle(fontSize: 14));
-                              },
-                            ),
+                            // Kazanılmış kupaları göster (önbellekten; her dokunuşta yeniden okunmaz)
+                            if (_unlockedCups['bronze_kupa'] == true)
+                              _buildHeaderTrophyIcon(TrophyAssets.bronze, '🥉'),
+                            if (_unlockedCups['silver_kupa'] == true)
+                              _buildHeaderTrophyIcon(TrophyAssets.silver, '🥈'),
+                            if (_unlockedCups['gold_kupa'] == true)
+                              _buildHeaderTrophyIcon(TrophyAssets.gold, '🥇'),
+                            if (_unlockedCups['diamond_kupa'] == true)
+                              _buildHeaderTrophyIcon(TrophyAssets.diamond, '💎'),
+                            if (_unlockedCups['platinum_kupa'] == true)
+                              _buildHeaderTrophyIcon(TrophyAssets.platinum, '🏆'),
                             const SizedBox(width: 4),
-                            FutureBuilder<String>(
-                              future: _getHighestCup(),
-                              builder: (context, snapshot) {
-                                return Text(
-                                  snapshot.data ?? DynamicLocalizationHelper.new_,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _currentTheme.textColor.withOpacity(0.7),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                );
-                              },
+                            Text(
+                              _highestCup ?? DynamicLocalizationHelper.new_,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _currentTheme.textColor.withOpacity(0.7),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -1392,7 +1403,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
+                  _pushWithNeonPause(
                     context,
                     MaterialPageRoute(
                       builder: (context) => SettingsScreen(
@@ -1566,6 +1577,39 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     );
   }
 
+  // Tema/dil/font boyutu değişmediği sürece aynı TextStyle'ı yeniden kullanır
+  // (her dokunuşta GoogleFonts çağrısı ile yeni obje oluşturmayı önler).
+  TextStyle _getZikrButtonTextStyle() {
+    final key = '$_currentLanguage-${_currentTheme.accentColor.value}-$_fontSize';
+    final cached = _zikrButtonTextStyle;
+    if (cached != null && _zikrButtonStyleKey == key) {
+      return cached;
+    }
+    final shadow = [
+      Shadow(
+        color: _currentTheme.accentColor.withOpacity(0.8),
+        blurRadius: 10,
+        offset: const Offset(0, 0),
+      ),
+    ];
+    final style = _currentLanguage == 'ar'
+        ? GoogleFonts.notoNaskhArabic(
+            fontSize: 24 * _fontSize,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: shadow,
+          )
+        : GoogleFonts.notoSans(
+            fontSize: 24 * _fontSize,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: shadow,
+          );
+    _zikrButtonStyleKey = key;
+    _zikrButtonTextStyle = style;
+    return style;
+  }
+
   Widget _buildZikrButton(String zikrText) {
     return Stack(
       clipBehavior: Clip.none,
@@ -1639,31 +1683,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
               child: Center(
                 child: Text(
                   zikrText,
-                  style: (_currentLanguage == 'ar'
-                      ? GoogleFonts.notoNaskhArabic(
-                          fontSize: 24 * _fontSize,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: _currentTheme.accentColor.withOpacity(0.8),
-                              blurRadius: 10,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                        )
-                      : GoogleFonts.notoSans(
-                          fontSize: 24 * _fontSize,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: _currentTheme.accentColor.withOpacity(0.8),
-                              blurRadius: 10,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                        )),
+                  style: _getZikrButtonTextStyle(),
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.rtl,
                 ),
@@ -1718,7 +1738,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             icon: Icons.insert_chart_rounded,
             isActive: true,
             onTap: () {
-              Navigator.push(
+              _pushWithNeonPause(
                 context,
                 MaterialPageRoute(
                   builder: (context) => StatisticsScreenNew(
@@ -1736,7 +1756,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             icon: Icons.leaderboard_rounded,
             isActive: true,
             onTap: () {
-              Navigator.push(
+              _pushWithNeonPause(
                 context,
                 MaterialPageRoute(
                   builder: (context) => LeaderboardScreen(
@@ -1754,7 +1774,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             icon: Icons.emoji_events_rounded,
             isActive: true,
             onTap: () {
-              Navigator.push(
+              _pushWithNeonPause(
                 context,
                 MaterialPageRoute(
                   builder: (context) => KupaScreenNew(

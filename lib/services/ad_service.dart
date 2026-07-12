@@ -74,6 +74,9 @@ class AdService {
     required Function() onAdLoaded,
     required Function(LoadAdError) onAdFailedToLoad,
   }) async {
+    _rewardedAd?.dispose();
+    _rewardedAd = null;
+    _isRewardedAdLoaded = false;
     await RewardedAd.load(
       adUnitId: rewardedAdUnitId,
       request: const AdRequest(),
@@ -172,7 +175,9 @@ class AdService {
       );
       return _isRewardedAdLoaded;
     } catch (e) {
-      print('Error ensuring rewarded ad is loaded: $e');
+      if (kDebugMode) {
+        debugPrint('Error ensuring rewarded ad is loaded: $e');
+      }
       return false;
     }
   }

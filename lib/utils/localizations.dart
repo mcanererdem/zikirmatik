@@ -1358,7 +1358,6 @@ class AppLocalizations {
       'whom': 'من',
     },
     'id': {
-    'id': {
       'app_name': 'Tasbih Digital',
       'help_title': 'Bantuan Aplikasi',
       'help_streak_title': 'Apa itu Streak?',
@@ -3367,6 +3366,7 @@ class AppLocalizations {
       'export': 'Fitar da Bayanai',
       'import': 'Shigar da Bayanai',
       'import_success': 'Shigarwa ta yi nasara!',
+    },
   };
 
   String translate(String key) {

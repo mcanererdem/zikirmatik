@@ -31,39 +31,44 @@ class CounterLogic {
   }
 
   Future<Map<String, dynamic>> updateGoalProgress(List<Goal> goals, String? selectedZikrId) async {
+    final applicableGoals = goals
+        .where((g) => !g.isCompleted && !g.isExpired() && g.zikrId == selectedZikrId)
+        .toList();
+    final newProgressById = <String, int>{};
     final completedGoals = <Goal>[];
-    
-    for (var goal in goals) {
-      if (!goal.isCompleted && !goal.isExpired() && goal.zikrId == selectedZikrId) {
-        final newProgress = goal.currentProgress + 1;
-        await _settingsService.updateGoalProgress(goal.id, newProgress);
-        
-        if (newProgress >= goal.targetCount) {
-          completedGoals.add(goal);
-        }
+
+    for (var goal in applicableGoals) {
+      final newProgress = goal.currentProgress + 1;
+      newProgressById[goal.id] = newProgress;
+      if (newProgress >= goal.targetCount) {
+        completedGoals.add(goal);
       }
     }
-    
-    final updatedGoals = await _settingsService.getGoals();
-    
+
+    await Future.wait(applicableGoals.map(
+      (goal) => _settingsService.updateGoalProgress(goal.id, newProgressById[goal.id]!),
+    ));
+
     // Sadece ilk tamamlanan goal için bildirim göster
     if (completedGoals.isNotEmpty) {
       final firstCompleted = completedGoals.first;
       final streakInfo = await _settingsService.completeGoal(firstCompleted.id);
-      
+
       // Diğer tamamlanan goal'ları sessizce tamamla
-      for (var i = 1; i < completedGoals.length; i++) {
-        await _settingsService.completeGoal(completedGoals[i].id);
+      if (completedGoals.length > 1) {
+        await Future.wait(completedGoals
+            .skip(1)
+            .map((goal) => _settingsService.completeGoal(goal.id)));
       }
-      
+
       return {
         'goals': await _settingsService.getGoals(),
         'streakInfo': streakInfo,
         'goalType': firstCompleted.type,
       };
     }
-    
-    return {'goals': updatedGoals};
+
+    return {'goals': await _settingsService.getGoals()};
   }
 
   Future<void> resetCounter() async {

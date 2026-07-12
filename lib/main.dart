@@ -193,16 +193,6 @@ class _MyAppState extends State<MyApp> {
     
     // Dynamic localization helper'ı da güncelle
     await DynamicLocalizationHelper.setLanguage(language);
-    
-    print('🌐 MyApp: Language loaded: $_currentLanguage');
-    
-    // Helper'ın doğru çalıştığını kontrol et
-    print('🌐 DynamicLocalizationHelper test: ${DynamicLocalizationHelper.getText({
-      'tr': 'Test Türkçe',
-      'en': 'Test English',
-      'ar': 'Test Arabic',
-      'id': 'Test Indonesian',
-    })}');
   }
 
   // Sync app counter with widget counter on app start to reflect widget interactions
@@ -256,7 +246,6 @@ class _MyAppState extends State<MyApp> {
               });
               // Dynamic localization helper'ı güncelle
               DynamicLocalizationHelper.setLanguage(language);
-              print('🌐 MyApp: Language changed to: $_currentLanguage');
             },
           );
         },

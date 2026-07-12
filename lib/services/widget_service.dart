@@ -23,21 +23,30 @@ class WidgetService {
       final today = DateTime.now();
 
       // Always read the latest values from SettingsService to avoid off-by-one.
-      final currentCounter = await settingsService.getCurrentCount();
-      final todayCount = await settingsService.getDailyCount(today);
-      final totalCount = await settingsService.getTotalCount();
-      final streak = await settingsService.getStreak();
-      final languageCode = await settingsService.getLanguage();
+      final results = await Future.wait([
+        settingsService.getCurrentCount(),
+        settingsService.getDailyCount(today),
+        settingsService.getTotalCount(),
+        settingsService.getStreak(),
+        settingsService.getLanguage(),
+      ]);
+      final currentCounter = results[0] as int;
+      final todayCount = results[1] as int;
+      final totalCount = results[2] as int;
+      final streak = results[3] as int;
+      final languageCode = results[4] as String;
       final loc = AppLocalizations(languageCode);
 
-      await HomeWidget.saveWidgetData<int>('counter', currentCounter);
-      await HomeWidget.saveWidgetData<int>('today_count', todayCount);
-      await HomeWidget.saveWidgetData<int>('total_count', totalCount);
-      await HomeWidget.saveWidgetData<int>('streak', streak);
-      await HomeWidget.saveWidgetData<String>('label_today', loc.today);
-      await HomeWidget.saveWidgetData<String>('label_total', loc.total);
-      await HomeWidget.saveWidgetData<String>('label_streak', loc.streak);
-      await HomeWidget.saveWidgetData<String>('label_title', loc.appName);
+      await Future.wait([
+        HomeWidget.saveWidgetData<int>('counter', currentCounter),
+        HomeWidget.saveWidgetData<int>('today_count', todayCount),
+        HomeWidget.saveWidgetData<int>('total_count', totalCount),
+        HomeWidget.saveWidgetData<int>('streak', streak),
+        HomeWidget.saveWidgetData<String>('label_today', loc.today),
+        HomeWidget.saveWidgetData<String>('label_total', loc.total),
+        HomeWidget.saveWidgetData<String>('label_streak', loc.streak),
+        HomeWidget.saveWidgetData<String>('label_title', loc.appName),
+      ]);
 
       await HomeWidget.updateWidget(
         name: 'ZikrWidgetProvider',
