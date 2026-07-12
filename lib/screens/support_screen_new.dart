@@ -76,7 +76,6 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                       ),
                     ),
                     child: Stack(
-                      fit: StackFit.expand,
                       children: [
                         Positioned.fill(
                           child: Opacity(
@@ -84,6 +83,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                             child: Image.asset(
                               'assets/generated/illustrations/support_hero.png',
                               fit: BoxFit.cover,
+                              cacheWidth: 800,
                             ),
                           ),
                         ),

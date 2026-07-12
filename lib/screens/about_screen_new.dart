@@ -115,6 +115,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
               child: Image.asset(
                 'assets/generated/illustrations/about_hero.png',
                 fit: BoxFit.cover,
+                cacheWidth: 800,
               ),
             ),
             // Hafif bir gradient overlay; görselin yazıyla çakışmasını azaltır.
