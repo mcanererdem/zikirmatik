@@ -25,7 +25,7 @@ A simple, user-friendly, and accessible digital tasbih (dhikr counter) app with 
 ### Modern Features
 - 📱 **Home Screen Widget:** Quick access via Android home screen widget with live sync
 - ➕ **Custom Dhikr:** Add your own dhikr with 16 language support
-- 📢 **Ad Support:** Banner and rewarded ads (test mode active)
+- 📢 **Ad Support:** Banner and rewarded ads (production AdMob units live on Android; iOS still serves test ads pending a production iOS ad unit)
 - 🔄 **Rotation Support:** Data preserved when device rotates
 - ♿ **Accessibility:** Screen reader support (TalkBack/VoiceOver)
 - 🎯 **Smart Notifications:** Daily reminders with time and day selection
@@ -216,8 +216,11 @@ Available at: `https://mcanererdem.github.io/zikirmatik/privacy_policy.html`
 
 ### Performance Improvements
 - **Widget Updates Debouncing:** App updates on home widget are throttled and debounced by 300ms to eliminate haptic tap lag.
-- **Concurrent Disk Writes:** Counter increment writes to SharedPreferences are executed in parallel (`Future.wait`) for near-zero UI delay.
-- **Consolidated Localizations:** Removed translation map duplication to reduce app footprint and ensure correct locale fallbacks.
+- **Concurrent Disk Writes:** Counter increment and settings-load reads/writes to SharedPreferences run in parallel (`Future.wait`) instead of sequential awaits.
+- **Consolidated Localizations:** Removed translation map duplication (199 stale duplicate keys) to reduce app footprint and ensure correct locale fallbacks.
+- **Right-sized image decoding:** Home screen background images (previously decoded at full 1376x3072 source resolution on every theme/mode switch) now decode via `ResizeImage` at actual screen resolution.
+- **Cheap theme/mode switching:** Changing theme or light/dark mode no longer tears down and rebuilds the whole `HomePage` (which used to re-run AdMob/TTS/Supabase init from scratch) — it now reloads settings on the existing page.
+- **No white flash on navigation:** Every screen now explicitly sets its own `Scaffold` background color instead of falling through to Flutter's default (previously visible as a brief white flash between pages in Light appearance mode).
 
 ### Animation Speed Control
 - **Off (0):** All animations disabled for maximum performance
@@ -248,4 +251,4 @@ Released under the MIT License.
 
 Made with love and dedication ❤️
 
-**Version 1.2.5 - Modern dhikr counter with cloud sync, smart reminders, leaderboard improvements and high-performance optimizations**
+**Version 1.2.7 - Modern dhikr counter with cloud sync, smart reminders, leaderboard improvements and high-performance optimizations**
