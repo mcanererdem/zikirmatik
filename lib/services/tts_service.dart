@@ -3,6 +3,10 @@ import '../models/zikr_model.dart';
 import '../services/settings_service.dart';
 
 class TtsService {
+  static final TtsService _instance = TtsService._internal();
+  factory TtsService() => _instance;
+  TtsService._internal();
+
   final FlutterTts _tts = FlutterTts();
   final SettingsService _settings = SettingsService();
   bool _enabled = false;

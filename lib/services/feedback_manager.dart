@@ -47,8 +47,17 @@ class FeedbackManager {
     }
   }
 
-  void vibrateMedium() {
-    if (!_isVibrating) {
+  Future<void> vibrateMedium() async {
+    if (_isVibrating) return;
+
+    try {
+      _hasVibratorCache ??= await Vibration.hasVibrator() ?? false;
+      if (_hasVibratorCache == true) {
+        Vibration.vibrate(duration: 50);
+      } else {
+        HapticFeedback.mediumImpact();
+      }
+    } catch (e) {
       HapticFeedback.mediumImpact();
     }
   }

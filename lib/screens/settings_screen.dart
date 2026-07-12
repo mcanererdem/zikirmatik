@@ -9,6 +9,7 @@ import '../services/settings_service.dart';
 import '../services/ad_service.dart';
 import '../services/notification_service.dart';
 import '../services/supabase_service.dart';
+import '../services/tts_service.dart';
 import '../screens/home_page.dart' as home;
 import '../screens/about_screen_new.dart';
 import '../screens/support_screen_new.dart';
@@ -54,6 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final AdService _adService = AdService();
   final NotificationService _notificationService = NotificationService();
   final SupabaseService _supabaseService = SupabaseService();
+  final TtsService _ttsService = TtsService();
 
   @override
   void initState() {
@@ -995,7 +997,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() {
                 _isTtsOn = value;
               });
-              _settingsService.saveTtsEnabled(value);
+              _ttsService.setEnabled(value);
             },
             activeThumbColor: widget.themeConfig.accentColor,
           ),
