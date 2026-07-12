@@ -576,6 +576,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Future<void> _fetchAndCacheAllDatasets() async {
+    if (!_supabaseService.isInitialized) {
+      // Supabase hiç başlatılamadıysa (ör. sunucu erişilemez), fetch metotları
+      // hata fırlatmadan sessizce boş liste döner — bu durumu ağ hatasıyla
+      // aynı şekilde ele alıp yerel/örnek veriye düşüyoruz, aksi halde
+      // ekran "veri var ama boş" sanıp sonsuza dek boş kalıyordu.
+      if (mounted && !_offlineBannerAlreadyShown) {
+        setState(() {
+          _showOfflineBanner = true;
+          _offlineBannerAlreadyShown = true;
+        });
+      }
+      if (_leaderboardCache.isEmpty) {
+        await _loadLocalLeaderboard();
+      }
+      return;
+    }
     try {
       final now = DateTime.now();
       final all = await _supabaseService.getAllTimeLeaderboard(limit: 50);
