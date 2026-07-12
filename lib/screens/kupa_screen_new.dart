@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:confetti/confetti.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
 import '../utils/trophy_assets.dart';
-import '../services/settings_service.dart';
 
 class KupaScreenNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -34,7 +32,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
   int _nextCupRequirement = 0;
   bool _hasShownNotification = false;
   String _currentLanguage = 'tr'; // Dil değişkeni eklendi
-  int _userLevel = 0;
+  final int _userLevel = 0;
   double _progressToNextCup = 0.0;
   DateTime? _lastCupUnlocked;
   bool _isLoading = true;
@@ -738,7 +736,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.1),
+          color: Colors.grey.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -789,7 +787,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
               }),
               style: GoogleFonts.notoSans(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
               ),
             ),
           ],
@@ -800,7 +798,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -833,8 +831,8 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: _progressToNextCup,
-            backgroundColor: Colors.white.withOpacity(0.3),
-            valueColor: AlwaysStoppedAnimation(Colors.white),
+            backgroundColor: Colors.white.withValues(alpha: 0.3),
+            valueColor: const AlwaysStoppedAnimation(Colors.white),
           ),
           const SizedBox(height: 8),
           Text(
@@ -857,7 +855,7 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
             }),
             style: GoogleFonts.notoSans(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -889,11 +887,11 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
     required bool unlocked,
   }) {
     final backgroundColor = unlocked
-        ? tierColor.withOpacity(0.22)
-        : Colors.grey.withOpacity(0.08);
+        ? tierColor.withValues(alpha: 0.22)
+        : Colors.grey.withValues(alpha: 0.08);
     final borderColor = unlocked
-        ? tierColor.withOpacity(0.55)
-        : Colors.grey.withOpacity(0.28);
+        ? tierColor.withValues(alpha: 0.55)
+        : Colors.grey.withValues(alpha: 0.28);
 
     return Container(
       width: 58,
@@ -906,14 +904,14 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         gradient: unlocked
             ? LinearGradient(
                 colors: [
-                  tierColor.withOpacity(0.35),
-                  tierColor.withOpacity(0.12),
+                  tierColor.withValues(alpha: 0.35),
+                  tierColor.withValues(alpha: 0.12),
                 ],
               )
             : null,
         boxShadow: [
           BoxShadow(
-            color: (unlocked ? tierColor : Colors.grey).withOpacity(unlocked ? 0.25 : 0.12),
+            color: (unlocked ? tierColor : Colors.grey).withValues(alpha: unlocked ? 0.25 : 0.12),
             blurRadius: 14,
             spreadRadius: 2,
             offset: const Offset(0, 6),
@@ -962,13 +960,13 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
         return Container(
           decoration: BoxDecoration(
             color: isUnlocked 
-                ? (cup['color'] as Color).withOpacity(0.2)
-                : Colors.grey.withOpacity(0.1),
+                ? (cup['color'] as Color).withValues(alpha: 0.2)
+                : Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isUnlocked 
-                  ? (cup['color'] as Color).withOpacity(0.5)
-                  : Colors.grey.withOpacity(0.3),
+                  ? (cup['color'] as Color).withValues(alpha: 0.5)
+                  : Colors.grey.withValues(alpha: 0.3),
             ),
           ),
           child: Column(
@@ -1000,8 +998,8 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
                 style: GoogleFonts.notoSans(
                   fontSize: 8, // 10'den 8'e düşürdük
                   color: isUnlocked 
-                      ? Colors.white.withOpacity(0.8)
-                      : Colors.grey.withOpacity(0.7),
+                      ? Colors.white.withValues(alpha: 0.8)
+                      : Colors.grey.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1, // maxLines: 1 ekledik
@@ -1009,13 +1007,13 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
               ),
               const SizedBox(height: 4), // 8'den 4'e düşürdük
               if (isUnlocked)
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 16, // 20'den 16'ya düşürdük
                 )
               else
-                Icon(
+                const Icon(
                   Icons.lock,
                   color: Colors.grey,
                   size: 16, // 20'den 16'ya düşürdük

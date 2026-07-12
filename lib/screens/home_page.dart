@@ -2,14 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:vibration/vibration.dart';
-import 'package:confetti/confetti.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
-import 'dart:math';
-import 'dart:io';
 
 import '../models/theme_model.dart';
 import '../models/zikr_model.dart';
@@ -23,7 +16,6 @@ import '../services/audio_manager.dart';
 import '../services/counter_logic.dart';
 import '../services/feedback_manager.dart';
 import '../services/tts_service.dart';
-import '../services/notification_service.dart';
 import '../services/supabase_service.dart';
 import '../services/widget_service.dart';
 import '../services/ad_service.dart';
@@ -33,8 +25,6 @@ import '../widgets/add_zikr_dialog.dart';
 import '../widgets/edit_zikr_dialog.dart';
 import '../widgets/success_dialog.dart';
 import '../widgets/target_dialog.dart';
-import '../widgets/goal_dialog.dart';
-import '../widgets/notification_settings_dialog.dart';
 import '../widgets/confetti_animation.dart';
 import '../utils/dialog_manager.dart';
 import '../screens/statistics_screen_new.dart';
@@ -42,7 +32,6 @@ import '../screens/kupa_screen_new.dart';
 import '../screens/leaderboard_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/settings_screen.dart';
-import '../screens/import_export_screen.dart';
 
 class HomePage extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
@@ -62,7 +51,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   bool _isConfettiOn = true;
   bool _isReminderEnabled = false;
   bool _showConfetti = false;
-  double _fontSize = 1.0; // Sabit font boyutu
+  final double _fontSize = 1.0; // Sabit font boyutu
 
   late AnimationController _buttonAnimationController;
   late AnimationController _counterAnimationController;
@@ -128,13 +117,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
     final asset = themeAsset ?? generatedAsset ?? fallbackAsset;
     final decoration = BoxDecoration(
       gradient: _currentTheme.backgroundGradient,
-      image: asset != null
-          ? DecorationImage(
+      image: DecorationImage(
               image: AssetImage(asset),
               fit: BoxFit.cover,
               opacity: 0.18,
-            )
-          : null,
+            ),
     );
     _cachedBackgroundTheme = _currentTheme;
     _cachedBackgroundDecoration = decoration;
@@ -215,7 +202,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       legacyPrefsKey: 'user_id',
     );
     
-    if (savedUserId != null && savedUserId!.isNotEmpty) {
+    if (savedUserId != null && savedUserId.isNotEmpty) {
       _currentUserId = savedUserId;
       debugPrint('👤 Existing user ID loaded: $_currentUserId');
     } else {
@@ -576,7 +563,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.2),
+                      color: Colors.orange.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -1247,16 +1234,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                   width: double.infinity,
                   height: (_bannerAd?.size.height ?? 50.0).toDouble(),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     border: Border(
                       top: BorderSide(
-                        color: _currentTheme.accentColor.withOpacity(0.12),
+                        color: _currentTheme.accentColor.withValues(alpha: 0.12),
                         width: 1,
                       ),
                     ),
                   ),
                   child: _isBannerAdLoaded && _bannerAd != null
-                      ? Center(child: Container(
+                      ? Center(child: SizedBox(
                           width: _bannerAd!.size.width.toDouble(),
                           height: _bannerAd!.size.height.toDouble(),
                           child: AdWidget(ad: _bannerAd!),
@@ -1265,7 +1252,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                           child: Text(
                             _isBannerAdLoaded ? 'Preparing ad...' : 'Ad not loaded',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withValues(alpha: 0.6),
                               fontSize: 12,
                             ),
                           ),
@@ -1329,13 +1316,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          _currentTheme.accentColor.withOpacity(0.3),
-                          _currentTheme.accentColor.withOpacity(0.1),
+                          _currentTheme.accentColor.withValues(alpha: 0.3),
+                          _currentTheme.accentColor.withValues(alpha: 0.1),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _currentTheme.accentColor.withOpacity(0.5),
+                        color: _currentTheme.accentColor.withValues(alpha: 0.5),
                         width: 2,
                       ),
                     ),
@@ -1383,7 +1370,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                               _highestCup ?? DynamicLocalizationHelper.new_,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: _currentTheme.textColor.withOpacity(0.7),
+                                color: _currentTheme.textColor.withValues(alpha: 0.7),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1432,10 +1419,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _currentTheme.textColor.withOpacity(0.08),
+                    color: _currentTheme.textColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _currentTheme.textColor.withOpacity(0.25),
+                      color: _currentTheme.textColor.withValues(alpha: 0.25),
                       width: 1.5,
                     ),
                   ),
@@ -1459,15 +1446,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
         decoration: BoxDecoration(
-          color: _currentTheme.textColor.withOpacity(0.06),
+          color: _currentTheme.textColor.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: _currentTheme.accentColor.withOpacity(0.3),
+            color: _currentTheme.accentColor.withValues(alpha: 0.3),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: _currentTheme.accentColor.withOpacity(0.2),
+              color: _currentTheme.accentColor.withValues(alpha: 0.2),
               blurRadius: 20,
               spreadRadius: 2,
             ),
@@ -1497,7 +1484,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         child: Container(
           height: 12,
           decoration: BoxDecoration(
-            color: _currentTheme.textColor.withOpacity(0.15),
+            color: _currentTheme.textColor.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
           child: FractionallySizedBox(
@@ -1509,7 +1496,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: _currentTheme.accentColor.withOpacity(0.5),
+                    color: _currentTheme.accentColor.withValues(alpha: 0.5),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),
@@ -1528,10 +1515,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: _currentTheme.textColor.withOpacity(0.08),
+          color: _currentTheme.textColor.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: _currentTheme.accentColor.withOpacity(0.3),
+            color: _currentTheme.accentColor.withValues(alpha: 0.3),
             width: 1.5,
           ),
         ),
@@ -1540,7 +1527,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
           children: [
             Icon(
               Icons.menu_book_rounded,
-              color: _currentTheme.accentColor.withOpacity(0.9),
+              color: _currentTheme.accentColor.withValues(alpha: 0.9),
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -1560,7 +1547,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                   '${_localizations.target}: $_target',
                   style: TextStyle(
                     fontSize: 12 * _fontSize,
-                    color: _currentTheme.textColor.withOpacity(0.75),
+                    color: _currentTheme.textColor.withValues(alpha: 0.75),
                   ),
                 ),
               ],
@@ -1568,7 +1555,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
             const SizedBox(width: 8),
             Icon(
               Icons.arrow_drop_down_rounded,
-              color: _currentTheme.accentColor.withOpacity(0.9),
+              color: _currentTheme.accentColor.withValues(alpha: 0.9),
               size: 24,
             ),
           ],
@@ -1580,14 +1567,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   // Tema/dil/font boyutu değişmediği sürece aynı TextStyle'ı yeniden kullanır
   // (her dokunuşta GoogleFonts çağrısı ile yeni obje oluşturmayı önler).
   TextStyle _getZikrButtonTextStyle() {
-    final key = '$_currentLanguage-${_currentTheme.accentColor.value}-$_fontSize';
+    final key = '$_currentLanguage-${_currentTheme.accentColor.toARGB32()}-$_fontSize';
     final cached = _zikrButtonTextStyle;
     if (cached != null && _zikrButtonStyleKey == key) {
       return cached;
     }
     final shadow = [
       Shadow(
-        color: _currentTheme.accentColor.withOpacity(0.8),
+        color: _currentTheme.accentColor.withValues(alpha: 0.8),
         blurRadius: 10,
         offset: const Offset(0, 0),
       ),
@@ -1626,8 +1613,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _currentTheme.accentColor.withOpacity(_neonPulseAnimation.value * 0.3),
-                    _currentTheme.accentColor.withOpacity(_neonPulseAnimation.value * 0.1),
+                    _currentTheme.accentColor.withValues(alpha: _neonPulseAnimation.value * 0.3),
+                    _currentTheme.accentColor.withValues(alpha: _neonPulseAnimation.value * 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -1650,31 +1637,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                 boxShadow: [
                   // Ana gölge
                   BoxShadow(
-                    color: _currentTheme.primaryColor.withOpacity(0.5),
+                    color: _currentTheme.primaryColor.withValues(alpha: 0.5),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                   // Neon efekt 1 - Dış halka (animasyonlu)
                   BoxShadow(
-                    color: _currentTheme.accentColor.withOpacity(0.6),
+                    color: _currentTheme.accentColor.withValues(alpha: 0.6),
                     blurRadius: 50,
                     spreadRadius: 3,
                   ),
                   // Neon efekt 2 - İç parıltı (animasyonlu)
                   BoxShadow(
-                    color: _currentTheme.accentColor.withOpacity(0.4),
+                    color: _currentTheme.accentColor.withValues(alpha: 0.4),
                     blurRadius: 25,
                     spreadRadius: 2,
                   ),
                   // Neon efekt 3 - Merkez ışıltı (animasyonlu)
                   BoxShadow(
-                    color: _currentTheme.accentColor.withOpacity(0.8),
+                    color: _currentTheme.accentColor.withValues(alpha: 0.8),
                     blurRadius: 15,
                     spreadRadius: 1,
                   ),
                   // Ekstra neon halka (animasyonlu)
                   BoxShadow(
-                    color: _currentTheme.accentColor.withOpacity(0.3),
+                    color: _currentTheme.accentColor.withValues(alpha: 0.3),
                     blurRadius: 60,
                     spreadRadius: 4,
                   ),
@@ -1709,7 +1696,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFE74C3C).withOpacity(0.5),
+                      color: const Color(0xFFE74C3C).withValues(alpha: 0.5),
                       blurRadius: 15,
                       spreadRadius: 2,
                     ),
@@ -1807,12 +1794,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isActive
-              ? _currentTheme.accentColor.withOpacity(0.2)
-              : Colors.white.withOpacity(0.1),
+              ? _currentTheme.accentColor.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.1),
           border: Border.all(
             color: isActive
-                ? _currentTheme.accentColor.withOpacity(0.5)
-                : Colors.white.withOpacity(0.3),
+                ? _currentTheme.accentColor.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.3),
             width: 2,
           ),
         ),

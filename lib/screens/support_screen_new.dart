@@ -66,13 +66,13 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          widget.themeConfig.accentColor.withOpacity(0.2),
-                          widget.themeConfig.accentColor.withOpacity(0.1),
+                          widget.themeConfig.accentColor.withValues(alpha: 0.2),
+                          widget.themeConfig.accentColor.withValues(alpha: 0.1),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: widget.themeConfig.accentColor.withOpacity(0.3),
+                        color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Stack(
@@ -109,7 +109,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                             Text(
                               widget.localizations.translate('support_need_help_desc'),
                               style: GoogleFonts.notoSans(
-                                color: widget.themeConfig.textColor.withOpacity(0.8),
+                                color: widget.themeConfig.textColor.withValues(alpha: 0.8),
                                 fontSize: 14,
                                 height: 1.4,
                               ),
@@ -150,10 +150,10 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.textColor.withOpacity(0.2),
+          color: widget.themeConfig.textColor.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -221,7 +221,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: widget.themeConfig.textColor.withOpacity(0.05),
+          color: widget.themeConfig.textColor.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -231,7 +231,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: widget.themeConfig.accentColor.withOpacity(0.2),
+                color: widget.themeConfig.accentColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Icon(
@@ -259,7 +259,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
                     subtitle,
                     textAlign: _isRtl ? TextAlign.right : TextAlign.left,
                     style: GoogleFonts.notoSans(
-                      color: widget.themeConfig.textColor.withOpacity(0.8),
+                      color: widget.themeConfig.textColor.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -268,7 +268,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
             ),
             Icon(
               _isRtl ? Icons.arrow_back_ios_new : Icons.arrow_forward_ios,
-              color: widget.themeConfig.textColor.withOpacity(0.6),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.6),
               size: 16,
             ),
           ],
@@ -283,13 +283,13 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.themeConfig.accentColor.withOpacity(0.2),
-            widget.themeConfig.accentColor.withOpacity(0.08),
+            widget.themeConfig.accentColor.withValues(alpha: 0.2),
+            widget.themeConfig.accentColor.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.accentColor.withOpacity(0.4),
+          color: widget.themeConfig.accentColor.withValues(alpha: 0.4),
         ),
       ),
       child: Column(
@@ -341,7 +341,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
             }),
             textAlign: TextAlign.center,
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.85),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.85),
               fontSize: 14,
             ),
           ),
@@ -401,10 +401,10 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.textColor.withOpacity(0.2),
+          color: widget.themeConfig.textColor.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -559,7 +559,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.05),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -577,7 +577,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
           Text(
             answer,
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.8),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.8),
               fontSize: 13,
               height: 1.4,
             ),
@@ -593,13 +593,13 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.themeConfig.accentColor.withOpacity(0.2),
-            widget.themeConfig.accentColor.withOpacity(0.1),
+            widget.themeConfig.accentColor.withValues(alpha: 0.2),
+            widget.themeConfig.accentColor.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.accentColor.withOpacity(0.3),
+          color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -654,7 +654,7 @@ class _SupportScreenNewState extends State<SupportScreenNew> {
               'ha': 'Muna daraja ra\'ayoyinku don inganta app. Raba shawarwarin ku da korafe-korafen ku da mu.',
             }),
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.8),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.8),
               fontSize: 14,
               height: 1.4,
             ),

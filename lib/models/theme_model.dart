@@ -106,12 +106,12 @@ class AppThemes {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF0F172A),
-          Color(0xFF1E3A5F),
-          Color(0xFF2563EB).withOpacity(0.4),
+          const Color(0xFF0F172A),
+          const Color(0xFF1E3A5F),
+          const Color(0xFF2563EB).withValues(alpha: 0.4),
         ],
       ),
-      darkBackgroundGradient: LinearGradient(
+      darkBackgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
@@ -121,30 +121,30 @@ class AppThemes {
         ],
       ),
       // LIGHT butonlar: bir tık daha parlak mavi
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         colors: [
           Color(0xFF2563EB), // Parlak mavi
           Color(0xFF38BDF8), // Açık camgöbeği mavi
         ],
       ),
-      darkButtonGradient: LinearGradient(
+      darkButtonGradient: const LinearGradient(
         colors: [
           Color(0xFF1E2F4F), // Daha koyu mavi
           Color(0xFF2C4A7D), // Koyu mavi
         ],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         colors: [
           Color(0xFFF59E0B), // Amber
           Color(0xFFD97706), // Amber koyu
         ],
       ),
-      accentColor: Color(0xFF3B82F6), // Parlak mavi
-      darkAccentColor: Color(0xFF60A5FA), // Daha parlak mavi
-      primaryColor: Color(0xFF1E40AF), // Koyu mavi
-      darkPrimaryColor: Color(0xFF1E3A8A), // Çok koyu mavi
-      textColor: Color(0xFFF3F4F6), // Beyaza yakın gri
-      darkTextColor: Color(0xFFE5E7EB), // Beyaz
+      accentColor: const Color(0xFF3B82F6), // Parlak mavi
+      darkAccentColor: const Color(0xFF60A5FA), // Daha parlak mavi
+      primaryColor: const Color(0xFF1E40AF), // Koyu mavi
+      darkPrimaryColor: const Color(0xFF1E3A8A), // Çok koyu mavi
+      textColor: const Color(0xFFF3F4F6), // Beyaza yakın gri
+      darkTextColor: const Color(0xFFE5E7EB), // Beyaz
     ),
     // 2. Emerald (Yeşil – zümrüt/orman)
     ThemeConfig(
@@ -165,7 +165,7 @@ class AppThemes {
       nameSw: 'Kijani Kibichi',
       nameHa: 'Kore Mai Yawa',
       mode: AppThemeMode.emeraldGreen,
-      backgroundGradient: LinearGradient(
+      backgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
@@ -174,7 +174,7 @@ class AppThemes {
           Color(0xFF6EE7B7), // Parlak yeşil
         ],
       ),
-      darkBackgroundGradient: LinearGradient(
+      darkBackgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
@@ -183,30 +183,30 @@ class AppThemes {
           Color(0xFF047857), // Orta yeşil
         ],
       ),
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         colors: [
           Color(0xFF10B981), // Parlak yeşil
           Color(0xFF059669), // Orta yeşil
         ],
       ),
-      darkButtonGradient: LinearGradient(
+      darkButtonGradient: const LinearGradient(
         colors: [
           Color(0xFF059669), // Koyu yeşil
           Color(0xFF047857), // Çok koyu yeşil
         ],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         colors: [
           Color(0xFFFCD34D), // Sarı
           Color(0xFFF59E0B), // Amber
         ],
       ),
-      accentColor: Color(0xFF34D399), // Çok parlak yeşil
-      darkAccentColor: Color(0xFF6EE7B7), // Parlak yeşil
-      primaryColor: Color(0xFF059669), // Orta yeşil
-      darkPrimaryColor: Color(0xFF065F46), // Koyu yeşil
-      textColor: Color(0xFF064E3B), // Koyu yeşil (açık arka planda)
-      darkTextColor: Color(0xFFD1FAE5), // Beyaza yakın yeşil (koyu arka planda)
+      accentColor: const Color(0xFF34D399), // Çok parlak yeşil
+      darkAccentColor: const Color(0xFF6EE7B7), // Parlak yeşil
+      primaryColor: const Color(0xFF059669), // Orta yeşil
+      darkPrimaryColor: const Color(0xFF065F46), // Koyu yeşil
+      textColor: const Color(0xFF064E3B), // Koyu yeşil (açık arka planda)
+      darkTextColor: const Color(0xFFD1FAE5), // Beyaza yakın yeşil (koyu arka planda)
     ),
     // 3. Rose (Pembe – gül)
     ThemeConfig(
@@ -227,7 +227,7 @@ class AppThemes {
       nameSw: 'Waridi la Jioni',
       nameHa: 'Furen Faduwar Rana',
       mode: AppThemeMode.rosePink,
-      backgroundGradient: LinearGradient(
+      backgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
@@ -236,7 +236,7 @@ class AppThemes {
           Color(0xFFFBCFE8), // Parlak pembe
         ],
       ),
-      darkBackgroundGradient: LinearGradient(
+      darkBackgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
@@ -245,30 +245,30 @@ class AppThemes {
           Color(0xFF86198F), // Orta pembe
         ],
       ),
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         colors: [
           Color(0xFFEC4899), // Parlak pembe
           Color(0xFFDB2777), // Koyu pembe
         ],
       ),
-      darkButtonGradient: LinearGradient(
+      darkButtonGradient: const LinearGradient(
         colors: [
           Color(0xFFBE185D), // Daha koyu pembe
           Color(0xFF9F1239), // Çok koyu pembe
         ],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         colors: [
           Color(0xFFF59E0B), // Amber
           Color(0xFFD97706), // Amber koyu
         ],
       ),
-      accentColor: Color(0xFFF472B6), // Çok parlak pembe
-      darkAccentColor: Color(0xFFF9A8D4), // Parlak pembe
-      primaryColor: Color(0xFFEC4899), // Orta pembe
-      darkPrimaryColor: Color(0xFFBE185D), // Koyu pembe
-      textColor: Color(0xFF831843), // Koyu pembe
-      darkTextColor: Color(0xFFFDF2F8), // Beyaza yakın pembe
+      accentColor: const Color(0xFFF472B6), // Çok parlak pembe
+      darkAccentColor: const Color(0xFFF9A8D4), // Parlak pembe
+      primaryColor: const Color(0xFFEC4899), // Orta pembe
+      darkPrimaryColor: const Color(0xFFBE185D), // Koyu pembe
+      textColor: const Color(0xFF831843), // Koyu pembe
+      darkTextColor: const Color(0xFFFDF2F8), // Beyaza yakın pembe
     ),
       // 4. Pure Dark (Nötr siyah/gri – mavi yok)
     ThemeConfig(
@@ -290,7 +290,7 @@ class AppThemes {
       nameHa: 'Graphite',
       mode: AppThemeMode.darkMode,
       // LIGHT: nötr koyu gri (mavi ton yok – Midnight’tan ayrı)
-      backgroundGradient: LinearGradient(
+      backgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
@@ -299,7 +299,7 @@ class AppThemes {
           Color(0xFF3A3A3C),
         ],
       ),
-      darkBackgroundGradient: LinearGradient(
+      darkBackgroundGradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
@@ -308,30 +308,30 @@ class AppThemes {
           Color(0xFF1F1F1F), // Koyu siyah
         ],
       ),
-      buttonGradient: LinearGradient(
+      buttonGradient: const LinearGradient(
         colors: [
           Color(0xFF404040), // Orta gri
           Color(0xFF5A5A5A), // Gri
         ],
       ),
-      darkButtonGradient: LinearGradient(
+      darkButtonGradient: const LinearGradient(
         colors: [
           Color(0xFF2A2A2A), // Daha koyu gri
           Color(0xFF333333), // Koyu gri
         ],
       ),
-      goldGradient: LinearGradient(
+      goldGradient: const LinearGradient(
         colors: [
           Color(0xFFFFD700), // Altın
           Color(0xFFFFC700), // Koyu altın
         ],
       ),
-      accentColor: Color(0xFF6B7280), // Gri
-      darkAccentColor: Color(0xFF9CA3AF), // Parlak gri
-      primaryColor: Color(0xFF4B5563), // Orta gri
-      darkPrimaryColor: Color(0xFF374151), // Koyu gri
-      textColor: Color(0xFFE5E7EB), // Açık gri – koyu arka planda okunaklı
-      darkTextColor: Color(0xFFF9FAFB), // Beyaza yakın gri
+      accentColor: const Color(0xFF6B7280), // Gri
+      darkAccentColor: const Color(0xFF9CA3AF), // Parlak gri
+      primaryColor: const Color(0xFF4B5563), // Orta gri
+      darkPrimaryColor: const Color(0xFF374151), // Koyu gri
+      textColor: const Color(0xFFE5E7EB), // Açık gri – koyu arka planda okunaklı
+      darkTextColor: const Color(0xFFF9FAFB), // Beyaza yakın gri
     ),
   ];
 

@@ -9,10 +9,10 @@ class CustomAboutDialog extends StatefulWidget {
   final AppLocalizations localizations;
 
   const CustomAboutDialog({
-    Key? key,
+    super.key,
     required this.currentTheme,
     required this.localizations,
-  }) : super(key: key);
+  });
 
   @override
   _CustomAboutDialogState createState() => _CustomAboutDialogState();

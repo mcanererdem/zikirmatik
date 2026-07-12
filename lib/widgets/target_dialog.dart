@@ -68,7 +68,7 @@ class _TargetDialogState extends State<TargetDialog> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: widget.themeConfig.textColor.withOpacity(0.08),
+            color: widget.themeConfig.textColor.withValues(alpha: 0.08),
             image: (() {
               final asset = isLightTheme
                   ? widget.themeConfig.lightBackgroundAsset
@@ -84,14 +84,14 @@ class _TargetDialogState extends State<TargetDialog> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: widget.themeConfig.primaryColor.withOpacity(0.4),
+                color: widget.themeConfig.primaryColor.withValues(alpha: 0.4),
                 blurRadius: 15,
                 spreadRadius: 1,
                 offset: const Offset(0, 4),
               ),
             ],
             border: Border.all(
-              color: widget.themeConfig.accentColor.withOpacity(0.3),
+              color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
               width: 2,
             ),
           ),
@@ -132,7 +132,7 @@ class _TargetDialogState extends State<TargetDialog> {
                 widget.localizations.quickSelect,
                 style: TextStyle(
                   fontSize: 14,
-                  color: widget.themeConfig.accentColor.withOpacity(0.8),
+                  color: widget.themeConfig.accentColor.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -149,18 +149,18 @@ class _TargetDialogState extends State<TargetDialog> {
                 widget.localizations.customTarget,
                 style: TextStyle(
                   fontSize: 14,
-                  color: widget.themeConfig.accentColor.withOpacity(0.8),
+                  color: widget.themeConfig.accentColor.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 12),
               Container(
                 decoration: BoxDecoration(
-                  color: widget.themeConfig.textColor.withOpacity(0.1),
+                  color: widget.themeConfig.textColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color:
-                        widget.themeConfig.accentColor.withOpacity(0.3),
+                        widget.themeConfig.accentColor.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -180,7 +180,7 @@ class _TargetDialogState extends State<TargetDialog> {
                     hintText: widget.localizations.enterTarget,
                     hintStyle: TextStyle(
                       color:
-                          widget.themeConfig.textColor.withOpacity(0.6),
+                          widget.themeConfig.textColor.withValues(alpha: 0.6),
                       fontSize: 16,
                     ),
                   ),
@@ -232,12 +232,12 @@ class _TargetDialogState extends State<TargetDialog> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           gradient: isSelected ? widget.themeConfig.goldGradient : null,
-          color: isSelected ? null : widget.themeConfig.textColor.withOpacity(0.1),
+          color: isSelected ? null : widget.themeConfig.textColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? widget.themeConfig.accentColor
-                : widget.themeConfig.textColor.withOpacity(0.3),
+                : widget.themeConfig.textColor.withValues(alpha: 0.3),
             width: 1.5,
           ),
         ),
@@ -261,12 +261,12 @@ class _TargetDialogState extends State<TargetDialog> {
     return Container(
       decoration: BoxDecoration(
         gradient: isPrimary ? widget.themeConfig.goldGradient : null,
-        color: isPrimary ? null : Colors.white.withOpacity(0.1),
+        color: isPrimary ? null : Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         boxShadow: isPrimary
             ? [
                 BoxShadow(
-                  color: widget.themeConfig.accentColor.withOpacity(0.3),
+                  color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                   offset: const Offset(0, 4),

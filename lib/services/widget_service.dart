@@ -8,7 +8,7 @@ class WidgetService {
   static const platform = MethodChannel('com.example.zikirmatik/widget');
   static Timer? _debounceTimer;
   
-  static Future<void> updateWidget(int _ignoredCounterParam) async {
+  static Future<void> updateWidget(int ignoredCounterParam) async {
     if (_debounceTimer?.isActive ?? false) {
       _debounceTimer!.cancel();
     }

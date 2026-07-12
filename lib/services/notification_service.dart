@@ -236,10 +236,10 @@ class NotificationService {
     bool? trophyNotificationsEnabled,
     TimeOfDay? dailyReminderTime,
   }) async {
-    if (notificationsEnabled != null) _notificationsEnabled = notificationsEnabled!;
-    if (zikirRemindersEnabled != null) _zikirRemindersEnabled = zikirRemindersEnabled!;
-    if (trophyNotificationsEnabled != null) _trophyNotificationsEnabled = trophyNotificationsEnabled!;
-    if (dailyReminderTime != null) _dailyReminderTime = dailyReminderTime!;
+    if (notificationsEnabled != null) _notificationsEnabled = notificationsEnabled;
+    if (zikirRemindersEnabled != null) _zikirRemindersEnabled = zikirRemindersEnabled;
+    if (trophyNotificationsEnabled != null) _trophyNotificationsEnabled = trophyNotificationsEnabled;
+    if (dailyReminderTime != null) _dailyReminderTime = dailyReminderTime;
 
     await _saveSettings();
   }
@@ -595,8 +595,11 @@ class NotificationService {
   // Bir sonraki belirtilen günü hesapla
   DateTime _getNextWeekday(DateTime now, int targetDayIndex, int hour, int minute) {
     int currentDayIndex = now.weekday % 7; // Pazartesi=1, Pazar=7 -> 0-6 formatına çevir
-    if (currentDayIndex == 0) currentDayIndex = 6; // Pazar'ı 6 yap
-    else currentDayIndex--; // Diğer günleri 0-5 arasına getir
+    if (currentDayIndex == 0) {
+      currentDayIndex = 6; // Pazar'ı 6 yap
+    } else {
+      currentDayIndex--; // Diğer günleri 0-5 arasına getir
+    }
     
     int daysUntilTarget = (targetDayIndex - currentDayIndex + 7) % 7;
     if (daysUntilTarget == 0) daysUntilTarget = 7; // Bugün ise bir sonraki hafta

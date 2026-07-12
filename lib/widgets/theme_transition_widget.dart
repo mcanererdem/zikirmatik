@@ -7,11 +7,11 @@ class ThemeTransitionContainer extends StatelessWidget {
   final bool isTransitioning;
 
   const ThemeTransitionContainer({
-    Key? key,
+    super.key,
     required this.child,
     required this.theme,
     this.isTransitioning = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +43,11 @@ class ThemeTransitionWidget extends StatefulWidget {
   final Curve curve;
 
   const ThemeTransitionWidget({
-    Key? key,
+    super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 600),
     this.curve = Curves.easeInOutCubic,
-  }) : super(key: key);
+  });
 
   @override
   State<ThemeTransitionWidget> createState() => _ThemeTransitionWidgetState();

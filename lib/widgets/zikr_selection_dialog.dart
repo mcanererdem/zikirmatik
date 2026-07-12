@@ -49,14 +49,14 @@ class ZikrSelectionDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: themeConfig.primaryColor.withOpacity(0.4),
+              color: themeConfig.primaryColor.withValues(alpha: 0.4),
               blurRadius: 15,
               spreadRadius: 1,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: themeConfig.accentColor.withOpacity(0.3),
+            color: themeConfig.accentColor.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -120,7 +120,7 @@ class ZikrSelectionDialog extends StatelessWidget {
                           }),
                           style: TextStyle(
                             fontSize: 14,
-                            color: themeConfig.accentColor.withOpacity(0.8),
+                            color: themeConfig.accentColor.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -158,12 +158,12 @@ class ZikrSelectionDialog extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: isSelected ? themeConfig.goldGradient : null,
-                color: isSelected ? null : themeConfig.textColor.withOpacity(0.1),
+                color: isSelected ? null : themeConfig.textColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
                       ? themeConfig.accentColor
-                      : themeConfig.textColor.withOpacity(0.2),
+                      : themeConfig.textColor.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
               ),
@@ -193,7 +193,7 @@ class ZikrSelectionDialog extends StatelessWidget {
                             zikr.getNameForLanguage('ar'),
                             style: TextStyle(
                               fontSize: 14,
-                              color: themeConfig.textColor.withOpacity(0.7),
+                              color: themeConfig.textColor.withValues(alpha: 0.7),
                             ),
                             textDirection: TextDirection.rtl,
                           ),
@@ -205,7 +205,7 @@ class ZikrSelectionDialog extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: themeConfig.textColor.withOpacity(0.2),
+                      color: themeConfig.textColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -238,7 +238,7 @@ class ZikrSelectionDialog extends StatelessWidget {
                     child: Container(
                       width: 40,
                       decoration: BoxDecoration(
-                        color: themeConfig.accentColor.withOpacity(0.85),
+                        color: themeConfig.accentColor.withValues(alpha: 0.85),
                         borderRadius: BorderRadius.only(
                           topRight: const Radius.circular(12),
                           bottomRight: canDelete ? Radius.zero : const Radius.circular(12),
@@ -291,7 +291,7 @@ class ZikrSelectionDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: themeConfig.primaryColor.withOpacity(0.4),
+            color: themeConfig.primaryColor.withValues(alpha: 0.4),
             blurRadius: 15,
             spreadRadius: 1,
             offset: const Offset(0, 4),

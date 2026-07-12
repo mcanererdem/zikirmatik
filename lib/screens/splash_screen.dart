@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
@@ -75,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
     ));
 
     _colorAnimation = Tween<Color>(
-      begin: widget.themeConfig.accentColor.withOpacity(0.3),
+      begin: widget.themeConfig.accentColor.withValues(alpha: 0.3),
       end: widget.themeConfig.accentColor,
     ).animate(_progressController);
 
@@ -145,13 +144,13 @@ class _SplashScreenState extends State<SplashScreen>
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: widget.themeConfig.accentColor.withOpacity(0.3),
+                              color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.auto_awesome_rounded,
                           size: 60,
                           color: Colors.white,
@@ -181,7 +180,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 color: widget.themeConfig.textColor,
                                 shadows: [
                                   Shadow(
-                                    color: widget.themeConfig.accentColor.withOpacity(0.5),
+                                    color: widget.themeConfig.accentColor.withValues(alpha: 0.5),
                                     blurRadius: 10,
                                     offset: const Offset(0, 2),
                                   ),
@@ -193,7 +192,7 @@ class _SplashScreenState extends State<SplashScreen>
                               'Zikir Huzuru',
                               style: GoogleFonts.notoSans(
                                 fontSize: 16,
-                                color: widget.themeConfig.textColor.withOpacity(0.7),
+                                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -214,7 +213,7 @@ class _SplashScreenState extends State<SplashScreen>
                       width: 200,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: widget.themeConfig.textColor.withOpacity(0.1),
+                        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(2),
                       ),
                       child: FractionallySizedBox(
@@ -248,7 +247,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'Yükleniyor...',
                         style: GoogleFonts.notoSans(
                           fontSize: 14,
-                          color: widget.themeConfig.textColor.withOpacity(0.6),
+                          color: widget.themeConfig.textColor.withValues(alpha: 0.6),
                         ),
                       ),
                     );
@@ -267,7 +266,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'v1.0.0',
                         style: GoogleFonts.notoSans(
                           fontSize: 12,
-                          color: widget.themeConfig.textColor.withOpacity(0.4),
+                          color: widget.themeConfig.textColor.withValues(alpha: 0.4),
                         ),
                       ),
                     );

@@ -7,12 +7,9 @@ import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dialog_manager.dart';
 import '../services/settings_service.dart';
-import '../services/notification_service.dart';
-import '../services/ad_service.dart';
 import '../screens/support_screen_new.dart';
 import '../screens/about_screen_new.dart';
 import '../screens/import_export_screen.dart';
-import '../screens/home_page.dart' as home;
 
 class SettingsDialogNew extends StatefulWidget {
   final ThemeConfig themeConfig;
@@ -109,7 +106,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
           gradient: widget.themeConfig.backgroundGradient,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -121,8 +118,8 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    widget.themeConfig.accentColor.withOpacity(0.3),
-                    widget.themeConfig.accentColor.withOpacity(0.1),
+                    widget.themeConfig.accentColor.withValues(alpha: 0.3),
+                    widget.themeConfig.accentColor.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
@@ -132,7 +129,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.settings,
                     color: Colors.white,
                     size: 24,
@@ -239,10 +236,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Wrap(
@@ -273,20 +270,20 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
               ? LinearGradient(
                   colors: [
                     widget.themeConfig.accentColor,
-                    widget.themeConfig.accentColor.withOpacity(0.7),
+                    widget.themeConfig.accentColor.withValues(alpha: 0.7),
                   ],
                 )
               : LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.05),
+                    Colors.white.withValues(alpha: 0.1),
+                    Colors.white.withValues(alpha: 0.05),
                   ],
                 ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? widget.themeConfig.accentColor
-                : Colors.white.withOpacity(0.3),
+                : Colors.white.withValues(alpha: 0.3),
           ),
         ),
         child: Text(
@@ -306,10 +303,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: DropdownButton<String>(
@@ -345,10 +342,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -393,10 +390,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -426,10 +423,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -480,7 +477,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -503,7 +500,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
           Switch(
             value: value,
             onChanged: (value) => onTap(),
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
         ],
       ),
@@ -515,7 +512,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -554,7 +551,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
             max: max,
             divisions: ((max - min) / 2).round(),
             activeColor: widget.themeConfig.accentColor,
-            inactiveColor: Colors.white.withOpacity(0.3),
+            inactiveColor: Colors.white.withValues(alpha: 0.3),
             onChanged: onChanged,
           ),
         ],
@@ -568,7 +565,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -602,7 +599,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isSelected ? widget.themeConfig.accentColor : Colors.white.withOpacity(0.2),
+                      color: isSelected ? widget.themeConfig.accentColor : Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -629,10 +626,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: InkWell(
@@ -669,7 +666,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: Colors.white54,
               size: 16,
@@ -685,10 +682,10 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -876,7 +873,7 @@ class _SettingsDialogNewState extends State<SettingsDialogNew> {
   }
 
   void _rateApp() async {
-    final url = 'https://play.google.com/store/apps/details?id=com.mcanererdem.zikirmatik';
+    const url = 'https://play.google.com/store/apps/details?id=com.mcanererdem.zikirmatik';
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     }

@@ -258,7 +258,7 @@ class _GoalDialogState extends State<GoalDialog> {
 
   Widget _buildZikrSelector() {
     return DropdownButtonFormField<ZikrModel>(
-      value: _selectedZikr,
+      initialValue: _selectedZikr,
       dropdownColor: widget.themeConfig.primaryColor,
       decoration: InputDecoration(
         filled: true,
@@ -295,20 +295,20 @@ class _GoalDialogState extends State<GoalDialog> {
       style: TextStyle(color: widget.themeConfig.textColor, fontSize: 18),
       decoration: InputDecoration(
         hintText: widget.localizations.enterTarget,
-        hintStyle: TextStyle(color: widget.themeConfig.textColor.withOpacity(0.5)),
+        hintStyle: TextStyle(color: widget.themeConfig.textColor.withValues(alpha: 0.5)),
         filled: true,
-        fillColor: widget.themeConfig.textColor.withOpacity(0.1),
+        fillColor: widget.themeConfig.textColor.withValues(alpha: 0.1),
         counterText: '',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -330,7 +330,7 @@ class _GoalDialogState extends State<GoalDialog> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               widget.localizations.cancel,
-              style: TextStyle(color: widget.themeConfig.textColor.withOpacity(0.7)),
+              style: TextStyle(color: widget.themeConfig.textColor.withValues(alpha: 0.7)),
             ),
           ),
         ),

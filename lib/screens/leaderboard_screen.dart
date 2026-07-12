@@ -833,7 +833,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
-              Icon(Icons.wifi_off, color: Colors.white, size: 22),
+              const Icon(Icons.wifi_off, color: Colors.white, size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: GestureDetector(
@@ -881,7 +881,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.close, color: Colors.white, size: 20),
+                icon: const Icon(Icons.close, color: Colors.white, size: 20),
                 onPressed: () => setState(() => _showOfflineBanner = false),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -1076,7 +1076,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               ? LinearGradient(
                   colors: [
                     widget.themeConfig.accentColor,
-                    widget.themeConfig.accentColor.withOpacity(0.8),
+                    widget.themeConfig.accentColor.withValues(alpha: 0.8),
                   ],
                 )
               : null,
@@ -1089,7 +1089,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             fontWeight: selected ? FontWeight.bold : FontWeight.w500,
             color: selected
                 ? Colors.white
-                : widget.themeConfig.textColor.withOpacity(0.8),
+                : widget.themeConfig.textColor.withValues(alpha: 0.8),
           ),
         ),
       ),
@@ -1114,12 +1114,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? widget.themeConfig.accentColor.withOpacity(0.24)
-                : widget.themeConfig.textColor.withOpacity(0.1),
+                ? widget.themeConfig.accentColor.withValues(alpha: 0.24)
+                : widget.themeConfig.textColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected
-                    ? widget.themeConfig.accentColor.withOpacity(0.8)
+                    ? widget.themeConfig.accentColor.withValues(alpha: 0.8)
                   : Colors.transparent,
             ),
           ),
@@ -1130,7 +1130,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color: isSelected
                   ? widget.themeConfig.accentColor
-                  : widget.themeConfig.textColor.withOpacity(0.9),
+                  : widget.themeConfig.textColor.withValues(alpha: 0.9),
               height: 1.2,
             ),
             textAlign: TextAlign.center,
@@ -1143,8 +1143,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildCupTypeSelector() {
-    final cupLabel =
-        (Map<String, String> m) => DynamicLocalizationHelper.getText(m);
+    String cupLabel(Map<String, String> m) => DynamicLocalizationHelper.getText(m);
     return Container(
       margin: const EdgeInsets.fromLTRB(
         _leaderboardHorizontalInset,
@@ -1298,12 +1297,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? widget.themeConfig.accentColor.withOpacity(0.24)
-                : tc.withOpacity(0.1),
+                ? widget.themeConfig.accentColor.withValues(alpha: 0.24)
+                : tc.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected
-                  ? widget.themeConfig.accentColor.withOpacity(0.8)
+                  ? widget.themeConfig.accentColor.withValues(alpha: 0.8)
                   : Colors.transparent,
             ),
           ),
@@ -1315,7 +1314,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color: isSelected
                   ? widget.themeConfig.accentColor
-                  : tc.withOpacity(0.9),
+                  : tc.withValues(alpha: 0.9),
               height: 1.2,
             ),
             textAlign: TextAlign.center,
@@ -1350,76 +1349,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildLeaderboardTrailing(Map<String, dynamic> user) {
-    final tc = widget.themeConfig.textColor;
-    if (_leaderboardMode == 'zikr') {
-      final z = user['total_zikrs'] ?? 0;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$z',
-            style: GoogleFonts.notoSans(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: tc,
-              height: 1.05,
-            ),
-          ),
-          Text(
-            DynamicLocalizationHelper.getText({
-              'tr': 'zikir',
-              'en': 'dhikr',
-              'ar': 'ذكر',
-              'id': 'zikir',
-              'ur': 'ذکر',
-              'bn': 'জিকির',
-              'ms': 'zikir',
-              'fa': 'ذکر',
-              'fr': 'dhikr',
-              'zh': '赞念',
-              'ja': 'ジクル',
-              'ru': 'зикр',
-              'de': 'Dhikr',
-              'sw': 'dhikr',
-              'ha': 'zikiri',
-            }),
-            style: GoogleFonts.notoSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: tc.withOpacity(0.62),
-            ),
-          ),
-        ],
-      );
-    }
-    final m = _cupMetricValue(user);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '$m',
-          style: GoogleFonts.notoSans(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: tc,
-            height: 1.05,
-          ),
-        ),
-        Text(
-          _cupMetricSubtitle(),
-          style: GoogleFonts.notoSans(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: tc.withOpacity(0.62),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildLeaderboardList() {
     if (_leaderboard.isEmpty) {
       if (_cupCategoryEmpty && _leaderboardMode == 'cups') {
@@ -1432,7 +1361,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 Icon(
                   Icons.workspace_premium_outlined,
                   size: 56,
-                  color: widget.themeConfig.textColor.withOpacity(0.45),
+                  color: widget.themeConfig.textColor.withValues(alpha: 0.45),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -1457,7 +1386,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   textAlign: TextAlign.center,
                   style: GoogleFonts.notoSans(
                     fontSize: 17,
-                    color: widget.themeConfig.textColor.withOpacity(0.78),
+                    color: widget.themeConfig.textColor.withValues(alpha: 0.78),
                   ),
                 ),
               ],
@@ -1472,7 +1401,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             Icon(
               Icons.leaderboard,
               size: 64,
-              color: widget.themeConfig.textColor.withOpacity(0.5),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Opacity(
@@ -1496,7 +1425,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               textAlign: TextAlign.center,
               style: GoogleFonts.notoSans(
                 fontSize: 18,
-                color: widget.themeConfig.textColor.withOpacity(0.72),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.72),
               ),
             ),
           ],
@@ -1579,14 +1508,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final Color borderColor;
     final Color bgColor;
     if (isCurrentUser) {
-      borderColor = accent.withOpacity(0.55);
-      bgColor = accent.withOpacity(0.10);
+      borderColor = accent.withValues(alpha: 0.55);
+      bgColor = accent.withValues(alpha: 0.10);
     } else if (isTop3) {
-      borderColor = _rankBorderColor(rank).withOpacity(0.55);
-      bgColor = base.withOpacity(0.58);
+      borderColor = _rankBorderColor(rank).withValues(alpha: 0.55);
+      bgColor = base.withValues(alpha: 0.58);
     } else {
-      borderColor = tc.withOpacity(0.10);
-      bgColor = base.withOpacity(0.42);
+      borderColor = tc.withValues(alpha: 0.10);
+      bgColor = base.withValues(alpha: 0.42);
     }
 
     final Color scoreColor;
@@ -1680,7 +1609,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   style: GoogleFonts.notoSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w400,
-                    color: tc.withOpacity(0.48),
+                    color: tc.withValues(alpha: 0.48),
                   ),
                 ),
               ],
@@ -1706,14 +1635,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final Color borderColor;
     final Color bgColor;
     if (isCurrentUser) {
-      borderColor = accent.withOpacity(0.55);
-      bgColor = accent.withOpacity(0.10);
+      borderColor = accent.withValues(alpha: 0.55);
+      bgColor = accent.withValues(alpha: 0.10);
     } else if (isTop3) {
-      borderColor = _rankBorderColor(rank).withOpacity(0.55);
-      bgColor = base.withOpacity(0.58);
+      borderColor = _rankBorderColor(rank).withValues(alpha: 0.55);
+      bgColor = base.withValues(alpha: 0.58);
     } else {
-      borderColor = tc.withOpacity(0.10);
-      bgColor = base.withOpacity(0.42);
+      borderColor = tc.withValues(alpha: 0.10);
+      bgColor = base.withValues(alpha: 0.42);
     }
 
     final Color scoreColor;
@@ -1812,7 +1741,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   style: GoogleFonts.notoSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w400,
-                    color: tc.withOpacity(0.48),
+                    color: tc.withValues(alpha: 0.48),
                   ),
                 ),
               ],
@@ -1955,7 +1884,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           style: GoogleFonts.notoSans(
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: color.withOpacity(0.85),
+            color: color.withValues(alpha: 0.85),
           ),
         ),
       ],
@@ -2005,47 +1934,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildMetricChip({
-    required int value,
-    required String label,
-    required Color textColor,
-    required Color accentColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: accentColor.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accentColor.withOpacity(0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$value',
-            style: GoogleFonts.notoSans(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: textColor,
-              height: 1,
-            ),
-          ),
-          Text(
-            label,
-            style: GoogleFonts.notoSans(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w600,
-              color: textColor.withOpacity(0.62),
-              height: 1.1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRankBadge(int rank, {bool cupMode = false}) {
+  Widget _buildRankBadge(int rank) {
     final tc = widget.themeConfig.textColor;
     if (rank <= 3) {
       final bg = rank == 1
@@ -2071,7 +1960,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         style: GoogleFonts.notoSans(
           fontSize: rank >= 100 ? 10 : 12,
           fontWeight: FontWeight.w500,
-          color: tc.withOpacity(0.4),
+          color: tc.withValues(alpha: 0.4),
           height: 1,
         ),
       ),
@@ -2093,7 +1982,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final Color ringColor;
     final double ringWidth;
     if (isCurrentUser) {
-      ringColor = accent.withOpacity(0.7);
+      ringColor = accent.withValues(alpha: 0.7);
       ringWidth = 1.5;
     } else if (rank == 1) {
       ringColor = const Color(0xFFC59D3A);
@@ -2105,7 +1994,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       ringColor = const Color(0xFF9E6B3E);
       ringWidth = 1.4;
     } else {
-      ringColor = tc.withOpacity(0.14);
+      ringColor = tc.withValues(alpha: 0.14);
       ringWidth = 0.8;
     }
 
@@ -2148,89 +2037,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  String _getCupLabel(String? cupId) {
-    switch (cupId) {
-      case 'bronze_kupa':
-        return DynamicLocalizationHelper.getText(
-            {'tr': 'En yüksek kupa: Bronz', 'en': 'Top cup: Bronze'});
-      case 'silver_kupa':
-        return DynamicLocalizationHelper.getText(
-            {'tr': 'En yüksek kupa: Gümüş', 'en': 'Top cup: Silver'});
-      case 'gold_kupa':
-        return DynamicLocalizationHelper.getText(
-            {'tr': 'En yüksek kupa: Altın', 'en': 'Top cup: Gold'});
-      case 'diamond_kupa':
-        return DynamicLocalizationHelper.getText(
-            {'tr': 'En yüksek kupa: Elmas', 'en': 'Top cup: Diamond'});
-      case 'platinum_kupa':
-        return DynamicLocalizationHelper.getText(
-            {'tr': 'En yüksek kupa: Platin', 'en': 'Top cup: Platinum'});
-      default:
-        return DynamicLocalizationHelper.getText(
-            {'tr': 'En yüksek kupa: Yok', 'en': 'Top cup: None'});
-    }
-  }
-
-  String _topCupFromCounts(Map<String, dynamic> user) {
-    final counts = <String, int>{
-      'bronze': _leaderboardInt(user['bronze_count']),
-      'silver': _leaderboardInt(user['silver_count']),
-      'gold': _leaderboardInt(user['gold_count']),
-      'diamond': _leaderboardInt(user['diamond_count']),
-      'platinum': _leaderboardInt(user['platinum_count']),
-    };
-    String best = 'bronze';
-    int max = -1;
-    for (final e in counts.entries) {
-      if (e.value > max) {
-        max = e.value;
-        best = e.key;
-      }
-    }
-    return max > 0 ? best : '';
-  }
-
-  Widget _buildCupBadges(Map<String, dynamic> user,
-      {bool highlightTopCup = false}) {
-    final topCup = highlightTopCup ? _topCupFromCounts(user) : '';
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children: [
-        _buildCupBadge(
-          TrophyAssets.bronze,
-          (user['bronze_count'] ?? 0).toString(),
-          Colors.brown,
-          isHighlighted: topCup == 'bronze',
-        ),
-        _buildCupBadge(
-          TrophyAssets.silver,
-          (user['silver_count'] ?? 0).toString(),
-          Colors.grey,
-          isHighlighted: topCup == 'silver',
-        ),
-        _buildCupBadge(
-          TrophyAssets.gold,
-          (user['gold_count'] ?? 0).toString(),
-          Colors.yellow,
-          isHighlighted: topCup == 'gold',
-        ),
-        _buildCupBadge(
-          TrophyAssets.diamond,
-          (user['diamond_count'] ?? 0).toString(),
-          Colors.blue,
-          isHighlighted: topCup == 'diamond',
-        ),
-        _buildCupBadge(
-          TrophyAssets.platinum,
-          (user['platinum_count'] ?? 0).toString(),
-          Colors.purple,
-          isHighlighted: topCup == 'platinum',
-        ),
-      ],
-    );
-  }
-
   Widget _buildCupBadge(
     String trophyAsset,
     String count,
@@ -2240,10 +2046,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: tierColor.withOpacity(isHighlighted ? 0.24 : 0.14),
+        color: tierColor.withValues(alpha: isHighlighted ? 0.24 : 0.14),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: tierColor.withOpacity(isHighlighted ? 0.8 : 0.33),
+          color: tierColor.withValues(alpha: isHighlighted ? 0.8 : 0.33),
           width: isHighlighted ? 1.2 : 1,
         ),
       ),
@@ -2255,8 +2061,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             height: 20,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: tierColor.withOpacity(0.2),
-              border: Border.all(color: tierColor.withOpacity(0.45)),
+              color: tierColor.withValues(alpha: 0.2),
+              border: Border.all(color: tierColor.withValues(alpha: 0.45)),
             ),
             child: Center(
               child: Image.asset(
@@ -2268,7 +2074,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   return Icon(
                     Icons.emoji_events,
                     size: 12,
-                    color: widget.themeConfig.textColor.withOpacity(0.95),
+                    color: widget.themeConfig.textColor.withValues(alpha: 0.95),
                   );
                 },
               ),
@@ -2279,7 +2085,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             count,
             style: GoogleFonts.notoSans(
               fontSize: 10.5,
-              color: widget.themeConfig.textColor.withOpacity(0.95),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.95),
               fontWeight: FontWeight.w800,
             ),
           ),

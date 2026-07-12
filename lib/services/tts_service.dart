@@ -1,7 +1,6 @@
 import 'package:flutter_tts/flutter_tts.dart';
 import '../models/zikr_model.dart';
 import '../services/settings_service.dart';
-import '../utils/localizations.dart';
 
 class TtsService {
   final FlutterTts _tts = FlutterTts();

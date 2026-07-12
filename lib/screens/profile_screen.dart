@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:path_provider/path_provider.dart';
@@ -180,7 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
       
-      debugPrint('👤 User profile loaded: ${userProfile?.displayName ?? 'Unknown'}');
+      debugPrint('👤 User profile loaded: ${userProfile.displayName ?? 'Unknown'}');
       debugPrint('🖼️ Avatar URL: $avatarUrl');
     } catch (e) {
       debugPrint('Error loading user profile: $e');
@@ -213,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             backgroundColor: widget.themeConfig.accentColor,
             backgroundImage: backgroundImage,
             child: backgroundImage == null
-                ? Icon(
+                ? const Icon(
                     Icons.person,
                     size: 40,
                     color: Colors.white,
@@ -231,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.camera_alt,
                 size: 14,
                 color: Colors.white,
@@ -357,8 +356,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SnackBar(
                 content: Row(
                   children: [
-                    Icon(Icons.check_circle, color: Colors.white),
-                    SizedBox(width: 8),
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 8),
                     Text(
                       DynamicLocalizationHelper.getText({
                         'tr': 'Profil fotoğrafı başarıyla güncellendi!',
@@ -387,7 +386,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
         } else {
           debugPrint('❌ Avatar upload failed; saving locally.');
-          await _saveAvatarLocally(image!);
+          await _saveAvatarLocally(image);
         }
       } else {
         debugPrint('📸 No image selected');
@@ -396,7 +395,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       debugPrint('❌ Avatar selection error: $e');
       _showErrorSnackBar(
-        DynamicLocalizationHelper.getText({
+        '${DynamicLocalizationHelper.getText({
               'tr': 'Profil fotoğrafı seçilemedi:',
               'en': 'Profile photo could not be selected:',
               'ar': 'تعذر اختيار صورة الملف الشخصي:',
@@ -412,8 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'de': 'Profilfoto konnte nicht ausgewählt werden:',
               'sw': 'Picha ya wasifu haikuweza kuchaguliwa:',
               'ha': 'Ba a iya zaɓar hoton martaba:',
-            }) +
-            ' $e',
+            })} $e',
       );
     } finally {
       if (mounted) {
@@ -478,7 +476,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               DynamicLocalizationHelper.cancel,
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -790,10 +788,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
           ),
         ),
         child: Column(
@@ -817,7 +815,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title,
               style: GoogleFonts.notoSans(
                 fontSize: 12,
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -919,27 +917,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             gradient: isUnlocked 
                 ? LinearGradient(
                   colors: [
-                    (cup['color'] as Color).withOpacity(0.3),
-                    (cup['color'] as Color).withOpacity(0.1),
+                    (cup['color'] as Color).withValues(alpha: 0.3),
+                    (cup['color'] as Color).withValues(alpha: 0.1),
                   ],
                 )
                 : LinearGradient(
                     colors: [
-                      Colors.grey.withOpacity(0.2),
-                      Colors.grey.withOpacity(0.1),
+                      Colors.grey.withValues(alpha: 0.2),
+                      Colors.grey.withValues(alpha: 0.1),
                     ],
                   ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isUnlocked 
-                  ? (cup['color'] as Color).withOpacity(0.6)
-                  : Colors.grey.withOpacity(0.3),
+                  ? (cup['color'] as Color).withValues(alpha: 0.6)
+                  : Colors.grey.withValues(alpha: 0.3),
             ),
             boxShadow: [
               BoxShadow(
                 color: isUnlocked 
-                    ? (cup['color'] as Color).withOpacity(0.3)
-                    : Colors.black.withOpacity(0.1),
+                    ? (cup['color'] as Color).withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -958,7 +956,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ? LinearGradient(
                         colors: [
                           (cup['color'] as Color),
-                          (cup['color'] as Color).withOpacity(0.8),
+                          (cup['color'] as Color).withValues(alpha: 0.8),
                         ],
                       )
                       : LinearGradient(
@@ -984,7 +982,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontWeight: FontWeight.w600,
                   color: isUnlocked 
                       ? Colors.white
-                      : Colors.white.withOpacity(0.7),
+                      : Colors.white.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
@@ -1009,7 +1007,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       nextCupName,
                       style: GoogleFonts.notoSans(
                         fontSize: 7,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1024,7 +1022,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 )
               else
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 16,
@@ -1141,7 +1139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -1164,7 +1162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: widget.themeConfig.textColor.withOpacity(0.5),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.5),
               size: 16,
             ),
           ],
@@ -1224,7 +1222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'sw': 'Jina la Mtumiaji',
               'ha': 'Suna Mai Amfani',
             }),
-            labelStyle: TextStyle(color: widget.themeConfig.textColor.withOpacity(0.7)),
+            labelStyle: TextStyle(color: widget.themeConfig.textColor.withValues(alpha: 0.7)),
             border: OutlineInputBorder(
               borderSide: BorderSide(color: widget.themeConfig.accentColor),
             ),
@@ -1300,7 +1298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'ar': 'الاسم المعروض',
               'id': 'Nama Tampilan',
             }),
-            labelStyle: TextStyle(color: widget.themeConfig.textColor.withOpacity(0.7)),
+            labelStyle: TextStyle(color: widget.themeConfig.textColor.withValues(alpha: 0.7)),
             border: OutlineInputBorder(
               borderSide: BorderSide(color: widget.themeConfig.accentColor),
             ),
@@ -1686,7 +1684,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
             child: Text(
               DynamicLocalizationHelper.delete,
-              style: TextStyle(color: Colors.red),
+              style: const TextStyle(color: Colors.red),
             ),
           ),
         ],
@@ -1904,10 +1902,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: widget.themeConfig.accentColor.withOpacity(0.1),
+                      color: widget.themeConfig.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: widget.themeConfig.accentColor.withOpacity(0.3),
+                        color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(
@@ -1949,10 +1947,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: widget.themeConfig.accentColor.withOpacity(0.1),
+                      color: widget.themeConfig.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: widget.themeConfig.accentColor.withOpacity(0.3),
+                        color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(

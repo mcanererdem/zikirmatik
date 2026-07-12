@@ -84,7 +84,7 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
           gradient: widget.themeConfig.backgroundGradient,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: widget.themeConfig.accentColor.withOpacity(0.35),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.35),
             width: 1.5,
           ),
         ),
@@ -137,7 +137,7 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
                       child: Text(
                         widget.localizations.cancel,
                         style: GoogleFonts.notoSans(
-                          color: widget.themeConfig.textColor.withOpacity(0.75),
+                          color: widget.themeConfig.textColor.withValues(alpha: 0.75),
                           fontSize: 15,
                         ),
                       ),
@@ -205,20 +205,20 @@ class _EditZikrDialogState extends State<EditZikrDialog> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.5),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.5),
             ),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
+            fillColor: Colors.white.withValues(alpha: 0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: widget.themeConfig.textColor.withOpacity(0.3),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.3),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: widget.themeConfig.textColor.withOpacity(0.3),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.3),
               ),
             ),
             focusedBorder: OutlineInputBorder(

@@ -1,6 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'dart:math';
-import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
@@ -724,13 +722,13 @@ class SupabaseService {
           .uploadBinary(
             fileName,
             fileBytes,
-            fileOptions: FileOptions(
+            fileOptions: const FileOptions(
               contentType: 'image/jpeg',
               upsert: true,
             ),
           );
       
-      debugPrint('✅ Upload successful: ${uploadResponse}');
+      debugPrint('✅ Upload successful: $uploadResponse');
       
       // Public URL oluştur
       final publicUrl = _supabase.storage
@@ -762,7 +760,7 @@ class SupabaseService {
           e.toString().toLowerCase().contains('violates')) {
         errorMessage += 'Depolama izin ayarları (RLS) Supabase Storage için kontrol edilmeli.';
       } else {
-        errorMessage += 'Hata: ${e.toString().length > 80 ? e.toString().substring(0, 80) + '...' : e}';
+        errorMessage += 'Hata: ${e.toString().length > 80 ? '${e.toString().substring(0, 80)}...' : e}';
       }
       throw Exception(errorMessage);
     }

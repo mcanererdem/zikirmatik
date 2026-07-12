@@ -4,15 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/settings_service.dart';
 import 'services/notification_service.dart';
 import 'services/widget_service.dart';
-import 'services/supabase_service.dart';
 import 'screens/home_page.dart';
 import 'screens/splash_screen.dart';
 import 'models/theme_model.dart';
@@ -226,7 +223,7 @@ class _MyAppState extends State<MyApp> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Splash screen göster
-            final themeId = 'blue_gold'; // Varsayılan tema
+            const themeId = 'blue_gold'; // Varsayılan tema
             final themeConfig = AppThemes.getTheme(themeId);
             
             return SplashScreen(

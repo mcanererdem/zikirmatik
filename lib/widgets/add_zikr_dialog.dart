@@ -230,14 +230,14 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: widget.themeConfig.primaryColor.withOpacity(0.4),
+              color: widget.themeConfig.primaryColor.withValues(alpha: 0.4),
               blurRadius: 15,
               spreadRadius: 1,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: widget.themeConfig.accentColor.withOpacity(0.3),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -362,10 +362,10 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: widget.themeConfig.accentColor.withOpacity(0.5),
+              color: widget.themeConfig.accentColor.withValues(alpha: 0.5),
               width: 2,
             ),
           ),
@@ -383,7 +383,7 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
               contentPadding: const EdgeInsets.all(16),
               hintText: hint,
               hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 16,
               ),
               hintTextDirection: textDirection,
@@ -402,12 +402,12 @@ class _AddZikrDialogState extends State<AddZikrDialog> {
     return Container(
       decoration: BoxDecoration(
         gradient: isPrimary ? widget.themeConfig.goldGradient : null,
-        color: isPrimary ? null : Colors.white.withOpacity(0.1),
+        color: isPrimary ? null : Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         boxShadow: isPrimary
             ? [
                 BoxShadow(
-                  color: widget.themeConfig.accentColor.withOpacity(0.3),
+                  color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                   offset: const Offset(0, 4),

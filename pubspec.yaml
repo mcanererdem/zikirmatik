@@ -36,6 +36,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   crypto: ^3.0.6
 
+  uuid: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
@@ -55,7 +54,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         ),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back,
             color: Colors.white,
           ),
@@ -105,7 +104,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: widget.themeConfig.accentColor.withOpacity(0.25),
+            color: widget.themeConfig.accentColor.withValues(alpha: 0.25),
           ),
         ),
         child: Stack(
@@ -123,8 +122,8 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    widget.themeConfig.primaryColor.withOpacity(0.25),
-                    widget.themeConfig.primaryColor.withOpacity(0.55),
+                    widget.themeConfig.primaryColor.withValues(alpha: 0.25),
+                    widget.themeConfig.primaryColor.withValues(alpha: 0.55),
                   ],
                 ),
               ),
@@ -141,13 +140,13 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.themeConfig.accentColor.withOpacity(0.2),
-            widget.themeConfig.accentColor.withOpacity(0.1),
+            widget.themeConfig.accentColor.withValues(alpha: 0.2),
+            widget.themeConfig.accentColor.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.accentColor.withOpacity(0.3),
+          color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -157,10 +156,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: widget.themeConfig.accentColor.withOpacity(0.2),
+              color: widget.themeConfig.accentColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(40),
               border: Border.all(
-                color: widget.themeConfig.accentColor.withOpacity(0.5),
+                color: widget.themeConfig.accentColor.withValues(alpha: 0.5),
                 width: 2,
               ),
             ),
@@ -228,10 +227,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -307,7 +306,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -341,7 +340,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
               ),
             ),
             if (onTap != null)
-              Icon(
+              const Icon(
                 Icons.arrow_forward_ios,
                 color: Colors.white54,
                 size: 16,
@@ -356,10 +355,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -619,10 +618,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
         ),
       ),
       child: Column(
@@ -656,13 +655,13 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.themeConfig.accentColor.withOpacity(0.2),
-            widget.themeConfig.accentColor.withOpacity(0.1),
+            widget.themeConfig.accentColor.withValues(alpha: 0.2),
+            widget.themeConfig.accentColor.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.accentColor.withOpacity(0.3),
+          color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -704,10 +703,10 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -757,7 +756,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -790,7 +789,7 @@ class _AboutScreenNewState extends State<AboutScreenNew> {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: Colors.white54,
               size: 16,

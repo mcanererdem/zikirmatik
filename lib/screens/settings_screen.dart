@@ -317,7 +317,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -562,7 +562,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -681,7 +681,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? widget.themeConfig.accentColor : widget.themeConfig.textColor.withOpacity(0.2),
+          color: isSelected ? widget.themeConfig.accentColor : widget.themeConfig.textColor.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -701,7 +701,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -762,7 +762,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'de': 'Dhikr-Erinnerungen',
               }),
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -778,7 +778,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await _notificationService.cancelReminderNotifications();
               }
             },
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
           const SizedBox(height: 8),
           ListTile(
@@ -821,11 +821,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'ha': 'Ƙara tunatarwa ta zaɓar lokaci da kwanaki',
               }),
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
-            trailing: Icon(Icons.chevron_right, color: widget.themeConfig.textColor.withOpacity(0.6)),
+            trailing: Icon(Icons.chevron_right, color: widget.themeConfig.textColor.withValues(alpha: 0.6)),
             onTap: () async {
               await _loadSettings();
               if (!mounted) return;
@@ -848,7 +848,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -873,7 +873,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text(
               widget.localizations.vibrateWhileCounting,
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -884,7 +884,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
               _settingsService.saveVibration(value);
             },
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
           SwitchListTile(
             title: Text(
@@ -896,7 +896,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text(
               widget.localizations.soundWhileCounting,
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -907,7 +907,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
               _settingsService.saveSound(value);
             },
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
           SwitchListTile(
             title: Text(
@@ -919,7 +919,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text(
               widget.localizations.confettiEffectDescription,
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -930,7 +930,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
               _settingsService.saveConfetti(value);
             },
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
         ],
       ),
@@ -942,7 +942,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -967,7 +967,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text(
               widget.localizations.readDhikrTextsAloud,
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -978,7 +978,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
               _settingsService.saveTtsEnabled(value);
             },
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
           SwitchListTile(
             title: Text(
@@ -990,7 +990,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text(
               widget.localizations.showLeaderboard,
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -1007,7 +1007,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     .catchError((_) {});
               }
             },
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
           ListTile(
             leading: Icon(Icons.share, color: widget.themeConfig.accentColor),
@@ -1040,7 +1040,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'de': 'Kupas und Zikir-Anzahl über WhatsApp, Soziale Medien usw. teilen.',
               }),
               style: GoogleFonts.notoSans(
-                color: widget.themeConfig.textColor.withOpacity(0.7),
+                color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -1390,7 +1390,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'ru': 'При включении ваш счётчик зикров (с именем пользователя) будет отображаться в общей таблице лидеров. Вы можете отключить это в настройках в любой момент.',
             'de': 'Wenn aktiviert, erscheint Ihre Zikir-Anzahl (mit Benutzername) in der öffentlichen Bestenliste. Sie können dies jederzeit in den Einstellungen deaktivieren.',
           }),
-          style: GoogleFonts.notoSans(color: widget.themeConfig.textColor.withOpacity(0.9), fontSize: 14),
+          style: GoogleFonts.notoSans(color: widget.themeConfig.textColor.withValues(alpha: 0.9), fontSize: 14),
         ),
         actions: [
           TextButton(
@@ -1409,7 +1409,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'ru': 'Отмена',
                 'de': 'Abbrechen',
               }),
-              style: TextStyle(color: widget.themeConfig.textColor.withOpacity(0.8)),
+              style: TextStyle(color: widget.themeConfig.textColor.withValues(alpha: 0.8)),
             ),
           ),
           TextButton(
@@ -1510,7 +1510,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'ha': 'Na gode da kallon talla. Goyon bayanku yana taimaka ajiye app kyauta.',
           }),
           style: GoogleFonts.notoSans(
-            color: widget.themeConfig.textColor.withOpacity(0.9),
+            color: widget.themeConfig.textColor.withValues(alpha: 0.9),
             fontSize: 14,
           ),
         ),
@@ -1550,13 +1550,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.themeConfig.accentColor.withOpacity(0.2),
-            widget.themeConfig.accentColor.withOpacity(0.08),
+            widget.themeConfig.accentColor.withValues(alpha: 0.2),
+            widget.themeConfig.accentColor.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: widget.themeConfig.accentColor.withOpacity(0.4),
+          color: widget.themeConfig.accentColor.withValues(alpha: 0.4),
         ),
       ),
       child: Column(
@@ -1614,7 +1614,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               'ha': 'Kalli talla gajere don taimaka ajiye app kyauta.',
             }),
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.85),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.85),
               fontSize: 13,
             ),
           ),
@@ -1694,7 +1694,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.themeConfig.textColor.withOpacity(0.1),
+        color: widget.themeConfig.textColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1844,7 +1844,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: widget.themeConfig.textColor.withOpacity(0.6),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.6),
               size: 16,
             ),
           ],

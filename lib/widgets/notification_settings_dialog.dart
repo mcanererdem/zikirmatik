@@ -231,7 +231,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
           gradient: LinearGradient(
             colors: [
               widget.themeConfig.primaryColor,
-              widget.themeConfig.primaryColor.withOpacity(0.8),
+              widget.themeConfig.primaryColor.withValues(alpha: 0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
@@ -272,12 +272,12 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Icon(
                         Icons.close,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         size: 20,
                       ),
                     ),
@@ -481,7 +481,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -503,7 +503,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                   subtitle,
                   style: GoogleFonts.notoSans(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -512,7 +512,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: widget.themeConfig.accentColor,
+            activeThumbColor: widget.themeConfig.accentColor,
           ),
         ],
       ),
@@ -536,10 +536,10 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isSelected ? widget.themeConfig.accentColor : Colors.white.withOpacity(0.1),
+              color: isSelected ? widget.themeConfig.accentColor : Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? widget.themeConfig.accentColor : Colors.white.withOpacity(0.3),
+                color: isSelected ? widget.themeConfig.accentColor : Colors.white.withValues(alpha: 0.3),
               ),
             ),
             child: Center(
@@ -548,7 +548,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                 style: GoogleFonts.notoSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
                 ),
               ),
             ),
@@ -568,7 +568,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -593,7 +593,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                       subtitle,
                       style: GoogleFonts.notoSans(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -610,7 +610,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
                     }
                   });
                 },
-                activeColor: widget.themeConfig.accentColor,
+                activeThumbColor: widget.themeConfig.accentColor,
               ),
             ],
           ),
@@ -621,7 +621,7 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: widget.themeConfig.accentColor.withOpacity(0.2),
+                  color: widget.themeConfig.accentColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -663,14 +663,14 @@ class _NotificationSettingsDialogState extends State<NotificationSettingsDialog>
         gradient: isSecondary 
             ? LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.2),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.1),
                 ],
               )
             : widget.themeConfig.buttonGradient,
         borderRadius: BorderRadius.circular(12),
         border: isSecondary 
-            ? Border.all(color: Colors.white.withOpacity(0.3))
+            ? Border.all(color: Colors.white.withValues(alpha: 0.3))
             : null,
       ),
       child: Material(

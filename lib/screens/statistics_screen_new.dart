@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
 import '../utils/dynamic_localization_helper.dart';
@@ -87,7 +86,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
       
       if (lastZikrDate != null) {
         final now = DateTime.now();
-        final difference = now.difference(lastZikrDate!).inDays;
+        final difference = now.difference(lastZikrDate).inDays;
         
         if (difference <= 1) {
           currentStreak = 1; // Bugün veya dün zikir çekilmiş
@@ -592,13 +591,13 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            widget.themeConfig.accentColor.withOpacity(0.2),
-            widget.themeConfig.accentColor.withOpacity(0.1),
+            widget.themeConfig.accentColor.withValues(alpha: 0.2),
+            widget.themeConfig.accentColor.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.themeConfig.accentColor.withOpacity(0.3),
+          color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -837,10 +836,10 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -886,7 +885,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                       Text(
                         data['day'],
                         style: GoogleFonts.notoSans(
-                          color: widget.themeConfig.textColor.withOpacity(0.7),
+                          color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                           fontSize: 12,
                         ),
                       ),
@@ -898,7 +897,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                           gradient: LinearGradient(
                             colors: [
                               widget.themeConfig.accentColor,
-                              widget.themeConfig.accentColor.withOpacity(0.7),
+                              widget.themeConfig.accentColor.withValues(alpha: 0.7),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(8),
@@ -911,7 +910,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                                 : ((data['zikrs'] as int?) ?? 0) / maxZikrs,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: widget.themeConfig.accentColor.withOpacity(0.8),
+                                color: widget.themeConfig.accentColor.withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
@@ -942,10 +941,10 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -1038,7 +1037,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
                   'ha': 'Lura: Wannan kimantawa ce daga kididdigar da aka tara a cikin na’ura.',
                 }),
                 style: GoogleFonts.notoSans(
-                  color: widget.themeConfig.textColor.withOpacity(0.7),
+                  color: widget.themeConfig.textColor.withValues(alpha: 0.7),
                   fontSize: 12,
                 ),
               ),
@@ -1115,7 +1114,7 @@ class _StatisticsScreenNewState extends State<StatisticsScreenNew> {
           Text(
             title,
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.7),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.7),
               fontSize: 14,
             ),
           ),

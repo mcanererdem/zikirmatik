@@ -25,6 +25,9 @@ class AdService {
     if (Platform.isAndroid) {
       return 'ca-app-pub-3168432816497910/5020294598';
     } else if (Platform.isIOS) {
+      // TODO(ios-release): no production AdMob iOS ad unit exists yet (Android-only release).
+      // Replace with a real iOS banner unit ID before ever shipping to the App Store —
+      // this currently serves Google's test ads even in release builds.
       return 'ca-app-pub-3940256099942544/2934735716';
     }
     return '';
@@ -42,6 +45,9 @@ class AdService {
     if (Platform.isAndroid) {
       return 'ca-app-pub-3168432816497910/1001158538';
     } else if (Platform.isIOS) {
+      // TODO(ios-release): no production AdMob iOS ad unit exists yet (Android-only release).
+      // Replace with a real iOS rewarded unit ID before ever shipping to the App Store —
+      // this currently serves Google's test ads even in release builds.
       return 'ca-app-pub-3940256099942544/1712485313';
     }
     return '';

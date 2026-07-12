@@ -7,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show Platform;
 import 'package:crypto/crypto.dart';
 import '../models/theme_model.dart';
 import '../utils/localizations.dart';
@@ -95,13 +94,13 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    widget.themeConfig.accentColor.withOpacity(0.2),
-                    widget.themeConfig.accentColor.withOpacity(0.1),
+                    widget.themeConfig.accentColor.withValues(alpha: 0.2),
+                    widget.themeConfig.accentColor.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: widget.themeConfig.accentColor.withOpacity(0.3),
+                  color: widget.themeConfig.accentColor.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -145,7 +144,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                       'fr': 'Vous pouvez sauvegarder ou restaurer compteurs, trophées et paramètres. Les données sont enregistrées au format JSON.',
                     }),
                     style: GoogleFonts.notoSans(
-                      color: widget.themeConfig.textColor.withOpacity(0.8),
+                      color: widget.themeConfig.textColor.withValues(alpha: 0.8),
                       fontSize: 14,
                       height: 1.4,
                     ),
@@ -171,10 +170,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Text(
@@ -200,10 +199,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -251,7 +250,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               'fr': 'Exportez toutes vos données en fichier JSON.',
             }),
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.8),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.8),
               fontSize: 14,
             ),
           ),
@@ -362,10 +361,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -409,7 +408,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               'ha': 'Maido backup ɗinku na baya.',
             }),
             style: GoogleFonts.notoSans(
-              color: widget.themeConfig.textColor.withOpacity(0.8),
+              color: widget.themeConfig.textColor.withValues(alpha: 0.8),
               fontSize: 14,
             ),
           ),
@@ -429,7 +428,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
@@ -685,7 +684,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        initialDirectory: initialDirectory?.path,
+        initialDirectory: initialDirectory.path,
       );
 
       if (result != null && result.files.first.path != null) {
