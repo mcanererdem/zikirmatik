@@ -99,7 +99,8 @@ void main() {
   // Initialize AdMob in background (don't await here to avoid blocking UI).
   MobileAds.instance.updateRequestConfiguration(
     RequestConfiguration(testDeviceIds: [
-      '877E869F3262F1F3869B6957DB237A75', // device id shown in logs
+      '877E869F3262F1F3869B6957DB237A75', // previous test device
+      '6C9A34060A1A5B474CC3A0AE1B790C8B', // STK L21 test device
     ]),
   ).then((_) => MobileAds.instance.initialize());
   }, (error, stack) {

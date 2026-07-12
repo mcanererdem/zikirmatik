@@ -899,7 +899,6 @@ class _KupaScreenNewState extends State<KupaScreenNew> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
         border: Border.all(color: borderColor, width: 1.2),
         gradient: unlocked
             ? LinearGradient(
