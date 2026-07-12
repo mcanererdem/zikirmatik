@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
   BoxDecoration? _cachedBackgroundDecoration;
   ThemeConfig? _cachedBackgroundTheme;
 
-  BoxDecoration _buildBackgroundDecoration() {
+  BoxDecoration _buildBackgroundDecoration(BuildContext context) {
     if (identical(_cachedBackgroundTheme, _currentTheme) && _cachedBackgroundDecoration != null) {
       return _cachedBackgroundDecoration!;
     }
@@ -115,10 +115,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
         ? _currentTheme.lightBackgroundAsset
         : _currentTheme.darkBackgroundAsset;
     final asset = themeAsset ?? generatedAsset ?? fallbackAsset;
+
+    // Arka plan görselleri kaynakta çok yüksek çözünürlükte (ör. 1376x3072, 7MB);
+    // tam çözünürlükte decode etmek her tema/mod değişiminde UI thread'i donduruyordu.
+    // Ekran genişliğine göre decode boyutunu sınırla.
+    final screenWidthPx = (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).round();
     final decoration = BoxDecoration(
       gradient: _currentTheme.backgroundGradient,
       image: DecorationImage(
-              image: AssetImage(asset),
+              image: ResizeImage(AssetImage(asset), width: screenWidthPx),
               fit: BoxFit.cover,
               opacity: 0.18,
             ),
@@ -1227,7 +1232,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin, Widg
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: _buildBackgroundDecoration(),
+        decoration: _buildBackgroundDecoration(context),
         child: Stack(
           children: [
             Column(
