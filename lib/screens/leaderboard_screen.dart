@@ -639,8 +639,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       return;
     }
 
+    if (cached != null) {
+      // Bu segment için fetch zaten yapıldı ama sonuç boş (ör. bugün için
+      // henüz zikir kaydı yok). Önceki sekmenin verisini ekranda bırakmak
+      // yerine bu segmenti gerçekten boş göster.
+      await _applyLeaderboardData(const []);
+      return;
+    }
+
     if (_leaderboardCache.isNotEmpty) {
-      // Veri mevcut ama seçilen segment boşsa spinner'da kalmayalım.
+      // Veri mevcut ama seçilen segment için henüz fetch yapılmadı; spinner'da kalmayalım.
       if (mounted) {
         setState(() => _isLoading = false);
       }
